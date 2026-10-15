@@ -1,0 +1,53 @@
+[2026-10-15 14:24:09] ======================================================================
+[2026-10-15 14:24:09] Starting Video Preview Automated Validation
+[2026-10-15 14:24:09] Using test video: /home/isaques/Code/Projetos/Python/ultrawarp-batch/Exemplos de Videos/Original.mp4 (53.5 MB)
+[2026-10-15 14:24:09] Loaded 582 verified valid effects from /home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/valid_effects.json
+[2026-10-15 14:24:09] Testing video preview against 30 effects...
+[2026-10-15 14:24:09] Launching backend server: /home/isaques/Code/Projetos/VibeCoded/GmicVideo/target/release/GmicVideo
+[2026-10-15 14:24:09] Probing video metadata...
+[2026-10-15 14:24:10] [OK] Video probed: 2560x1440, duration=16.88s, fps=24.0, frames=405
+[2026-10-15 14:24:10] ----------------------------------------------------------------------
+[2026-10-15 14:24:11] [  1/30] [PREVIEW OK] 'about_gmicky___roddy' (Gmicky - Roddy) -> 600x601, mean=172.5, max=255 in 0.93s
+[2026-10-15 14:24:12] [  2/30] [PREVIEW OK] 'arrays___tiles_grid__cartesian_' (Grid [Cartesian]) -> 960x540, mean=71.8, max=254 in 0.92s
+[2026-10-15 14:24:13] [  3/30] [PREVIEW OK] 'arrays___tiles_array__mirrored_' (Array [Mirrored]) -> 960x540, mean=88.9, max=255 in 0.99s
+[2026-10-15 14:24:14] [  4/30] [PREVIEW OK] 'arrays___tiles_array__regular_' (Array [Regular]) -> 960x540, mean=88.9, max=255 in 0.99s
+[2026-10-15 14:24:15] [  5/30] [PREVIEW OK] 'arrays___tiles_chessboard' (Chessboard) -> 960x540, mean=98.3, max=255 in 1.03s
+[2026-10-15 14:24:16] [  6/30] [PREVIEW OK] 'arrays___tiles_array__faded_' (Array [Faded]) -> 960x540, mean=86.0, max=255 in 0.97s
+[2026-10-15 14:24:17] [  7/30] [PREVIEW OK] 'arrays___tiles_array__random_colors_' (Array [Random Colors]) -> 960x540, mean=111.3, max=254 in 1.04s
+[2026-10-15 14:24:18] [  8/30] [PREVIEW OK] 'arrays___tiles_array__random_' (Array [Random]) -> 1344x756, mean=85.4, max=255 in 1.05s
+[2026-10-15 14:24:19] [  9/30] [PREVIEW OK] 'arrays___tiles_ministeck' (Ministeck) -> 511x287, mean=91.3, max=255 in 0.96s
+[2026-10-15 14:24:20] [ 10/30] [PREVIEW OK] 'arrays___tiles_dices' (Dices) -> 1920x1080, mean=225.6, max=255 in 1.17s
+[2026-10-15 14:24:21] [ 11/30] [PREVIEW OK] 'arrays___tiles_montage' (Montage) -> 960x540, mean=89.2, max=255 in 1.11s
+[2026-10-15 14:24:22] [ 12/30] [PREVIEW OK] 'arrays___tiles_tiled_isolation' (Tiled Isolation) -> 1013x570, mean=80.1, max=255 in 1.08s
+[2026-10-15 14:24:23] [ 13/30] [PREVIEW OK] 'arrays___tiles_puzzle' (Puzzle) -> 960x540, mean=85.0, max=255 in 1.04s
+[2026-10-15 14:24:24] [ 14/30] [PREVIEW OK] 'arrays___tiles_extract_objects' (Extract Objects) -> 960x540, mean=89.2, max=255 in 1.11s
+[2026-10-15 14:24:25] [ 15/30] [PREVIEW OK] 'arrays___tiles_tiled_normalization' (Tiled Normalization) -> 960x540, mean=82.5, max=255 in 1.07s
+[2026-10-15 14:24:26] [ 16/30] [PREVIEW OK] 'arrays___tiles_tiled_random_shifts' (Tiled Random Shifts) -> 960x540, mean=85.3, max=255 in 1.04s
+[2026-10-15 14:24:28] [ 17/30] [PREVIEW OK] 'arrays___tiles_make_seamless__diffusion_' (Make Seamless [Diffusion]) -> 960x540, mean=89.0, max=255 in 1.36s
+[2026-10-15 14:24:29] [ 18/30] [FAIL:BACKEND] 'arrays___tiles_tileable_rotation' (Tileable Rotation): Failed to apply G'MIC effect: gmic failed: [gmic]./ Start G'MIC interpreter (v.3.7.4).
+[gmic]./ Input file '/tmp/gmic_video_previews/preview_raw_1792085068190.png' at position 0 (1 image 960x540x1x3).
+[gmic] [0;31;59m[1m*** Error in ./fx_rotate_tileable/ *** Command 'rotate_tileable': Invalid image dimension (960,540,1,3).[0;0;0m
+
+ (1.02s)
+[2026-10-15 14:24:30] [ 19/30] [PREVIEW OK] 'arrays___tiles_shuffle_patches' (Shuffle Patches) -> 960x540, mean=88.6, max=250 in 1.11s
+[2026-10-15 14:24:31] [ 20/30] [PREVIEW OK] 'arrays___tiles_grid__triangular_' (Grid [Triangular]) -> 960x540, mean=83.9, max=254 in 1.12s
+[2026-10-15 14:24:34] [ 21/30] [PREVIEW OK] 'about_download_external_data' (Download External Data) -> 960x540, mean=89.2, max=255 in 3.18s
+[2026-10-15 14:24:35] [ 22/30] [PREVIEW OK] 'artistic_aurora' (Aurora) -> 960x540, mean=18.0, max=255 in 0.98s
+[2026-10-15 14:24:36] [ 23/30] [PREVIEW OK] 'arrays___tiles_taquin' (Taquin) -> 959x539, mean=89.5, max=255 in 1.03s
+[2026-10-15 14:24:37] [ 24/30] [PREVIEW OK] 'artistic_bokeh' (Bokeh) -> 960x540, mean=142.7, max=255 in 1.05s
+[2026-10-15 14:24:38] [ 25/30] [PREVIEW OK] 'artistic_kuwahara' (Kuwahara) -> 960x540, mean=89.3, max=255 in 1.12s
+[2026-10-15 14:24:40] [ 26/30] [PREVIEW OK] 'artistic_quadtree_variations' (Quadtree Variations) -> 960x540, mean=88.7, max=255 in 1.32s
+[2026-10-15 14:24:41] [ 27/30] [PREVIEW OK] 'black___white_black___white' (Black & White) -> 960x540, mean=90.2, max=250 in 1.01s
+[2026-10-15 14:24:42] [ 28/30] [PREVIEW OK] 'black___white_b_w_stencil' (B&W Stencil) -> 960x540, mean=76.4, max=255 in 1.10s
+[2026-10-15 14:24:43] [ 29/30] [PREVIEW OK] 'artistic_warhol' (Warhol) -> 960x540, mean=100.5, max=255 in 1.09s
+[2026-10-15 14:24:44] [ 30/30] [PREVIEW OK] 'black___white_colorize__photographs_' (Colorize [Photographs]) -> 960x540, mean=89.2, max=255 in 1.00s
+[2026-10-15 14:24:44] ======================================================================
+[2026-10-15 14:24:44] VIDEO PREVIEW VALIDATION SUMMARY
+[2026-10-15 14:24:44] Total effects tested:      30
+[2026-10-15 14:24:44] Preview successful:        29 (96.7%)
+[2026-10-15 14:24:44] Black frames detected:     0
+[2026-10-15 14:24:44] Preview errors/failures:   1
+[2026-10-15 14:24:44] Total validation time:     34.3s (avg 1.14s per preview)
+[2026-10-15 14:24:44] ======================================================================
+[2026-10-15 14:24:44] Saved full preview validation results to: /home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/video_preview_results.json
+[2026-10-15 14:24:44] Detailed logs saved to: /home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/video_preview_validation.log

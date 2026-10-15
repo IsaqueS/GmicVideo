@@ -1,0 +1,4942 @@
+[
+  {
+    "id": "arrays___tiles_drawn_montage",
+    "name": "Drawn Montage",
+    "category": "Arrays & Tiles",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.37766146659851074
+  },
+  {
+    "id": "arrays___tiles_ascii_art",
+    "name": "Ascii Art",
+    "category": "Arrays & Tiles",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.2744510173797607
+  },
+  {
+    "id": "arrays___tiles_grid__hexagonal_",
+    "name": "Grid [Hexagonal]",
+    "category": "Arrays & Tiles",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "arrays___tiles_loose_photos",
+    "name": "Loose Photos",
+    "category": "Arrays & Tiles",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "arrays___tiles_make_seamless__patch_based_",
+    "name": "Make Seamless [Patch-Based]",
+    "category": "Arrays & Tiles",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "arrays___tiles_tiled_parameterization",
+    "name": "Tiled Parameterization",
+    "category": "Arrays & Tiles",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "arrays___tiles_tiled_rotation",
+    "name": "Tiled Rotation",
+    "category": "Arrays & Tiles",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_brushify",
+    "name": "Brushify",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_cartoon",
+    "name": "Cartoon",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_circle_abstraction",
+    "name": "Circle Abstraction",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_cubism",
+    "name": "Cubism",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_doodle",
+    "name": "Doodle",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_cutout",
+    "name": "Cutout",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_ellipsionism",
+    "name": "Ellipsionism",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_diffusion_tensors",
+    "name": "Diffusion Tensors",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_felt_pen",
+    "name": "Felt Pen",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_fractalize",
+    "name": "Fractalize",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_ghost",
+    "name": "Ghost",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_hard_sketch",
+    "name": "Hard Sketch",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_highlight_bloom",
+    "name": "Highlight Bloom",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_hope_poster",
+    "name": "Hope Poster",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_hough_sketch",
+    "name": "Hough Sketch",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_illustration_look",
+    "name": "Illustration Look",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_linify",
+    "name": "Linify",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_lylejk_s_painting",
+    "name": "Lylejk's Painting",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_marker_drawing",
+    "name": "Marker Drawing",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_paint_with_brush",
+    "name": "Paint With Brush",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_painting",
+    "name": "Painting",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_stylize",
+    "name": "Stylize",
+    "category": "Artistic",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.3357574939727783
+  },
+  {
+    "id": "artistic_polygonize__delaunay_",
+    "name": "Polygonize [Delaunay]",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_polygonize__energy_",
+    "name": "Polygonize [Energy]",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_poster_edges",
+    "name": "Poster Edges",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_posterize",
+    "name": "Posterize",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_shapeism",
+    "name": "Shapeism",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_rodilius",
+    "name": "Rodilius",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_sharp_abstract",
+    "name": "Sharp Abstract",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_sketch",
+    "name": "Sketch",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_smooth_abstract",
+    "name": "Smooth Abstract",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_stringify",
+    "name": "Stringify",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "black___white_colorize__interactive_",
+    "name": "Colorize [Interactive]",
+    "category": "Black & White",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "black___white_colorize_lineart__auto_fill_",
+    "name": "Colorize Lineart [Auto-Fill]",
+    "category": "Black & White",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "black___white_colorize_lineart__smart_coloring_",
+    "name": "Colorize Lineart [Smart Coloring]",
+    "category": "Black & White",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "black___white_engrave",
+    "name": "Engrave",
+    "category": "Black & White",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "black___white_filaments",
+    "name": "Filaments",
+    "category": "Black & White",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "black___white_freaky_b_w",
+    "name": "Freaky B&W",
+    "category": "Black & White",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "black___white_ink_wash",
+    "name": "Ink Wash",
+    "category": "Black & White",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "black___white_pencil",
+    "name": "Pencil",
+    "category": "Black & White",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "black___white_multi_layer_etch",
+    "name": "Multi-Layer Etch",
+    "category": "Black & White",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_clut_from_after___before_layers",
+    "name": "CLUT from After - Before Layers",
+    "category": "Colors",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.6862647533416748
+  },
+  {
+    "id": "black___white_pencil_portrait",
+    "name": "Pencil Portrait",
+    "category": "Black & White",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_colorful_blobs",
+    "name": "Colorful Blobs",
+    "category": "Colors",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.3889749050140381
+  },
+  {
+    "id": "black___white_threshold_etch",
+    "name": "Threshold Etch",
+    "category": "Black & White",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_abstraction",
+    "name": "Abstraction",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_curves",
+    "name": "Curves",
+    "category": "Colors",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 2.7070884704589844
+  },
+  {
+    "id": "colors_color_mask__interactive_",
+    "name": "Color Mask [Interactive]",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_customize_clut",
+    "name": "Customize CLUT",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_detect_skin",
+    "name": "Detect Skin",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_hsv_select",
+    "name": "HSV Select",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_metallic_look",
+    "name": "Metallic Look",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_transfer_colors__pca_",
+    "name": "Transfer Colors [PCA]",
+    "category": "Colors",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.6202356815338135
+  },
+  {
+    "id": "colors_user_defined",
+    "name": "User-Defined",
+    "category": "Colors",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.0315532684326172
+  },
+  {
+    "id": "colors_mixer__lab_",
+    "name": "Mixer [Lab]",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_retro_fade",
+    "name": "Retro Fade",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_morphological_filter",
+    "name": "Morphological Filter",
+    "category": "Contours",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.8985350131988525
+  },
+  {
+    "id": "colors_tune_hsv_colors",
+    "name": "Tune HSV Colors",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_vintage_style",
+    "name": "Vintage Style",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_zone_system",
+    "name": "Zone System",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "deformations_conformal_maps",
+    "name": "Conformal Maps",
+    "category": "Deformations",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.3205044269561768
+  },
+  {
+    "id": "contours_edges_offsets",
+    "name": "Edges Offsets",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_extract_foreground__interactive_",
+    "name": "Extract Foreground [Interactive]",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "deformations_heightfield_warp",
+    "name": "Heightfield Warp",
+    "category": "Deformations",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.35731077194213867
+  },
+  {
+    "id": "contours_segmentation",
+    "name": "Segmentation",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "deformations_morph__interactive_",
+    "name": "Morph [Interactive]",
+    "category": "Deformations",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.3989133834838867
+  },
+  {
+    "id": "contours_super_pixels",
+    "name": "Super-Pixels",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_thin_edges",
+    "name": "Thin Edges",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "deformations_breaks",
+    "name": "Breaks",
+    "category": "Deformations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "deformations_polar_transform",
+    "name": "Polar Transform",
+    "category": "Deformations",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.9181227684020996
+  },
+  {
+    "id": "deformations_stereographic_projection",
+    "name": "Stereographic Projection",
+    "category": "Deformations",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.6042907238006592
+  },
+  {
+    "id": "deformations_warp__rbf_",
+    "name": "Warp [RBF]",
+    "category": "Deformations",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.3582303524017334
+  },
+  {
+    "id": "deformations_kaleidoscope__blended_",
+    "name": "Kaleidoscope [Blended]",
+    "category": "Deformations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "deformations_poincar\u00e9_disk",
+    "name": "Poincar\u00e9 Disk",
+    "category": "Deformations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "deformations_seamcarve",
+    "name": "Seamcarve",
+    "category": "Deformations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "deformations_warp__interactive_",
+    "name": "Warp [Interactive]",
+    "category": "Deformations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "deformations_wind",
+    "name": "Wind",
+    "category": "Deformations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_add_grain",
+    "name": "Add Grain",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_blur__bloom_",
+    "name": "Blur [Bloom]",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_blur__angular_",
+    "name": "Blur [Angular]",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_blur__depth_of_field_",
+    "name": "Blur [Depth-Of-Field]",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_blur__glow_",
+    "name": "Blur [Glow]",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_blur__motion_",
+    "name": "Blur [Motion]",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_blur__linear_",
+    "name": "Blur [Linear]",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_blur__radial_",
+    "name": "Blur [Radial]",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_chromatic_aberrations",
+    "name": "Chromatic Aberrations",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_blur__multidirectional_",
+    "name": "Blur [Multidirectional]",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_crt_phosphors",
+    "name": "CRT Phosphors",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_crt_sub_pixels",
+    "name": "CRT Sub-Pixels",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_crt_scanlines",
+    "name": "CRT Scanlines",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_dirty",
+    "name": "Dirty",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_huffman_glitches",
+    "name": "Huffman Glitches",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_jpeg_artefacts",
+    "name": "JPEG Artefacts",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_lomo",
+    "name": "Lomo",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_noise__gradient_",
+    "name": "Noise [Gradient]",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_visible_watermark",
+    "name": "Visible Watermark",
+    "category": "Degradations",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 3.1731016635894775
+  },
+  {
+    "id": "degradations_rebuild_from_similar_blocks",
+    "name": "Rebuild From Similar Blocks",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_vhs_filter",
+    "name": "VHS Filter",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_dcp_dehaze",
+    "name": "DCP Dehaze",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_dynamic_range_increase",
+    "name": "Dynamic Range Increase",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_details_equalizer",
+    "name": "Details Equalizer",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_equalize_local_histograms",
+    "name": "Equalize Local Histograms",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_freaky_details",
+    "name": "Freaky Details",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_high_pass",
+    "name": "High Pass",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_local_processing",
+    "name": "Local Processing",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_magic_details",
+    "name": "Magic Details",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_mask_creator",
+    "name": "Mask Creator",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_portrait_retouching",
+    "name": "Portrait Retouching",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_mighty_details",
+    "name": "Mighty Details",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_sharpen__alpha_",
+    "name": "Sharpen [Alpha]",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_sharpen__gold_meinel_",
+    "name": "Sharpen [Gold-Meinel]",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_sharpen__deblur_",
+    "name": "Sharpen [Deblur]",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_sharpen__hessian_",
+    "name": "Sharpen [Hessian]",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_sharpen__multiscale_",
+    "name": "Sharpen [Multiscale]",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_sharpen__shock_filters_",
+    "name": "Sharpen [Shock Filters]",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_sharpen__richardson_lucy_",
+    "name": "Sharpen [Richardson-Lucy]",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_sharpen__texture_",
+    "name": "Sharpen [Texture]",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_sharpen__unsharp_mask_",
+    "name": "Sharpen [Unsharp Mask]",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_split_details__alpha_",
+    "name": "Split Details [Alpha]",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_split_details__gaussian_",
+    "name": "Split Details [Gaussian]",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_split_details__wavelets_",
+    "name": "Split Details [Wavelets]",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_tone_enhance",
+    "name": "Tone Enhance",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_tone_mapping",
+    "name": "Tone Mapping",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "frequencies_fourier_watermark",
+    "name": "Fourier Watermark",
+    "category": "Frequencies",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.3408355712890625
+  },
+  {
+    "id": "layers_blend__fade_",
+    "name": "Blend [Fade]",
+    "category": "Layers",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.4578700065612793
+  },
+  {
+    "id": "layers_blend__standard_",
+    "name": "Blend [Standard]",
+    "category": "Layers",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.1447839736938477
+  },
+  {
+    "id": "frames_frame__smooth_",
+    "name": "Frame [Smooth]",
+    "category": "Frames",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "frames_old_photograph",
+    "name": "Old Photograph",
+    "category": "Frames",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "frames_polaroid",
+    "name": "Polaroid",
+    "category": "Frames",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "layers_colors_to_layers",
+    "name": "Colors to Layers",
+    "category": "Layers",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "layers_spatial_blend_multi_layers",
+    "name": "Spatial Blend Multi-Layers",
+    "category": "Layers",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "lights___shadows_burn",
+    "name": "Burn",
+    "category": "Lights & Shadows",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "lights___shadows_dodge_and_burn",
+    "name": "Dodge and Burn",
+    "category": "Lights & Shadows",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "lights___shadows_drop_shadow",
+    "name": "Drop Shadow",
+    "category": "Lights & Shadows",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "lights___shadows_illuminate_2d_shape",
+    "name": "Illuminate 2D Shape",
+    "category": "Lights & Shadows",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "lights___shadows_light_leaks",
+    "name": "Light Leaks",
+    "category": "Lights & Shadows",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_box_fitting",
+    "name": "Box Fitting",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_camouflage",
+    "name": "Camouflage",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_canvas",
+    "name": "Canvas",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_cracks",
+    "name": "Cracks",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_crystal",
+    "name": "Crystal",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_freqy_pattern",
+    "name": "Freqy Pattern",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_halftone",
+    "name": "Halftone",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_lava",
+    "name": "Lava",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_mineral_mosaic",
+    "name": "Mineral Mosaic",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_organic_fibers",
+    "name": "Organic Fibers",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_pack_ellipses",
+    "name": "Pack Ellipses",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_pack_sprites",
+    "name": "Pack Sprites",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_random_pattern",
+    "name": "Random Pattern",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_resynthetize_texture__patch_based_",
+    "name": "Resynthetize Texture [Patch-Based]",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_resynthetize_texture__fft_",
+    "name": "Resynthetize Texture [FFT]",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_reaction_diffusion",
+    "name": "Reaction-Diffusion",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_satin",
+    "name": "Satin",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_seamless_turbulence",
+    "name": "Seamless Turbulence",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_shock_waves",
+    "name": "Shock Waves",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_stained_glass",
+    "name": "Stained Glass",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_stencil",
+    "name": "Stencil",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_turing",
+    "name": "Turing",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_voronoi",
+    "name": "Voronoi",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_whirl_drawing",
+    "name": "Whirl Drawing",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_2_5d_extrusion",
+    "name": "2.5D Extrusion",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_generate_random_portrait",
+    "name": "Generate Random Portrait",
+    "category": "Rendering",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.6407198905944824
+  },
+  {
+    "id": "rendering_3d_blocks",
+    "name": "3D Blocks",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_3d_elevation",
+    "name": "3D Elevation",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_quick_copyright",
+    "name": "Quick Copyright",
+    "category": "Rendering",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.2880291938781738
+  },
+  {
+    "id": "rendering_newton_fractal",
+    "name": "Newton Fractal",
+    "category": "Rendering",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.8209025859832764
+  },
+  {
+    "id": "rendering_speech_bubble",
+    "name": "Speech Bubble",
+    "category": "Rendering",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.6059420108795166
+  },
+  {
+    "id": "rendering_symmetric_2d_shape",
+    "name": "Symmetric 2D Shape",
+    "category": "Rendering",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.084963321685791
+  },
+  {
+    "id": "rendering_circle_art",
+    "name": "Circle Art",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_gradient__random_",
+    "name": "Gradient [Random]",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_mandelbrot___julia_sets",
+    "name": "Mandelbrot - Julia Sets",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_neon_lightning",
+    "name": "Neon Lightning",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_plasma",
+    "name": "Plasma",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_spline_spirograph",
+    "name": "Spline Spirograph",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_turbulence",
+    "name": "Turbulence",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_denoise__cnn_",
+    "name": "Denoise [CNN]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_deinterlace2x",
+    "name": "Deinterlace2x",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_inpaint__multi_scale_",
+    "name": "Inpaint [Multi-Scale]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_inpaint__transport_diffusion_",
+    "name": "Inpaint [Transport-Diffusion]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_smooth__antialias_",
+    "name": "Smooth [Antialias]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_smooth__anisotropic_",
+    "name": "Smooth [Anisotropic]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_smooth__iuwt_",
+    "name": "Smooth [IUWT]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_smooth__mean_curvature_",
+    "name": "Smooth [Mean-Curvature]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_smooth__diffusion_",
+    "name": "Smooth [Diffusion]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_smooth__block_pca_",
+    "name": "Smooth [Block PCA]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_smooth__nl_means_",
+    "name": "Smooth [NL-Means]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_smooth__patch_based_",
+    "name": "Smooth [Patch-Based]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_smooth__patch_pca_",
+    "name": "Smooth [Patch-PCA]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_smooth__perona_malik_",
+    "name": "Smooth [Perona-Malik]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_smooth__selective_gaussian_",
+    "name": "Smooth [Selective Gaussian]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_smooth__skin_",
+    "name": "Smooth [Skin]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_smooth__wavelets_",
+    "name": "Smooth [Wavelets]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_smooth__total_variation_",
+    "name": "Smooth [Total Variation]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_smooth__wiener_",
+    "name": "Smooth [Wiener]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_solidify",
+    "name": "Solidify",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_unstrip",
+    "name": "Unstrip",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_upscale__dcci2x_",
+    "name": "Upscale [DCCI2x]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_upscale__diffusion_",
+    "name": "Upscale [Diffusion]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_upscale__scale2x_",
+    "name": "Upscale [Scale2x]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_upscale__cnn2x_",
+    "name": "Upscale [CNN2x]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "sequences_3d_elevation__animated_",
+    "name": "3D Elevation [Animated]",
+    "category": "Sequences",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "sequences_3d_extrusion__animated_",
+    "name": "3D Extrusion [Animated]",
+    "category": "Sequences",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "sequences_3d_image_object__animated_",
+    "name": "3D Image Object [Animated]",
+    "category": "Sequences",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "sequences_3d_text_pointcloud",
+    "name": "3D Text Pointcloud",
+    "category": "Sequences",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "sequences_b_w_pencil__animated_",
+    "name": "B&W Pencil [Animated]",
+    "category": "Sequences",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "sequences_b_w_stencil__animated_",
+    "name": "B&W Stencil [Animated]",
+    "category": "Sequences",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "sequences_cartoon__animated_",
+    "name": "Cartoon [Animated]",
+    "category": "Sequences",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "sequences_edges__animated_",
+    "name": "Edges [Animated]",
+    "category": "Sequences",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "sequences_edges_on_fire",
+    "name": "Edges on Fire",
+    "category": "Sequences",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "sequences_lava_lamp",
+    "name": "Lava Lamp",
+    "category": "Sequences",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "sequences_lissajous__animated_",
+    "name": "Lissajous [Animated]",
+    "category": "Sequences",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "sequences_rodilius__animated_",
+    "name": "Rodilius [Animated]",
+    "category": "Sequences",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "sequences_soft_glow__animated_",
+    "name": "Soft Glow [Animated]",
+    "category": "Sequences",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "stereoscopic_3d_3d_video_conversion",
+    "name": "3D Video Conversion",
+    "category": "Stereoscopic 3D",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.1099941730499268
+  },
+  {
+    "id": "stereoscopic_3d_depth_map_construction",
+    "name": "Depth Map Construction",
+    "category": "Stereoscopic 3D",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "stereoscopic_3d_automatic_depth_estimation",
+    "name": "Automatic Depth Estimation",
+    "category": "Stereoscopic 3D",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "others_dragon_curve",
+    "name": "Dragon Curve",
+    "category": "Others",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "stereoscopic_3d_de_anaglyph",
+    "name": "De-Anaglyph",
+    "category": "Stereoscopic 3D",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "stereoscopic_3d_3d_conversion",
+    "name": "3D Conversion",
+    "category": "Stereoscopic 3D",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "stereoscopic_3d_single_image_stereogram",
+    "name": "Single Image Stereogram",
+    "category": "Stereoscopic 3D",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "stereoscopic_3d_stereo_image",
+    "name": "Stereo Image",
+    "category": "Stereoscopic 3D",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "stereoscopic_3d_undo_anaglyph",
+    "name": "Undo Anaglyph",
+    "category": "Stereoscopic 3D",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_contrast",
+    "name": "Contrast",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_local_contrast",
+    "name": "Local Contrast",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_edge",
+    "name": "Edge",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_contrast_fft",
+    "name": "Contrast FFT",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_denoise__afre_",
+    "name": "Denoise [afre]",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_equation_plot__implicit_",
+    "name": "Equation Plot [Implicit]",
+    "category": "Rendering",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.28147172927856445
+  },
+  {
+    "id": "details_gamify",
+    "name": "Gamify",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_denoise_smooth",
+    "name": "Denoise Smooth",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_denoise_smooth_alt",
+    "name": "Denoise Smooth Alt",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_sharpen_fft",
+    "name": "Sharpen FFT",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_remove_scratches",
+    "name": "Remove Scratches",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_descreen",
+    "name": "Descreen",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_comicbook",
+    "name": "Comicbook",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "garagecoder_crmt_tiles",
+    "name": "CRMT Tiles",
+    "category": "Garagecoder",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.016223669052124
+  },
+  {
+    "id": "black___white_lineart",
+    "name": "Lineart",
+    "category": "Black & White",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "frames_frame__relief_",
+    "name": "Frame [Relief]",
+    "category": "Frames",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_neon_carpet",
+    "name": "Neon Carpet",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_anti_alias",
+    "name": "Anti Alias",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "corvo_corvo_s_painting_5",
+    "name": "Corvo's Painting 5",
+    "category": "Corvo",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "garagecoder_layer_manipulation",
+    "name": "Layer Manipulation",
+    "category": "Garagecoder",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.562873363494873
+  },
+  {
+    "id": "garagecoder_canny_edge_detection",
+    "name": "Canny Edge Detection",
+    "category": "Garagecoder",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_compression_blur",
+    "name": "Compression Blur",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "garagecoder_deblur_texture",
+    "name": "Deblur Texture",
+    "category": "Garagecoder",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "garagecoder_depth_blur",
+    "name": "Depth Blur",
+    "category": "Garagecoder",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "black___white_emboss",
+    "name": "Emboss",
+    "category": "Black & White",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "garagecoder_gradient_exponent",
+    "name": "Gradient Exponent",
+    "category": "Garagecoder",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "garagecoder_inpaint__clone_",
+    "name": "Inpaint [Clone]",
+    "category": "Garagecoder",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "garagecoder_stereo_video",
+    "name": "Stereo Video",
+    "category": "Garagecoder",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.4895882606506348
+  },
+  {
+    "id": "repair_jpeg_smooth",
+    "name": "JPEG Smooth",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_simple_dehaze",
+    "name": "Simple Dehaze",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_sharpen__tones_",
+    "name": "Sharpen [Tones]",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "garagecoder_simple_tone_curve",
+    "name": "Simple Tone Curve",
+    "category": "Garagecoder",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_smooth__geometric_median_",
+    "name": "Smooth [Geometric-Median]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_unquantize__jpeg_smooth_",
+    "name": "Unquantize [JPEG Smooth]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_upscale__edge_",
+    "name": "Upscale [Edge]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_upscale__noise_",
+    "name": "Upscale [Noise]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_upscale__recursive2x_",
+    "name": "Upscale [Recursive2x]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "garagecoder_upscale__patch2x_",
+    "name": "Upscale [Patch2x]",
+    "category": "Garagecoder",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_upscale__solver2x_",
+    "name": "Upscale [Solver2x]",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_lens_blur",
+    "name": "Lens Blur",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_finger_paint",
+    "name": "Finger Paint",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "garagecoder_xbr2x",
+    "name": "Xbr2x",
+    "category": "Garagecoder",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_automixer",
+    "name": "Automixer",
+    "category": "Iain Fergusson",
+    "status": "black_image",
+    "error": "Image is completely black (mean=0.00, max=0)",
+    "elapsed": 3.0700361728668213,
+    "mean": 0.0,
+    "max": 0
+  },
+  {
+    "id": "patterns_hedcut",
+    "name": "Hedcut",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_hair_locks",
+    "name": "Hair Locks",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_rectangular_tiling",
+    "name": "Rectangular Tiling",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_auto_wb_by_hue_variance",
+    "name": "Auto WB by Hue Variance",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_anisotropic_tutorial",
+    "name": "Anisotropic Tutorial",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_cmyk_tone",
+    "name": "CMYK Tone",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_fast_formula",
+    "name": "Fast Formula",
+    "category": "Iain Fergusson",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.4071485996246338
+  },
+  {
+    "id": "colors_rgb_tone",
+    "name": "RGB Tone",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_hue_lighten_darken",
+    "name": "Hue Lighten-Darken",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_constrained_sharpen",
+    "name": "Constrained Sharpen",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_tone_presets",
+    "name": "Tone Presets",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_texture_enhance",
+    "name": "Texture Enhance",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_pyramid_processing",
+    "name": "Pyramid Processing",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_easy_skin_retouch",
+    "name": "Easy Skin Retouch",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_exfuse",
+    "name": "Exfuse",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_exfusion5",
+    "name": "Exfusion5",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_fft_tile",
+    "name": "FFT Tile",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_halftone_shapes",
+    "name": "Halftone Shapes",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_iain_2x",
+    "name": "Iain 2x",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_iain_star_burst",
+    "name": "Iain Star Burst",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_iain_denoise_2019_beta3",
+    "name": "Iain Denoise 2019 Beta3",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_iain_unindex",
+    "name": "Iain Unindex",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_iain_s_noise_reduction_old",
+    "name": "Iain's Noise Reduction Old",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_iid_demosaic",
+    "name": "IID Demosaic",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_iain_highlight_synthesis",
+    "name": "Iain Highlight Synthesis",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_luminance_nr2",
+    "name": "Luminance NR2",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_minimum_chroma_demosaic",
+    "name": "Minimum Chroma Demosaic",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_moire_removal",
+    "name": "Moire Removal",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_moire_removal_not_parallel",
+    "name": "Moire Removal Not Parallel",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_ms_patch_chroma",
+    "name": "MS Patch Chroma",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_ms_nl_means_c_noise2",
+    "name": "MS NL-Means C Noise2",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_ms_patch_nr",
+    "name": "MS Patch NR",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_multi_scale_patch_smoothing",
+    "name": "Multi Scale Patch Smoothing",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_ms_patch_nr3",
+    "name": "MS Patch NR3",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_multi_scale_smoothing",
+    "name": "Multi Scale Smoothing",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_save_noise_print",
+    "name": "Save Noise Print",
+    "category": "Repair",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.1165821552276611
+  },
+  {
+    "id": "iain_fergusson_noise_reduction_5",
+    "name": "Noise Reduction 5",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_banding_denoise",
+    "name": "Banding Denoise",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_iain_noise_reduction_2019",
+    "name": "Iain Noise Reduction 2019",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_iain_s_fast_denoise",
+    "name": "Iain's Fast Denoise",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_recursive_median",
+    "name": "Recursive Median",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_pixel_denoise",
+    "name": "Pixel Denoise",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "j__233_j__233__zernike",
+    "name": "Zernike",
+    "category": "J&#233;J&#233;",
+    "status": "black_image",
+    "error": "Image is completely black (mean=0.00, max=0)",
+    "elapsed": 3.249703884124756,
+    "mean": 0.0,
+    "max": 0
+  },
+  {
+    "id": "iain_fergusson_smart_demosaic",
+    "name": "Smart Demosaic",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_simple_local_contrast",
+    "name": "Simple Local Contrast",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "iain_fergusson_split_detials__orientation_",
+    "name": "Split Detials [Orientation]",
+    "category": "Iain Fergusson",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_turbulent_halftone",
+    "name": "Turbulent Halftone",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "jayprich_jpr_coltexindex",
+    "name": "Jpr Coltexindex",
+    "category": "Jayprich",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "jayprich_jpr_gradient_smooth",
+    "name": "Jpr Gradient Smooth",
+    "category": "Jayprich",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "jayprich_jpr_line_edges",
+    "name": "Jpr Line Edges",
+    "category": "Jayprich",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "jayprich_jpr_remove_blocks1",
+    "name": "Jpr Remove Blocks1",
+    "category": "Jayprich",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "jayprich_jpr_shapes_gradient",
+    "name": "Jpr Shapes Gradient",
+    "category": "Jayprich",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "jayprich_jpr_warpfromthreshold",
+    "name": "Jpr Warpfromthreshold",
+    "category": "Jayprich",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_dreamy_abstraction",
+    "name": "Dreamy Abstraction",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_dreamy_watercolour",
+    "name": "Dreamy Watercolour",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_hard_painting",
+    "name": "Hard Painting",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_neon",
+    "name": "Neon",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_neon_alpha",
+    "name": "Neon Alpha",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_whirling_lines",
+    "name": "Whirling Lines",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "deformations_auto_gnarl",
+    "name": "Auto-Gnarl",
+    "category": "Deformations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_buffer_destroyer",
+    "name": "Buffer Destroyer",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "deformations_layer_cake",
+    "name": "Layer Cake",
+    "category": "Deformations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "deformations_shifter",
+    "name": "Shifter",
+    "category": "Deformations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "deformations_ultrawarp_2",
+    "name": "UltraWarp 2",
+    "category": "Deformations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_ultrawarp____",
+    "name": "UltraWarp++++",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_broken_texture_afre",
+    "name": "Broken Texture Afre",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_dct_fsu",
+    "name": "DCT FSU",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_fake_jfif__jpeg__encoder",
+    "name": "Fake JFIF (JPEG) Encoder",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_faux_qam_glitch",
+    "name": "Faux-QAM Glitch",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_jfif_effects",
+    "name": "JFIF Effects",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_jfif__jpeg__self_bomb",
+    "name": "JFIF [JPEG] Self-Bomb",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_jfif_effects_extended",
+    "name": "JFIF Effects Extended",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_jpeg_encoder",
+    "name": "JPEG Encoder",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_multi_mosaic",
+    "name": "Multi-Mosaic",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_pseudo_ecb__electronic_code_book_algorithm_",
+    "name": "Pseudo-ECB (Electronic Code Book Algorithm)",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_sawtoother__lab8_",
+    "name": "Sawtoother [Lab8]",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_sawtoother__lch8_",
+    "name": "Sawtoother [LCH8]",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_8_bit_plane_splitter",
+    "name": "8-Bit Plane Splitter",
+    "category": "Details",
+    "status": "black_image",
+    "error": "Image is completely black (mean=0.55, max=1)",
+    "elapsed": 1.8888816833496094,
+    "mean": 0.5495257568359375,
+    "max": 1
+  },
+  {
+    "id": "karo_s_tests_cimg_nl_means",
+    "name": "CImg NL-Means",
+    "category": "KaRo's Tests",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.5396907329559326
+  },
+  {
+    "id": "karo_s_tests_cimg_skeleton",
+    "name": "CImg Skeleton",
+    "category": "KaRo's Tests",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.7560226917266846
+  },
+  {
+    "id": "degradations_sawtoother__srgb_",
+    "name": "Sawtoother [sRGB]",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "karo_s_tests_pink_test_operator_bianca",
+    "name": "Pink Test Operator Bianca",
+    "category": "KaRo's Tests",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.0739850997924805
+  },
+  {
+    "id": "degradations_sawtoother__yuv8_",
+    "name": "Sawtoother [YUV8]",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_superstreak",
+    "name": "Superstreak",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_bilinear_enhancement",
+    "name": "Bilinear Enhancement",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "karo_s_tests_pink_operator",
+    "name": "Pink Operator",
+    "category": "KaRo's Tests",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 4.399499177932739
+  },
+  {
+    "id": "rendering_crazy_texture",
+    "name": "Crazy Texture",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "karo_s_tests_mm_differences",
+    "name": "MM Differences",
+    "category": "KaRo's Tests",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "karo_s_tests_oc_differences",
+    "name": "OC Differences",
+    "category": "KaRo's Tests",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "karo_s_tests_pink_operator_binary",
+    "name": "Pink Operator Binary",
+    "category": "KaRo's Tests",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "lylejk_lylejk_quantize_wicker",
+    "name": "Lylejk Quantize Wicker",
+    "category": "Lylejk",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_morphology_painting",
+    "name": "Morphology Painting",
+    "category": "Artistic",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.6957406997680664
+  },
+  {
+    "id": "lylejk_lylejk_ribbon",
+    "name": "Lylejk Ribbon",
+    "category": "Lylejk",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "lylejk_lylejk_test_trw",
+    "name": "Lylejk Test TRW",
+    "category": "Lylejk",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "lylejk_lylejk_woven",
+    "name": "Lylejk Woven",
+    "category": "Lylejk",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "lylejk_lylejk_wicker",
+    "name": "Lylejk Wicker",
+    "category": "Lylejk",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "lylejk_lylejk_s_stencil",
+    "name": "Lylejk's Stencil",
+    "category": "Lylejk",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "lylejk_lylejk_wicker_2",
+    "name": "Lylejk Wicker 2",
+    "category": "Lylejk",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "lylejk_pen_drawing",
+    "name": "Pen Drawing",
+    "category": "Lylejk",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "lylejk_point_star_outline",
+    "name": "Point Star Outline",
+    "category": "Lylejk",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_color_abstraction_paint",
+    "name": "Color Abstraction Paint",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_dream_smoothing",
+    "name": "Dream Smoothing",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_make_squiggly",
+    "name": "Make Squiggly",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_exposure_fusion_weight_map",
+    "name": "Exposure Fusion Weight Map",
+    "category": "Details",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 2.963589906692505
+  },
+  {
+    "id": "artistic_simple_noise_canvas",
+    "name": "Simple Noise Canvas",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_black___white_film",
+    "name": "Black & White Film",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "naggobot_composition_analysis",
+    "name": "Composition Analysis",
+    "category": "Naggobot",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_yag_effect",
+    "name": "YAG Effect",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_dodge_sketch",
+    "name": "Dodge Sketch",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_make_old_squiggly",
+    "name": "Make Old Squiggly",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_mapped_smoothing",
+    "name": "Mapped Smoothing",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_night_hdr_image_black_noise_correction",
+    "name": "Night HDR Image Black Noise Correction",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_noise_painting",
+    "name": "Noise Painting",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_pastell_art",
+    "name": "Pastell Art",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_smooth_sketch",
+    "name": "Smooth Sketch",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_colored_pencils",
+    "name": "Colored Pencils",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_graphic_boost",
+    "name": "Graphic Boost",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "photocomix_b_w_steampunk_pencil",
+    "name": "B&W Steampunk Pencil",
+    "category": "PhotoComix",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_graphic_novel",
+    "name": "Graphic Novel",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "photocomix_black_crayon_graffiti",
+    "name": "Black Crayon Graffiti",
+    "category": "PhotoComix",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "photocomix_color_sketch",
+    "name": "Color Sketch",
+    "category": "PhotoComix",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "photocomix_color_stamp",
+    "name": "Color Stamp",
+    "category": "PhotoComix",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "photocomix_graphic_boost_old",
+    "name": "Graphic Boost-Old",
+    "category": "PhotoComix",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "photocomix_graphic_novel_old",
+    "name": "Graphic Novel-Old",
+    "category": "PhotoComix",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "photocomix_metallic_grain",
+    "name": "Metallic Grain",
+    "category": "PhotoComix",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_seamless_deco",
+    "name": "Seamless Deco",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "photocomix_metallic_stencils",
+    "name": "Metallic Stencils",
+    "category": "PhotoComix",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_posterized_dithering",
+    "name": "Posterized Dithering",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_phoenix_steam_pencil",
+    "name": "Phoenix Steam-Pencil",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_psychedelic_glasswork_tiler",
+    "name": "Psychedelic Glasswork Tiler",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_symmetry_master",
+    "name": "Symmetry Master",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "prawnsushi_kaleido_patterns",
+    "name": "Kaleido Patterns",
+    "category": "Prawnsushi",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.7538437843322754
+  },
+  {
+    "id": "prawnsushi_sketchy_ellipses",
+    "name": "Sketchy Ellipses",
+    "category": "Prawnsushi",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.25834178924560547
+  },
+  {
+    "id": "prawnsushi_3d_abstract",
+    "name": "3D Abstract",
+    "category": "Prawnsushi",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_sloppy_mess",
+    "name": "Sloppy Mess",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_fluffy_cloud",
+    "name": "Fluffy Cloud",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_iris",
+    "name": "Iris",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_attractor",
+    "name": "Attractor",
+    "category": "Reptorian",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.5497050285339355
+  },
+  {
+    "id": "rendering_nonscape___grass",
+    "name": "Nonscape - Grass",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_nonscape___woods",
+    "name": "Nonscape - Woods",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "prawnsushi_line_spam",
+    "name": "Line Spam",
+    "category": "Prawnsushi",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "prawnsushi_paper_cuts",
+    "name": "Paper Cuts",
+    "category": "Prawnsushi",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "prawnsushi_prawn_canvas",
+    "name": "Prawn Canvas",
+    "category": "Prawnsushi",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_underwoods",
+    "name": "Underwoods",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "prawnsushi_sick_painter",
+    "name": "Sick Painter",
+    "category": "Prawnsushi",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "prawnsushi_seamless_chaotic_pattern",
+    "name": "Seamless Chaotic Pattern",
+    "category": "Prawnsushi",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_array__random___jumble_by_px_",
+    "name": "Array [Random] [Jumble by Px]",
+    "category": "Reptorian",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.9787659645080566
+  },
+  {
+    "id": "reptorian_bit_plane_shuffler",
+    "name": "Bit-Plane Shuffler",
+    "category": "Reptorian",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.2329702377319336
+  },
+  {
+    "id": "reptorian_color_modulo_texture",
+    "name": "Color Modulo Texture",
+    "category": "Reptorian",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.6728782653808594
+  },
+  {
+    "id": "prawnsushi_smoothelate",
+    "name": "Smoothelate",
+    "category": "Prawnsushi",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "prawnsushi_stringify_mod",
+    "name": "Stringify Mod",
+    "category": "Prawnsushi",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "prawnsushi_uglify",
+    "name": "Uglify",
+    "category": "Prawnsushi",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_autofill_coloring_book",
+    "name": "Autofill Coloring Book",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_blur__splinter_",
+    "name": "Blur [Splinter]",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_channel_blur_sharpen_overblur_overline",
+    "name": "Channel Blur-Sharpen-Overblur-Overline",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_complexion_burst",
+    "name": "Complexion Burst",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_color_existence_distribution__rgb_8_",
+    "name": "Color Existence Distribution [RGB-8]",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_color_region",
+    "name": "Color Region",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_construction_material_texture",
+    "name": "Construction Material Texture",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_diffusion_limited_aggregation",
+    "name": "Diffusion Limited Aggregation",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_dungeon_floor__super_slow__",
+    "name": "Dungeon Floor (Super Slow!)",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_glass_vignette",
+    "name": "Glass Vignette",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_lavander_binary_map",
+    "name": "Lavander Binary Map",
+    "category": "Reptorian",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 3.381282091140747
+  },
+  {
+    "id": "reptorian_non_convolution_edge_extraction",
+    "name": "Non-Convolution Edge Extraction",
+    "category": "Reptorian",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 3.0598866939544678
+  },
+  {
+    "id": "reptorian_hsx_posterize_index",
+    "name": "HSX Posterize-Index",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "deformations_kaleidoscope__reptorian_polar_",
+    "name": "Kaleidoscope [Reptorian-Polar]",
+    "category": "Deformations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_majority__threshold_",
+    "name": "Majority [Threshold]",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_non_isometric_rpg_tiler__interactive_",
+    "name": "Non-Isometric RPG Tiler (Interactive)",
+    "category": "Reptorian",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 4.654276371002197
+  },
+  {
+    "id": "reptorian_majority",
+    "name": "Majority",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_markus_lyapunov_fractal",
+    "name": "Markus-Lyapunov Fractal",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_newton_fractal__madjik_style_",
+    "name": "Newton Fractal [MadJik Style]",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_nebulous",
+    "name": "Nebulous",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_ordered_dithering",
+    "name": "Ordered Dithering",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_reverse_digits",
+    "name": "Reverse Digits",
+    "category": "Reptorian",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.9459128379821777
+  },
+  {
+    "id": "reptorian_reverse_engineer_color_curve",
+    "name": "Reverse Engineer Color Curve",
+    "category": "Reptorian",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 2.1491219997406006
+  },
+  {
+    "id": "rendering_popcorn_fractal",
+    "name": "Popcorn Fractal",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_popcorn_fractal__transformative_",
+    "name": "Popcorn Fractal [Transformative]",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_prime_surface",
+    "name": "Prime Surface",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_premade_palette",
+    "name": "Premade Palette",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_rectangle_square_fill",
+    "name": "Rectangle-Square Fill",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_reverse_engineer_gradient_map",
+    "name": "Reverse Engineer Gradient Map",
+    "category": "Reptorian",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 4.219946384429932
+  },
+  {
+    "id": "rendering_thorn_fractal___secant_sea",
+    "name": "Thorn Fractal - Secant Sea",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_serendipitous_circle",
+    "name": "Serendipitous Circle",
+    "category": "Reptorian",
+    "status": "black_image",
+    "error": "Image is completely black (mean=0.00, max=0)",
+    "elapsed": 4.8475341796875,
+    "mean": 0.0,
+    "max": 0
+  },
+  {
+    "id": "deformations_rotate_by_torus_map",
+    "name": "Rotate by Torus Map",
+    "category": "Deformations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_shear",
+    "name": "Shear",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_tupper_s_self_referential_formula",
+    "name": "Tupper's Self-Referential Formula",
+    "category": "Reptorian",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.6035032272338867
+  },
+  {
+    "id": "reptorian_z_time",
+    "name": "Z-Time",
+    "category": "Reptorian",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.43651247024536133
+  },
+  {
+    "id": "reptorian_transfer_color__reduced_colors_",
+    "name": "Transfer Color [Reduced Colors]",
+    "category": "Reptorian",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.7568390369415283
+  },
+  {
+    "id": "deformations_spiral_distortion",
+    "name": "Spiral Distortion",
+    "category": "Deformations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_statistical_mode",
+    "name": "Statistical Mode",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "deformations_stitch_distort",
+    "name": "Stitch Distort",
+    "category": "Deformations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_three_coupled_oscillators",
+    "name": "Three-Coupled Oscillators",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_tr_s_intense_filtering",
+    "name": "TR's Intense Filtering",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_vibrato",
+    "name": "Vibrato",
+    "category": "Reptorian",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 3.2804503440856934
+  },
+  {
+    "id": "reptorian_tr_s_pixel_sharpener",
+    "name": "TR's Pixel Sharpener",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "reptorian_trigonometry_mapping",
+    "name": "Trigonometry Mapping",
+    "category": "Reptorian",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_vibrance__ych_",
+    "name": "Vibrance [YCH]",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rl_randomwaves",
+    "name": "RandomWaves",
+    "category": "RL",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "arrays___tiles_filters_on_tiles_v2",
+    "name": "Filters On Tiles V2",
+    "category": "Arrays & Tiles",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.3479399681091309
+  },
+  {
+    "id": "arrays___tiles_filters_on_tiles",
+    "name": "Filters On Tiles",
+    "category": "Arrays & Tiles",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.7539176940917969
+  },
+  {
+    "id": "curves__ycbcr__shaded_segmentation",
+    "name": "Shaded Segmentation",
+    "category": "Curves [YCbCr]",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "arrays___tiles_carres_noirs",
+    "name": "Carres Noirs",
+    "category": "Arrays & Tiles",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "arrays___tiles_cercles_concentriques",
+    "name": "Cercles Concentriques",
+    "category": "Arrays & Tiles",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "arrays___tiles_moirage_spline",
+    "name": "Moirage Spline",
+    "category": "Arrays & Tiles",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "arrays___tiles_moirage_spline_xy",
+    "name": "Moirage Spline XY",
+    "category": "Arrays & Tiles",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "arrays___tiles_montage_annular_steiner_chain",
+    "name": "Montage Annular Steiner Chain",
+    "category": "Arrays & Tiles",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "arrays___tiles_montage_cercle_spirale",
+    "name": "Montage Cercle Spirale",
+    "category": "Arrays & Tiles",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "arrays___tiles_montage_pappus_chain",
+    "name": "Montage Pappus Chain",
+    "category": "Arrays & Tiles",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "arrays___tiles_montage_geometric_figures",
+    "name": "Montage Geometric Figures",
+    "category": "Arrays & Tiles",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_reptile",
+    "name": "Reptile",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "arrays___tiles_pixelisation_contours",
+    "name": "Pixelisation Contours",
+    "category": "Arrays & Tiles",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "arrays___tiles_scintillements_colores",
+    "name": "Scintillements Colores",
+    "category": "Arrays & Tiles",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_angoisse_anguish",
+    "name": "Angoisse Anguish",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_chalk_it_up__fr_",
+    "name": "Chalk It Up [Fr]",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_barbouillage_paint_daub",
+    "name": "Barbouillage Paint Daub",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_color_edges_engrave",
+    "name": "Color Edges Engrave",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_contour_drawings",
+    "name": "Contour Drawings",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_contour_epais",
+    "name": "Contour Epais",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_couleurs_rayees",
+    "name": "Couleurs Rayees",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_couleurs_rayees_2",
+    "name": "Couleurs Rayees 2",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_cubisme_a",
+    "name": "Cubisme A",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_cubisme_b",
+    "name": "Cubisme B",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_diff_tensors_blend",
+    "name": "Diff Tensors Blend",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_edges_and_lic",
+    "name": "Edges And LIC",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_flamboyance_test",
+    "name": "Flamboyance Test",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_fond_broderie",
+    "name": "Fond Broderie",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_fond_brosse",
+    "name": "Fond Brosse",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_fx_sketchbw_modifie",
+    "name": "Fx Sketchbw Modifie",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_granular_texture",
+    "name": "Granular Texture",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_gris_raye",
+    "name": "Gris Raye",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_hallucinogen",
+    "name": "Hallucinogen",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_hallucinogen_2",
+    "name": "Hallucinogen 2",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_impressions",
+    "name": "Impressions",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_isophotes_vers_aquarelle",
+    "name": "Isophotes Vers Aquarelle",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_plasmic",
+    "name": "Plasmic",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_plasmic_v2",
+    "name": "Plasmic V2",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_samj_ripple_houghsketchbw",
+    "name": "Samj Ripple Houghsketchbw",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_skeletik",
+    "name": "Skeletik",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "black___white_masques_b_w_masks",
+    "name": "Masques B&W Masks",
+    "category": "Black & White",
+    "status": "black_image",
+    "error": "Image is completely black (mean=0.00, max=0)",
+    "elapsed": 2.548586130142212,
+    "mean": 0.0,
+    "max": 0
+  },
+  {
+    "id": "artistic_texture_coloree",
+    "name": "Texture Coloree",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_variations_on_a_single_color",
+    "name": "Variations on a Single Color",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "black___white_colored_engraving",
+    "name": "Colored Engraving",
+    "category": "Black & White",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "black___white_engrave_modifie",
+    "name": "Engrave Modifie",
+    "category": "Black & White",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "black___white_grid_bw_color",
+    "name": "Grid BW Color",
+    "category": "Black & White",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "black___white_hard_sketch_xy",
+    "name": "Hard Sketch XY",
+    "category": "Black & White",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "black___white_nb_edges_engrave",
+    "name": "NB Edges Engrave",
+    "category": "Black & White",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "black___white_scintillements",
+    "name": "Scintillements",
+    "category": "Black & White",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_valeur_moyenne_lch",
+    "name": "Valeur Moyenne LCH",
+    "category": "Colors",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.9990806579589844
+  },
+  {
+    "id": "colors_64_couleurs_max",
+    "name": "64 Couleurs Max",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_9_colors",
+    "name": "9 Colors",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_couleurs_metalliques",
+    "name": "Couleurs Metalliques",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_dorure_gilding",
+    "name": "Dorure Gilding",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_samj_test_shapeprevalent",
+    "name": "Samj Test Shapeprevalent",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "colors_samj_topographie_eliminate_contour_lines",
+    "name": "Samj Topographie Eliminate Contour Lines",
+    "category": "Colors",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_colored_outlines",
+    "name": "Colored Outlines",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_coloriage",
+    "name": "Coloriage",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_contours_arrondis",
+    "name": "Contours Arrondis",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_contours_blancs",
+    "name": "Contours Blancs",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_contours_coins_vifs",
+    "name": "Contours Coins Vifs",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_edges_offsets_dots",
+    "name": "Edges Offsets Dots",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_contours_colores",
+    "name": "Contours Colores",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_quelques_isophotes",
+    "name": "Quelques Isophotes",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_quelques_isophotes_b",
+    "name": "Quelques Isophotes B",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_quelques_isophotes_c",
+    "name": "Quelques Isophotes C",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_scintillements_colores_contours",
+    "name": "Scintillements Colores Contours",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_samj_shapeprevalent_contours",
+    "name": "Samj Shapeprevalent Contours",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "contours_skeletation",
+    "name": "Skeletation",
+    "category": "Contours",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_ellipses_inpaint",
+    "name": "Ellipses Inpaint",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "deformations_samj_deformation_20230712",
+    "name": "Samj Deformation 20230712",
+    "category": "Deformations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_deteriorated_areas",
+    "name": "Deteriorated Areas",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_path_et_solidify",
+    "name": "Path Et Solidify",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_samj_bruit_noise",
+    "name": "Samj Bruit Noise",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_random_plasma",
+    "name": "Random Plasma",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_samj_selection_hermite_spline",
+    "name": "Samj Selection Hermite Spline",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "degradations_samj_shapeprevalent_degradations",
+    "name": "Samj Shapeprevalent Degradations",
+    "category": "Degradations",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "details_antialias_wavelet",
+    "name": "Antialias Wavelet",
+    "category": "Details",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "frames_at06b_2017_frame_painting",
+    "name": "At06B 2017 Frame Painting",
+    "category": "Frames",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "lights___shadows_ombre_portee",
+    "name": "Ombre Portee",
+    "category": "Lights & Shadows",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "lights___shadows_ombre_portee_b",
+    "name": "Ombre Portee B",
+    "category": "Lights & Shadows",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "lights___shadows_ombre_portee_c",
+    "name": "Ombre Portee C",
+    "category": "Lights & Shadows",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "lights___shadows_ombre_portee_d",
+    "name": "Ombre Portee D",
+    "category": "Lights & Shadows",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "lights___shadows_posterize_relief",
+    "name": "Posterize Relief",
+    "category": "Lights & Shadows",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_denim_texture",
+    "name": "Denim Texture",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_marbre_marble",
+    "name": "Marbre Marble",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_mosaic_a",
+    "name": "Mosaic A",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_mosaic_b",
+    "name": "Mosaic B",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_motif_plasma",
+    "name": "Motif Plasma",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_motifs_7200",
+    "name": "Motifs 7200",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_motifs_7200_variante_a",
+    "name": "Motifs 7200 Variante A",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_random_pattern_courtepointe",
+    "name": "Random Pattern Courtepointe",
+    "category": "Patterns",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.898289442062378
+  },
+  {
+    "id": "patterns_motifs_7200_variantec",
+    "name": "Motifs 7200 VarianteC",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_motifs_7200_varianteb",
+    "name": "Motifs 7200 VarianteB",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_pseudo_vitrail",
+    "name": "Pseudo Vitrail",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_rays_of_colors",
+    "name": "Rays Of Colors",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_steps_v2",
+    "name": "Steps V2",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_soft_random_shades",
+    "name": "Soft Random Shades",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "patterns_variation_stained_glass",
+    "name": "Variation Stained Glass",
+    "category": "Patterns",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_chains_solidify",
+    "name": "Chains Solidify",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_christmas_balls",
+    "name": "Christmas Balls",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_engrenages_gears_laser",
+    "name": "Engrenages Gears Laser",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_flocon_snowflake_laser",
+    "name": "Flocon Snowflake Laser",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_palette_de_degrades",
+    "name": "Palette De Degrades",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_test_visu_3d",
+    "name": "Test Visu 3D",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_triangles_shades_adjacents",
+    "name": "Triangles Shades Adjacents",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "rendering_twisted_rays__samj_",
+    "name": "Twisted Rays [Samj]",
+    "category": "Rendering",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_corline",
+    "name": "CorLine",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "repair_corline_b",
+    "name": "CorLine B",
+    "category": "Repair",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_boxfiter_map",
+    "name": "BoxFiter Map",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_boxfiter_test",
+    "name": "BoxFiter Test",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_cekoasa_001",
+    "name": "CeKoaSa 001",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_diaporama___slideshow",
+    "name": "Diaporama - Slideshow",
+    "category": "Various",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.9839415550231934
+  },
+  {
+    "id": "various_cekoasa_002",
+    "name": "CeKoaSa 002",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_cekoasa_004",
+    "name": "CeKoaSa 004",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_cekoasa_007",
+    "name": "CeKoaSa 007",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_cekoasa_008",
+    "name": "CeKoaSa 008",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_cekoasa_009",
+    "name": "CeKoaSa 009",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_cekoasa_012",
+    "name": "CeKoaSa 012",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_cekoasa_010",
+    "name": "CeKoaSa 010",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_polygonize",
+    "name": "Polygonize",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_relief_a",
+    "name": "Relief A",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_segments_points_tsp",
+    "name": "Segments Points TSP",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_svg_tsp",
+    "name": "SVG TSP",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_test_a",
+    "name": "Test A",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_test_b",
+    "name": "Test B",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_test_c",
+    "name": "Test C",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_test_d",
+    "name": "Test D",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_test_e",
+    "name": "Test E",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_test_g",
+    "name": "Test G",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_test_solidify",
+    "name": "Test Solidify",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_texture_002",
+    "name": "Texture 002",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "zonderr_fourier_picture_watermark",
+    "name": "Fourier Picture Watermark",
+    "category": "Zonderr",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.5909831523895264
+  },
+  {
+    "id": "various_texture_003",
+    "name": "Texture 003",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_custom_code__full_",
+    "name": "Custom Code [Full]",
+    "category": "Various",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.8002266883850098
+  },
+  {
+    "id": "various_tout_interactif",
+    "name": "Tout Interactif",
+    "category": "Various",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_import_data",
+    "name": "Import Data",
+    "category": "Various",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.4210975170135498
+  },
+  {
+    "id": "various_games___demos",
+    "name": "Games & Demos",
+    "category": "Various",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 1.0739960670471191
+  },
+  {
+    "id": "telperion_mc_pendraw",
+    "name": "Mc Pendraw",
+    "category": "Telperion",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_intarsia",
+    "name": "Intarsia",
+    "category": "Various",
+    "status": "error",
+    "error": "G'MIC error (code 255): [gmic]./ Start G'MIC interpreter (v.3.7.4).\n[gmic]./ Input file '/home/isaques/Code/Projetos/VibeCoded/GmicVideo/Tests/test_image.jpeg' at position 0 (1 image 1",
+    "elapsed": 0.9351780414581299
+  },
+  {
+    "id": "tom_keil_beauty_retouch",
+    "name": "Beauty Retouch",
+    "category": "Tom Keil",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "tom_keil_dof_manipulation",
+    "name": "DOF Manipulation",
+    "category": "Tom Keil",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "tom_keil_infrared_simulation",
+    "name": "Infrared Simulation",
+    "category": "Tom Keil",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "tom_keil_photoillustration",
+    "name": "Photoillustration",
+    "category": "Tom Keil",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "artistic_dream_smoothing_enhanced",
+    "name": "Dream Smoothing Enhanced",
+    "category": "Artistic",
+    "status": "timeout",
+    "error": "Execution timed out (> 5s)",
+    "elapsed": 5
+  },
+  {
+    "id": "various_solve_maze",
+    "name": "Solve Maze",
+    "category": "Various",
+    "status": "black_image",
+    "error": "Image is completely black (mean=0.40, max=255)",
+    "elapsed": 2.0898241996765137,
+    "mean": 0.3956878662109375,
+    "max": 255
+  }
+]

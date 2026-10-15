@@ -1,0 +1,923 @@
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import org.kde.kirigami as Kirigami
+
+Kirigami.ApplicationWindow {
+    id: appWindow
+    width: 1280
+    height: 800
+    minimumWidth: 960
+    minimumHeight: 650
+    title: "G'MIC Video Effects Editor - Spiritual Successor to UltraWarp"
+
+    // App state
+    property var videoInfo: null
+    property var allFilters: []
+    property var allCategories: ["All Categories"]
+    property string selectedCategory: "All Categories"
+    property string searchQuery: ""
+    property var selectedFilter: null
+    property var paramValues: ({})
+    property var paramTweens: ({})
+    property string previewRawPath: ""
+    property string previewEffectPath: ""
+    property real currentScrubTime: 0.0
+    property bool splitPreview: false
+    property bool isPreviewLoading: false
+
+    // Tween easing names
+    property var easeList: [
+        { key: "linear", label: "Linear" },
+        { key: "ease_in_quad", label: "Ease In Quad" },
+        { key: "ease_out_quad", label: "Ease Out Quad" },
+        { key: "ease_in_out_quad", label: "Ease In-Out Quad" },
+        { key: "ease_in_cubic", label: "Ease In Cubic" },
+        { key: "ease_out_cubic", label: "Ease Out Cubic" },
+        { key: "ease_in_out_cubic", label: "Ease In-Out Cubic" },
+        { key: "ease_in_quart", label: "Ease In Quart" },
+        { key: "ease_out_quart", label: "Ease Out Quart" },
+        { key: "ease_in_out_quart", label: "Ease In-Out Quart" },
+        { key: "ease_in_sine", label: "Ease In Sine" },
+        { key: "ease_out_sine", label: "Ease Out Sine" },
+        { key: "ease_in_out_sine", label: "Ease In-Out Sine" },
+        { key: "ease_in_expo", label: "Ease In Expo" },
+        { key: "ease_out_expo", label: "Ease Out Expo" },
+        { key: "ease_in_out_expo", label: "Ease In-Out Expo" },
+        { key: "ease_in_circ", label: "Ease In Circ" },
+        { key: "ease_out_circ", label: "Ease Out Circ" },
+        { key: "ease_in_out_circ", label: "Ease In-Out Circ" },
+        { key: "ease_in_back", label: "Ease In Back" },
+        { key: "ease_out_back", label: "Ease Out Back" },
+        { key: "ease_in_out_back", label: "Ease In-Out Back" },
+        { key: "ease_in_elastic", label: "Ease In Elastic" },
+        { key: "ease_out_elastic", label: "Ease Out Elastic" },
+        { key: "ease_in_out_elastic", label: "Ease In-Out Elastic" },
+        { key: "ease_in_bounce", label: "Ease In Bounce" },
+        { key: "ease_out_bounce", label: "Ease Out Bounce" },
+        { key: "ease_in_out_bounce", label: "Ease In-Out Bounce" },
+        { key: "custom_bezier", label: "Custom Bezier Curve" }
+    ]
+
+    Component.onCompleted: {
+        loadFilters();
+    }
+
+    function loadFilters() {
+        var rawJson = Backend.getEffects();
+        if (rawJson && rawJson.length > 2) {
+            var data = JSON.parse(rawJson);
+            allFilters = data.filters || [];
+            var cats = ["All Categories"];
+            if (data.categories) {
+                for (var i = 0; i < data.categories.length; i++) {
+                    cats.push(data.categories[i]);
+                }
+            }
+            allCategories = cats;
+
+            // Default to UltraWarp 2 or Halftone
+            for (var j = 0; j < allFilters.length; j++) {
+                if (allFilters[j].name === "UltraWarp 2" || allFilters[j].command === "fx_ultrawarptwo") {
+                    selectFilter(allFilters[j]);
+                    break;
+                }
+            }
+            if (!selectedFilter && allFilters.length > 0) {
+                selectFilter(allFilters[0]);
+            }
+        }
+    }
+
+    function selectFilter(filter) {
+        selectedFilter = filter;
+        var newValues = {};
+        var newTweens = {};
+        if (filter && filter.parameters) {
+            for (var i = 0; i < filter.parameters.length; i++) {
+                var p = filter.parameters[i];
+                var ptype = p.param_type.type;
+                var pdata = p.param_type.data;
+                var defVal = 0.0;
+                if (ptype === "float" || ptype === "int") {
+                    defVal = pdata.default;
+                } else if (ptype === "choice") {
+                    defVal = pdata.default;
+                } else if (ptype === "bool") {
+                    defVal = pdata.default ? 1.0 : 0.0;
+                }
+                newValues[p.id] = defVal;
+
+                newTweens[p.id] = {
+                    enabled: false,
+                    start_value: defVal,
+                    end_value: (ptype === "float" || ptype === "int") ? (pdata.max !== undefined ? pdata.max : defVal * 2) : defVal,
+                    ease_type: "linear",
+                    bezier_points: [0.25, 0.1, 0.25, 1.0]
+                };
+            }
+        }
+        paramValues = newValues;
+        paramTweens = newTweens;
+        requestPreviewUpdate();
+    }
+
+    function loadVideo(filePath) {
+        if (!filePath) return;
+        var infoJson = Backend.probeVideo(filePath);
+        var info = JSON.parse(infoJson);
+        if (info.error) {
+            showPassiveNotification("Failed to open video: " + info.error, "short");
+            return;
+        }
+        videoInfo = info;
+        currentScrubTime = 0.0;
+        requestPreviewUpdate();
+    }
+
+    function requestPreviewUpdate() {
+        if (!videoInfo || !selectedFilter) return;
+        previewTimer.restart();
+    }
+
+    Timer {
+        id: previewTimer
+        interval: 150
+        repeat: false
+        onTriggered: {
+            if (!videoInfo || !selectedFilter) return;
+            appWindow.isPreviewLoading = true;
+            Backend.renderPreview(
+                videoInfo.path,
+                appWindow.currentScrubTime,
+                videoInfo.duration_secs,
+                selectedFilter.id,
+                JSON.stringify(appWindow.paramValues),
+                JSON.stringify(appWindow.paramTweens)
+            );
+        }
+    }
+
+    Connections {
+        target: Backend
+        function onPreviewReady(rawPath, effectPath, timeSecs) {
+            appWindow.previewRawPath = "file://" + rawPath;
+            appWindow.previewEffectPath = "file://" + effectPath;
+            appWindow.isPreviewLoading = false;
+        }
+        function onRenderProgressUpdated(jsonStr) {
+            var prog = JSON.parse(jsonStr);
+            renderDialog.stage = prog.stage;
+            renderDialog.percent = prog.percent;
+            renderDialog.statusMessage = prog.message;
+            renderDialog.totalFrames = prog.total_frames;
+            renderDialog.completedFrames = prog.completed_frames;
+            renderDialog.fps = prog.fps;
+            renderDialog.etaSecs = prog.eta_secs;
+            renderDialog.elapsedSecs = prog.elapsed_secs;
+        }
+        function onRenderCompleted(outputPath) {
+            renderDialog.outputPath = outputPath;
+            renderDialog.isFinished = true;
+            renderDialog.statusMessage = "Video rendered successfully to: " + outputPath;
+        }
+        function onRenderFailed(errorMsg) {
+            renderDialog.isError = true;
+            renderDialog.statusMessage = "Render error: " + errorMsg;
+        }
+    }
+
+    // Modal dialogs
+    BezierCurveEditor {
+        id: curveEditor
+        onCurveApplied: function(px1, py1, px2, py2) {
+            if (activeTweenParamId !== null) {
+                var tws = Object.assign({}, appWindow.paramTweens);
+                var tw = tws[activeTweenParamId] || {};
+                tw.bezier_points = [px1, py1, px2, py2];
+                tw.ease_type = "custom_bezier";
+                tws[activeTweenParamId] = tw;
+                appWindow.paramTweens = tws;
+                requestPreviewUpdate();
+            }
+        }
+    }
+    property var activeTweenParamId: null
+
+    RenderDialog {
+        id: renderDialog
+    }
+
+    // Top Header
+    header: ToolBar {
+        RowLayout {
+            anchors.fill: parent
+            spacing: Kirigami.Units.mediumSpacing
+
+            ToolButton {
+                text: "Import Video"
+                icon.name: "document-open"
+                onClicked: {
+                    var file = Backend.chooseVideoFile();
+                    if (file) loadVideo(file);
+                }
+            }
+
+            Rectangle {
+                visible: videoInfo !== null
+                color: Kirigami.Theme.highlightColor
+                opacity: 0.15
+                radius: 4
+                Layout.preferredHeight: 30
+                Layout.preferredWidth: badgeLayout.implicitWidth + 16
+
+                RowLayout {
+                    id: badgeLayout
+                    anchors.centerIn: parent
+                    spacing: 8
+                    Kirigami.Icon {
+                        source: "video-x-generic"
+                        implicitWidth: 16
+                        implicitHeight: 16
+                    }
+                    Label {
+                        text: videoInfo ? (videoInfo.filename + " (" + videoInfo.width + "x" + videoInfo.height + ", " + videoInfo.fps.toFixed(0) + " fps, " + videoInfo.duration_secs.toFixed(1) + "s)") : ""
+                        font.bold: true
+                    }
+                }
+            }
+
+            Item { Layout.fillWidth: true }
+
+            Label {
+                text: "Format:"
+                opacity: 0.8
+            }
+
+            ComboBox {
+                id: formatCombo
+                model: [
+                    { key: "h264", label: "H.264 (MP4)" },
+                    { key: "h265", label: "H.265 / HEVC (MP4)" },
+                    { key: "vp9", label: "VP9 (WebM)" },
+                    { key: "av1", label: "AV1 (MP4)" },
+                    { key: "lossless", label: "Lossless RGB (MP4)" }
+                ]
+                textRole: "label"
+                currentIndex: 0
+            }
+
+            Label {
+                text: "CRF:"
+                opacity: 0.8
+            }
+
+            SpinBox {
+                id: crfSpin
+                from: 0
+                to: 51
+                value: 18
+                editable: true
+            }
+
+            Button {
+                text: "Render Video"
+                icon.name: "media-record"
+                highlighted: true
+                enabled: videoInfo !== null && selectedFilter !== null
+                onClicked: {
+                    var fmt = formatCombo.model[formatCombo.currentIndex].key;
+                    var ext = fmt === "vp9" ? "webm" : "mp4";
+                    var baseName = videoInfo.filename.replace(/\.[^/.]+$/, "") + "_" + selectedFilter.command + "." + ext;
+                    var outPath = Backend.chooseOutputFile(baseName, ext);
+                    if (outPath) {
+                        renderDialog.stage = "preparing";
+                        renderDialog.percent = 0.0;
+                        renderDialog.isFinished = false;
+                        renderDialog.isError = false;
+                        renderDialog.statusMessage = "Starting parallel batch rendering with G'MIC...";
+                        renderDialog.open();
+
+                        Backend.startRender(
+                            videoInfo.path,
+                            outPath,
+                            fmt,
+                            crfSpin.value,
+                            selectedFilter.id,
+                            JSON.stringify(appWindow.paramValues),
+                            JSON.stringify(appWindow.paramTweens)
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    // Main Body: If no video is loaded, show welcoming selection screen; otherwise show full effects workspace!
+    pageStack.initialPage: Kirigami.Page {
+        title: videoInfo ? "Video Effects Workspace" : "Video Selection Screen"
+
+        // Video Selection View
+        Item {
+            anchors.fill: parent
+            visible: videoInfo === null
+
+            Kirigami.Card {
+                anchors.centerIn: parent
+                implicitWidth: Math.min(parent.width - 40, 600)
+
+                header: RowLayout {
+                    spacing: Kirigami.Units.mediumSpacing
+                    Kirigami.Icon {
+                        source: "video-x-generic"
+                        implicitWidth: 48
+                        implicitHeight: 48
+                    }
+                    ColumnLayout {
+                        Kirigami.Heading {
+                            level: 2
+                            text: "Import a Video to Apply G'MIC Effects"
+                        }
+                        Label {
+                            text: "Select a video to start adding animated G'MIC effects with custom tweening, easing and curves."
+                            opacity: 0.7
+                            wrapMode: Text.WordWrap
+                            Layout.fillWidth: true
+                        }
+                    }
+                }
+
+                actions: [
+                    Kirigami.Action {
+                        text: "Import Video File..."
+                        icon.name: "document-open"
+                        onTriggered: {
+                            var f = Backend.chooseVideoFile();
+                            if (f) loadVideo(f);
+                        }
+                    },
+                    Kirigami.Action {
+                        text: "Load Sample: Original.mp4"
+                        icon.name: "media-playback-start"
+                        onTriggered: {
+                            loadVideo("/home/isaques/Code/Projetos/Python/ultrawarp-batch/Exemplos de Videos/Original.mp4");
+                        }
+                    }
+                ]
+            }
+        }
+
+        // Active Workspace View (3 columns: Categories/Effects | Parameters & Tweens | Preview & Timeline)
+        RowLayout {
+            anchors.fill: parent
+            visible: videoInfo !== null
+            spacing: Kirigami.Units.smallSpacing
+
+            // Left Column: Filter Search & Categories
+            Rectangle {
+                Layout.preferredWidth: 280
+                Layout.fillHeight: true
+                color: palette.window
+                border.color: palette.mid
+                border.width: 1
+                radius: 4
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: Kirigami.Units.smallSpacing
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Kirigami.SearchField {
+                        Layout.fillWidth: true
+                        placeholderText: "Search effects (e.g. half, warp)..."
+                        onTextChanged: appWindow.searchQuery = text.toLowerCase()
+                    }
+
+                    Label {
+                        text: "Category:"
+                        font.bold: true
+                        opacity: 0.8
+                    }
+
+                    ComboBox {
+                        Layout.fillWidth: true
+                        model: appWindow.allCategories
+                        onCurrentTextChanged: appWindow.selectedCategory = currentText
+                    }
+
+                    Label {
+                        text: "Effects:"
+                        font.bold: true
+                        opacity: 0.8
+                    }
+
+                    ListView {
+                        id: filterListView
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        clip: true
+                        model: {
+                            var list = [];
+                            var q = appWindow.searchQuery;
+                            var cat = appWindow.selectedCategory;
+                            for (var i = 0; i < appWindow.allFilters.length; i++) {
+                                var f = appWindow.allFilters[i];
+                                var matchCat = (cat === "All Categories" || f.category === cat);
+                                var matchQuery = (!q || f.name.toLowerCase().indexOf(q) !== -1 || f.command.toLowerCase().indexOf(q) !== -1);
+                                if (matchCat && matchQuery) {
+                                    list.push(f);
+                                }
+                            }
+                            return list;
+                        }
+
+                        delegate: ItemDelegate {
+                            width: filterListView.width
+                            highlighted: selectedFilter && selectedFilter.id === modelData.id
+
+                            contentItem: ColumnLayout {
+                                spacing: 2
+                                Label {
+                                    text: modelData.name
+                                    font.bold: highlighted
+                                    elide: Text.ElideRight
+                                    Layout.fillWidth: true
+                                }
+                                Label {
+                                    text: modelData.category + " • " + modelData.command
+                                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                                    opacity: 0.6
+                                    elide: Text.ElideRight
+                                    Layout.fillWidth: true
+                                }
+                            }
+
+                            onClicked: selectFilter(modelData)
+                        }
+                    }
+                }
+            }
+
+            // Center Column: Selected Effect Parameters & Tweening Options
+            Rectangle {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                color: palette.window
+                border.color: palette.mid
+                border.width: 1
+                radius: 4
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: Kirigami.Units.mediumSpacing
+                    spacing: Kirigami.Units.smallSpacing
+
+                    // Effect Header
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: Kirigami.Units.mediumSpacing
+
+                        Kirigami.Heading {
+                            level: 2
+                            text: selectedFilter ? selectedFilter.name : "Select an Effect"
+                            Layout.fillWidth: true
+                        }
+
+                        Button {
+                            text: "Reset Defaults"
+                            icon.name: "edit-undo"
+                            onClicked: {
+                                if (selectedFilter) selectFilter(selectedFilter);
+                            }
+                        }
+                    }
+
+                    Label {
+                        text: selectedFilter && selectedFilter.description ? selectedFilter.description : "Customize effect parameters and tween values over the video duration."
+                        wrapMode: Text.WordWrap
+                        Layout.fillWidth: true
+                        opacity: 0.7
+                    }
+
+                    Kirigami.Separator {
+                        Layout.fillWidth: true
+                    }
+
+                    // Parameters List
+                    ScrollView {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        clip: true
+
+                        ColumnLayout {
+                            width: parent.width - 16
+                            spacing: Kirigami.Units.mediumSpacing
+
+                            Repeater {
+                                model: selectedFilter ? selectedFilter.parameters : []
+
+                                delegate: ColumnLayout {
+                                    id: paramDelegate
+                                    Layout.fillWidth: true
+                                    spacing: Kirigami.Units.smallSpacing
+
+                                    property var p: modelData
+                                    property var ptype: p.param_type.type
+                                    property var pdata: p.param_type.data
+                                    property bool isTweening: appWindow.paramTweens[p.id] ? appWindow.paramTweens[p.id].enabled : false
+
+                                    visible: ptype !== "separator" && ptype !== "note"
+
+                                    // Parameter Header Row
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        spacing: Kirigami.Units.smallSpacing
+
+                                        Label {
+                                            text: p.name
+                                            font.bold: true
+                                            Layout.fillWidth: true
+                                        }
+
+                                        // Current evaluated value badge
+                                        Label {
+                                            text: {
+                                                if (appWindow.paramValues && appWindow.paramValues[p.id] !== undefined) {
+                                                    var val = appWindow.paramValues[p.id];
+                                                    return ptype === "float" ? val.toFixed(2) : Math.round(val);
+                                                }
+                                                return "";
+                                            }
+                                            opacity: 0.7
+                                            visible: ptype === "float" || ptype === "int"
+                                        }
+
+                                        // Tween Toggle Button (enabled for animatable types)
+                                        Button {
+                                            visible: ptype === "float" || ptype === "int"
+                                            text: isTweening ? "Tween Active" : "Tween"
+                                            icon.name: isTweening ? "chronometer" : "speedometer"
+                                            checkable: true
+                                            checked: isTweening
+                                            highlighted: isTweening
+                                            onClicked: {
+                                                var tws = Object.assign({}, appWindow.paramTweens);
+                                                var cur = tws[p.id] || {};
+                                                cur.enabled = !cur.enabled;
+                                                tws[p.id] = cur;
+                                                appWindow.paramTweens = tws;
+                                                requestPreviewUpdate();
+                                            }
+                                        }
+                                    }
+
+                                    // Normal control (when not tweening or base value)
+                                    RowLayout {
+                                        Layout.fillWidth: true
+                                        visible: !isTweening
+
+                                        // Float control
+                                        Slider {
+                                            visible: ptype === "float"
+                                            Layout.fillWidth: true
+                                            from: pdata.min !== undefined ? pdata.min : 0
+                                            to: pdata.max !== undefined ? pdata.max : 100
+                                            value: appWindow.paramValues[p.id] !== undefined ? appWindow.paramValues[p.id] : (pdata.default || 0)
+                                            onMoved: {
+                                                var vals = Object.assign({}, appWindow.paramValues);
+                                                vals[p.id] = value;
+                                                appWindow.paramValues = vals;
+                                                requestPreviewUpdate();
+                                            }
+                                        }
+
+                                        // Int control
+                                        Slider {
+                                            visible: ptype === "int"
+                                            Layout.fillWidth: true
+                                            from: pdata.min !== undefined ? pdata.min : 0
+                                            to: pdata.max !== undefined ? pdata.max : 100
+                                            stepSize: 1
+                                            value: appWindow.paramValues[p.id] !== undefined ? appWindow.paramValues[p.id] : (pdata.default || 0)
+                                            onMoved: {
+                                                var vals = Object.assign({}, appWindow.paramValues);
+                                                vals[p.id] = Math.round(value);
+                                                appWindow.paramValues = vals;
+                                                requestPreviewUpdate();
+                                            }
+                                        }
+
+                                        // Choice control
+                                        ComboBox {
+                                            visible: ptype === "choice"
+                                            Layout.fillWidth: true
+                                            model: pdata.options || []
+                                            currentIndex: appWindow.paramValues[p.id] !== undefined ? Math.round(appWindow.paramValues[p.id]) : (pdata.default || 0)
+                                            onActivated: {
+                                                var vals = Object.assign({}, appWindow.paramValues);
+                                                vals[p.id] = currentIndex;
+                                                appWindow.paramValues = vals;
+                                                requestPreviewUpdate();
+                                            }
+                                        }
+
+                                        // Bool control
+                                        Switch {
+                                            visible: ptype === "bool"
+                                            checked: (appWindow.paramValues && appWindow.paramValues[p.id] !== undefined) ? (appWindow.paramValues[p.id] >= 0.5) : (pdata.default ? true : false)
+                                            onToggled: {
+                                                var vals = Object.assign({}, appWindow.paramValues);
+                                                vals[p.id] = checked ? 1.0 : 0.0;
+                                                appWindow.paramValues = vals;
+                                                requestPreviewUpdate();
+                                            }
+                                        }
+                                    }
+
+                                    // Tweening Controls Panel (appears when Tween is active)
+                                    Rectangle {
+                                        visible: isTweening
+                                        Layout.fillWidth: true
+                                        implicitHeight: tweenCol.implicitHeight + 16
+                                        color: Kirigami.Theme.highlightColor
+                                        opacity: 0.12
+                                        radius: 4
+                                        border.color: Kirigami.Theme.highlightColor
+                                        border.width: 1
+
+                                        ColumnLayout {
+                                            id: tweenCol
+                                            anchors.fill: parent
+                                            anchors.margins: 8
+                                            spacing: 6
+
+                                            RowLayout {
+                                                Layout.fillWidth: true
+                                                spacing: 8
+
+                                                Label { text: "Start Val:"; opacity: 0.9 }
+                                                SpinBox {
+                                                    from: pdata.min !== undefined ? pdata.min * 100 : -10000
+                                                    to: pdata.max !== undefined ? pdata.max * 100 : 10000
+                                                    value: appWindow.paramTweens[p.id] ? appWindow.paramTweens[p.id].start_value * 100 : 0
+                                                    editable: true
+                                                    onValueModified: {
+                                                        var tws = Object.assign({}, appWindow.paramTweens);
+                                                        tws[p.id].start_value = value / 100.0;
+                                                        appWindow.paramTweens = tws;
+                                                        requestPreviewUpdate();
+                                                    }
+                                                }
+
+                                                Label { text: "End Val:"; opacity: 0.9 }
+                                                SpinBox {
+                                                    from: pdata.min !== undefined ? pdata.min * 100 : -10000
+                                                    to: pdata.max !== undefined ? pdata.max * 100 : 10000
+                                                    value: appWindow.paramTweens[p.id] ? appWindow.paramTweens[p.id].end_value * 100 : 100
+                                                    editable: true
+                                                    onValueModified: {
+                                                        var tws = Object.assign({}, appWindow.paramTweens);
+                                                        tws[p.id].end_value = value / 100.0;
+                                                        appWindow.paramTweens = tws;
+                                                        requestPreviewUpdate();
+                                                    }
+                                                }
+                                            }
+
+                                            RowLayout {
+                                                Layout.fillWidth: true
+                                                spacing: 8
+
+                                                Label { text: "Transition / Ease:"; opacity: 0.9 }
+
+                                                ComboBox {
+                                                    Layout.fillWidth: true
+                                                    model: appWindow.easeList
+                                                    textRole: "label"
+                                                    currentIndex: {
+                                                        var curEase = appWindow.paramTweens[p.id] ? appWindow.paramTweens[p.id].ease_type : "linear";
+                                                        for (var i = 0; i < appWindow.easeList.length; i++) {
+                                                            if (appWindow.easeList[i].key === curEase) return i;
+                                                        }
+                                                        return 0;
+                                                    }
+                                                    onActivated: {
+                                                        var tws = Object.assign({}, appWindow.paramTweens);
+                                                        tws[p.id].ease_type = appWindow.easeList[currentIndex].key;
+                                                        appWindow.paramTweens = tws;
+                                                        requestPreviewUpdate();
+                                                    }
+                                                }
+
+                                                Button {
+                                                    text: "Edit Curve..."
+                                                    icon.name: "draw-bezier-curves"
+                                                    visible: appWindow.paramTweens[p.id] && appWindow.paramTweens[p.id].ease_type === "custom_bezier"
+                                                    onClicked: {
+                                                        appWindow.activeTweenParamId = p.id;
+                                                        curveEditor.paramName = p.name;
+                                                        var bpts = appWindow.paramTweens[p.id].bezier_points || [0.25, 0.1, 0.25, 1.0];
+                                                        curveEditor.x1 = bpts[0];
+                                                        curveEditor.y1 = bpts[1];
+                                                        curveEditor.x2 = bpts[2];
+                                                        curveEditor.y2 = bpts[3];
+                                                        curveEditor.open();
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    Kirigami.Separator {
+                                        Layout.fillWidth: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Right Column: Video Preview & Timeline Scrubber
+            Rectangle {
+                Layout.preferredWidth: 460
+                Layout.fillHeight: true
+                color: palette.window
+                border.color: palette.mid
+                border.width: 1
+                radius: 4
+
+                ColumnLayout {
+                    anchors.fill: parent
+                    anchors.margins: Kirigami.Units.mediumSpacing
+                    spacing: Kirigami.Units.smallSpacing
+
+                    // Preview Controls Bar
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Label {
+                            text: "Preview"
+                            font.bold: true
+                            Layout.fillWidth: true
+                        }
+
+                        Button {
+                            text: appWindow.splitPreview ? "Split View" : "Full View"
+                            icon.name: appWindow.splitPreview ? "view-split-left-right" : "view-fullscreen"
+                            checkable: true
+                            checked: appWindow.splitPreview
+                            onClicked: appWindow.splitPreview = !appWindow.splitPreview
+                        }
+
+                        Button {
+                            icon.name: "view-refresh"
+                            ToolTip.text: "Refresh Preview"
+                            onClicked: requestPreviewUpdate()
+                        }
+                    }
+
+                    // Video Frame Display Area
+                    Rectangle {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        color: "#0a0a0a"
+                        radius: 4
+                        clip: true
+
+                        // Full effect preview
+                        Image {
+                            anchors.fill: parent
+                            visible: !appWindow.splitPreview
+                            source: appWindow.previewEffectPath
+                            fillMode: Image.PreserveAspectFit
+                            cache: false
+                        }
+
+                        // Split view preview (Side-by-side)
+                        Row {
+                            anchors.fill: parent
+                            visible: appWindow.splitPreview
+
+                            Image {
+                                width: parent.width / 2
+                                height: parent.height
+                                source: appWindow.previewRawPath
+                                fillMode: Image.PreserveAspectFit
+                                cache: false
+                                Label {
+                                    anchors.bottom: parent.bottom
+                                    anchors.left: parent.left
+                                    anchors.margins: 8
+                                    text: "Original"
+                                    color: "white"
+                                    font.bold: true
+                                    background: Rectangle { color: "#80000000"; radius: 3 }
+                                }
+                            }
+
+                            Rectangle {
+                                width: 2
+                                height: parent.height
+                                color: Kirigami.Theme.highlightColor
+                            }
+
+                            Image {
+                                width: parent.width / 2 - 2
+                                height: parent.height
+                                source: appWindow.previewEffectPath
+                                fillMode: Image.PreserveAspectFit
+                                cache: false
+                                Label {
+                                    anchors.bottom: parent.bottom
+                                    anchors.right: parent.right
+                                    anchors.margins: 8
+                                    text: "G'MIC Effect"
+                                    color: "white"
+                                    font.bold: true
+                                    background: Rectangle { color: "#80000000"; radius: 3 }
+                                }
+                            }
+                        }
+
+                        // Loading spinner
+                        BusyIndicator {
+                            anchors.centerIn: parent
+                            running: appWindow.isPreviewLoading
+                        }
+                    }
+
+                    // Scrubber Timeline Controls
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 4
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            ToolButton {
+                                id: playBtn
+                                icon.name: scrubTimer.running ? "media-playback-pause" : "media-playback-start"
+                                onClicked: {
+                                    if (scrubTimer.running) {
+                                        scrubTimer.stop();
+                                    } else {
+                                        scrubTimer.start();
+                                    }
+                                }
+                            }
+
+                            Slider {
+                                id: timeScrubber
+                                Layout.fillWidth: true
+                                from: 0.0
+                                to: videoInfo ? videoInfo.duration_secs : 1.0
+                                value: appWindow.currentScrubTime
+                                onMoved: {
+                                    appWindow.currentScrubTime = value;
+                                    requestPreviewUpdate();
+                                }
+                            }
+                        }
+
+                        Timer {
+                            id: scrubTimer
+                            interval: 500
+                            repeat: true
+                            onTriggered: {
+                                if (!videoInfo) return;
+                                var step = 1.0;
+                                var nextT = appWindow.currentScrubTime + step;
+                                if (nextT > videoInfo.duration_secs) {
+                                    nextT = 0.0;
+                                }
+                                appWindow.currentScrubTime = nextT;
+                                requestPreviewUpdate();
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Label {
+                                text: {
+                                    if (!videoInfo) return "00:00.00";
+                                    var curFrame = Math.round(appWindow.currentScrubTime * videoInfo.fps);
+                                    return "Frame: " + curFrame + " / " + videoInfo.frame_count;
+                                }
+                                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                                opacity: 0.8
+                            }
+                            Item { Layout.fillWidth: true }
+                            Label {
+                                text: {
+                                    if (!videoInfo) return "00:00.00 / 00:00.00";
+                                    return appWindow.currentScrubTime.toFixed(2) + "s / " + videoInfo.duration_secs.toFixed(2) + "s";
+                                }
+                                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                                font.bold: true
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
