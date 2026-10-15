@@ -298,7 +298,7 @@ impl ServerState {
                     let t = i as f64 / n as f64;
                     let y = match ease_type {
                         EaseType::CustomBezier => {
-                            let pts = bezier_points.unwrap_or([0.25, 0.1, 0.25, 1.0]);
+                            let pts = bezier_points.unwrap_or([0.25, 0.25, 0.75, 0.75]);
                             evaluate_cubic_bezier(t, pts[0], pts[1], pts[2], pts[3])
                         }
                         _ => {

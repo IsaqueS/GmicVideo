@@ -122,7 +122,7 @@ Kirigami.ApplicationWindow {
                     start_value: (ptype === "float" || ptype === "int") ? (pdata.min !== undefined ? pdata.min : 0.0) : defVal,
                     end_value: (ptype === "float" || ptype === "int") ? (pdata.max !== undefined ? pdata.max : 100.0) : defVal,
                     ease_type: "linear",
-                    bezier_points: [0.25, 0.1, 0.25, 1.0]
+                    bezier_points: [0.25, 0.25, 0.75, 0.75]
                 };
             }
         }
@@ -649,7 +649,7 @@ Kirigami.ApplicationWindow {
                                                         if (cur.start_value === undefined) cur.start_value = (pdata.min !== undefined ? pdata.min : 0.0);
                                                         if (cur.end_value === undefined) cur.end_value = (pdata.max !== undefined ? pdata.max : 100.0);
                                                         if (!cur.ease_type) cur.ease_type = "linear";
-                                                        if (!cur.bezier_points) cur.bezier_points = [0.25, 0.1, 0.25, 1.0];
+                                                        if (!cur.bezier_points) cur.bezier_points = [0.25, 0.25, 0.75, 0.75];
                                                         tws[p.id] = cur;
                                                         appWindow.paramTweens = tws;
                                                         requestPreviewUpdate();
@@ -745,9 +745,9 @@ Kirigami.ApplicationWindow {
                                             currentEnd: curTween.end_value !== undefined ? curTween.end_value : paramMax
                                             currentEase: curTween.ease_type || "linear"
                                             pX1: curTween.bezier_points ? curTween.bezier_points[0] : 0.25
-                                            pY1: curTween.bezier_points ? curTween.bezier_points[1] : 0.1
-                                            pX2: curTween.bezier_points ? curTween.bezier_points[2] : 0.25
-                                            pY2: curTween.bezier_points ? curTween.bezier_points[3] : 1.0
+                                            pY1: curTween.bezier_points ? curTween.bezier_points[1] : 0.25
+                                            pX2: curTween.bezier_points ? curTween.bezier_points[2] : 0.75
+                                            pY2: curTween.bezier_points ? curTween.bezier_points[3] : 0.75
 
                                             onCurveChanged: function(sVal, eVal, eType, x1, y1, x2, y2) {
                                                 var tws = Object.assign({}, appWindow.paramTweens);

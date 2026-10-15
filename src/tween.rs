@@ -87,7 +87,7 @@ impl Default for ParameterTween {
             start_value: 0.0,
             end_value: 1.0,
             ease_type: EaseType::Linear,
-            bezier_points: Some([0.25, 0.1, 0.25, 1.0]), // default ease
+            bezier_points: Some([0.25, 0.25, 0.75, 0.75]), // default linear
             curve_points: None,
             random_min: None,
             random_max: None,
@@ -317,7 +317,7 @@ pub fn evaluate_ease(t: f64, ease: EaseType) -> f64 {
                 (1.0 + evaluate_ease(2.0 * t - 1.0, EaseType::EaseOutBounce)) / 2.0
             }
         }
-        EaseType::CustomBezier => evaluate_cubic_bezier(t, 0.25, 0.1, 0.25, 1.0),
+        EaseType::CustomBezier => evaluate_cubic_bezier(t, 0.25, 0.25, 0.75, 0.75),
     }
 }
 
