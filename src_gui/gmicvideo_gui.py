@@ -152,8 +152,9 @@ class RustBackendBridge(QObject):
             return json.dumps(res.get("data", []))
         return "[]"
 
+    @Slot(str, str, str, int, int, str, str, str, str, float, float, result=str)
     @Slot(str, str, str, int, int, str, str, str, str, result=str)
-    def queueRender(self, video_path, output_path, format_str, quality, speed, filter_id, filter_name, base_values_json, tweens_json):
+    def queueRender(self, video_path, output_path, format_str, quality, speed, filter_id, filter_name, base_values_json, tweens_json, cut_start=0.0, cut_end=-1.0):
         """
         Simplified queue render slot:
           - quality: integer 1..10 (1 = draft, 10 = maximum)
@@ -197,7 +198,9 @@ class RustBackendBridge(QObject):
             "filter_id": filter_id,
             "filter_name": filter_name,
             "base_values": base_values_parsed,
-            "tweens": tweens_parsed
+            "tweens": tweens_parsed,
+            "cut_start_secs": float(cut_start) if cut_start > 0.001 else None,
+            "cut_end_secs": float(cut_end) if cut_end > 0.001 else None
         }
 
         res = self._send_request("queue_render", payload)

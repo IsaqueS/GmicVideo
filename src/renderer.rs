@@ -88,6 +88,10 @@ pub struct RenderJobRequest {
     pub filter_name: String,
     pub base_values: HashMap<usize, f64>,
     pub tweens: HashMap<usize, ParameterTween>,
+    #[serde(default)]
+    pub cut_start_secs: Option<f64>,
+    #[serde(default)]
+    pub cut_end_secs: Option<f64>,
 }
 
 pub struct BatchRenderer {
@@ -156,7 +160,7 @@ impl BatchRenderer {
             message: "Extracting video frames...".to_string(),
         });
 
-        let total_extracted = extract_all_frames(&request.video_path, &in_frames_dir)?;
+        let total_extracted = extract_all_frames(&request.video_path, &in_frames_dir, request.cut_start_secs, request.cut_end_secs)?;
         if total_extracted == 0 {
             return Err("Zero frames extracted from video".to_string());
         }
@@ -296,6 +300,8 @@ impl BatchRenderer {
             request.crf,
             video_info.has_audio,
             &request.speed_preset,
+            request.cut_start_secs,
+            request.cut_end_secs,
         )?;
 
         // 7. Completed!

@@ -23,6 +23,8 @@ Kirigami.ApplicationWindow {
     property string previewRawPath: ""
     property string previewEffectPath: ""
     property real currentScrubTime: 0.0
+    property real cutStartTime: 0.0
+    property real cutEndTime: 0.0
     property bool splitPreview: false
     property bool isPreviewLoading: false
 
@@ -137,6 +139,8 @@ Kirigami.ApplicationWindow {
         }
         videoInfo = info;
         currentScrubTime = 0.0;
+        cutStartTime = 0.0;
+        cutEndTime = info.duration_secs;
         requestPreviewUpdate();
     }
 
@@ -220,6 +224,8 @@ Kirigami.ApplicationWindow {
         paramValues: appWindow.paramValues
         paramTweens: appWindow.paramTweens
         queueItems: appWindow.renderQueue
+        cutStartTime: appWindow.cutStartTime
+        cutEndTime: appWindow.cutEndTime
     }
 
     // Top Header
@@ -882,6 +888,95 @@ Kirigami.ApplicationWindow {
                                 }
                                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                                 font.bold: true
+                            }
+                        }
+
+                        Kirigami.Separator {
+                            Layout.fillWidth: true
+                            visible: videoInfo !== null
+                        }
+
+                        // Video Cut Range (In / Out points)
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            visible: videoInfo !== null
+                            spacing: 4
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Kirigami.Icon {
+                                    source: "edit-cut"
+                                    implicitWidth: 16
+                                    implicitHeight: 16
+                                }
+                                Label {
+                                    text: "Cut Range (Trim Video):"
+                                    font.bold: true
+                                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                                }
+                                Item { Layout.fillWidth: true }
+                                Label {
+                                    text: {
+                                        if (!videoInfo) return "";
+                                        var dur = (appWindow.cutEndTime - appWindow.cutStartTime).toFixed(2);
+                                        return appWindow.cutStartTime.toFixed(2) + "s -> " + appWindow.cutEndTime.toFixed(2) + "s (Duration: " + dur + "s)";
+                                    }
+                                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                                    color: (appWindow.cutStartTime > 0.05 || (videoInfo && appWindow.cutEndTime < videoInfo.duration_secs - 0.05)) ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
+                                    font.bold: true
+                                }
+                                ToolButton {
+                                    icon.name: "edit-undo"
+                                    ToolTip.text: "Reset Cut to Full Video"
+                                    visible: videoInfo && (appWindow.cutStartTime > 0.05 || appWindow.cutEndTime < videoInfo.duration_secs - 0.05)
+                                    onClicked: {
+                                        appWindow.cutStartTime = 0.0;
+                                        appWindow.cutEndTime = videoInfo.duration_secs;
+                                        cutRangeSlider.first.value = 0.0;
+                                        cutRangeSlider.second.value = videoInfo.duration_secs;
+                                    }
+                                }
+                            }
+
+                            RangeSlider {
+                                id: cutRangeSlider
+                                Layout.fillWidth: true
+                                from: 0.0
+                                to: videoInfo ? videoInfo.duration_secs : 1.0
+                                first.value: appWindow.cutStartTime
+                                second.value: videoInfo ? (appWindow.cutEndTime > 0 ? appWindow.cutEndTime : videoInfo.duration_secs) : 1.0
+                                stepSize: videoInfo && videoInfo.fps > 0 ? (1.0 / videoInfo.fps) : 0.05
+
+                                first.onMoved: {
+                                    appWindow.cutStartTime = first.value;
+                                    if (appWindow.currentScrubTime < first.value) {
+                                        appWindow.currentScrubTime = first.value;
+                                        requestPreviewUpdate();
+                                    }
+                                }
+
+                                second.onMoved: {
+                                    appWindow.cutEndTime = second.value;
+                                    if (appWindow.currentScrubTime > second.value) {
+                                        appWindow.currentScrubTime = second.value;
+                                        requestPreviewUpdate();
+                                    }
+                                }
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Label {
+                                    text: "Start: " + appWindow.cutStartTime.toFixed(2) + "s"
+                                    font.pixelSize: 11
+                                    opacity: 0.75
+                                }
+                                Item { Layout.fillWidth: true }
+                                Label {
+                                    text: "End: " + appWindow.cutEndTime.toFixed(2) + "s"
+                                    font.pixelSize: 11
+                                    opacity: 0.75
+                                }
                             }
                         }
                     }

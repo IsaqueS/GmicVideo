@@ -180,22 +180,49 @@ pub fn extract_preview_frame(video_path: &Path, time_secs: f64, out_path: &Path)
     }
 }
 
-pub fn extract_all_frames(video_path: &Path, out_dir: &Path) -> Result<usize, String> {
+pub fn extract_all_frames(
+    video_path: &Path,
+    out_dir: &Path,
+    cut_start_secs: Option<f64>,
+    cut_end_secs: Option<f64>,
+) -> Result<usize, String> {
     std::fs::create_dir_all(out_dir).map_err(|e| format!("Failed to create out dir: {e}"))?;
 
     let pattern = out_dir.join("frame_%07d.png");
+    let mut args: Vec<String> = vec![
+        "-y".into(),
+        "-nostats".into(),
+        "-loglevel".into(),
+        "error".into(),
+    ];
+
+    if let Some(start) = cut_start_secs {
+        if start > 0.001 {
+            args.push("-ss".into());
+            args.push(format!("{:.3}", start));
+        }
+    }
+
+    if let Some(end) = cut_end_secs {
+        if let Some(start) = cut_start_secs {
+            if end > start + 0.001 {
+                args.push("-to".into());
+                args.push(format!("{:.3}", end));
+            }
+        } else if end > 0.001 {
+            args.push("-to".into());
+            args.push(format!("{:.3}", end));
+        }
+    }
+
+    args.push("-i".into());
+    args.push(video_path.to_str().ok_or("Invalid video path")?.to_string());
+    args.push("-vsync".into());
+    args.push("0".into());
+    args.push(pattern.to_str().ok_or("Invalid pattern path")?.to_string());
+
     let output = Command::new("ffmpeg")
-        .args([
-            "-y",
-            "-nostats",
-            "-loglevel",
-            "error",
-            "-i",
-            video_path.to_str().ok_or("Invalid video path")?,
-            "-vsync",
-            "0",
-            pattern.to_str().ok_or("Invalid pattern path")?,
-        ])
+        .args(&args)
         .output()
         .map_err(|e| format!("Failed to run ffmpeg frame extraction: {e}"))?;
 
@@ -227,6 +254,8 @@ pub fn encode_video(
     crf: u32,
     has_audio: bool,
     speed_preset: &str,
+    cut_start_secs: Option<f64>,
+    cut_end_secs: Option<f64>,
 ) -> Result<PathBuf, String> {
     if let Some(parent) = out_path.parent() {
         let _ = std::fs::create_dir_all(parent);
@@ -246,6 +275,23 @@ pub fn encode_video(
     ];
 
     if has_audio {
+        if let Some(start) = cut_start_secs {
+            if start > 0.001 {
+                args.push("-ss".into());
+                args.push(format!("{:.3}", start));
+            }
+        }
+        if let Some(end) = cut_end_secs {
+            if let Some(start) = cut_start_secs {
+                if end > start + 0.001 {
+                    args.push("-to".into());
+                    args.push(format!("{:.3}", end));
+                }
+            } else if end > 0.001 {
+                args.push("-to".into());
+                args.push(format!("{:.3}", end));
+            }
+        }
         args.push("-i".into());
         args.push(original_video.to_string_lossy().to_string());
         args.push("-map".into());
@@ -253,7 +299,7 @@ pub fn encode_video(
         args.push("-map".into());
         args.push("1:a?".into());
         args.push("-c:a".into());
-        args.push("copy".into());
+        args.push("aac".into());
     }
 
     let clean_preset = if speed_preset.is_empty() { "medium" } else { speed_preset };

@@ -24,6 +24,8 @@ Window {
     property var paramValues: ({})
     property var paramTweens: ({})
     property var queueItems: []
+    property real cutStartTime: 0.0
+    property real cutEndTime: videoInfo ? videoInfo.duration_secs : 0.0
 
     property string defaultOutputPath: {
         var vname = videoInfo ? videoInfo.filename.replace(/\.[^/.]+$/, "") : "video";
@@ -153,6 +155,29 @@ Window {
                                 Label {
                                     text: selectedFilter ? ("Effect: " + selectedFilter.name + " [" + selectedFilter.category + "]") : "No effect selected"
                                     opacity: 0.85
+                                }
+                            }
+
+                            RowLayout {
+                                spacing: 8
+                                visible: videoInfo !== null
+                                Kirigami.Icon {
+                                    source: "edit-cut"
+                                    implicitWidth: 18
+                                    implicitHeight: 18
+                                }
+                                Label {
+                                    text: {
+                                        if (!videoInfo) return "";
+                                        var isCut = (renderWindow.cutStartTime > 0.05 || (renderWindow.cutEndTime > 0.05 && renderWindow.cutEndTime < videoInfo.duration_secs - 0.05));
+                                        if (isCut) {
+                                            var dur = (renderWindow.cutEndTime - renderWindow.cutStartTime).toFixed(2);
+                                            return "Cut Range: " + renderWindow.cutStartTime.toFixed(2) + "s -> " + renderWindow.cutEndTime.toFixed(2) + "s (Duration: " + dur + "s)";
+                                        }
+                                        return "Cut Range: Entire Video (0.00s -> " + videoInfo.duration_secs.toFixed(2) + "s)";
+                                    }
+                                    opacity: 0.85
+                                    color: (renderWindow.cutStartTime > 0.05 || (videoInfo && renderWindow.cutEndTime < videoInfo.duration_secs - 0.05)) ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
                                 }
                             }
                         }
@@ -316,6 +341,10 @@ Window {
                                 var outPath = destPathField.text.trim();
                                 if (!outPath) outPath = renderWindow.defaultOutputPath;
 
+                                var isCut = (renderWindow.cutStartTime > 0.05 || (videoInfo && renderWindow.cutEndTime < videoInfo.duration_secs - 0.05));
+                                var cStart = isCut ? renderWindow.cutStartTime : 0.0;
+                                var cEnd = isCut ? renderWindow.cutEndTime : -1.0;
+
                                 var jobId = Backend.queueRender(
                                     videoInfo.path,
                                     outPath,
@@ -325,7 +354,9 @@ Window {
                                     selectedFilter.id,
                                     selectedFilter.name,
                                     JSON.stringify(renderWindow.paramValues),
-                                    JSON.stringify(renderWindow.paramTweens)
+                                    JSON.stringify(renderWindow.paramTweens),
+                                    cStart,
+                                    cEnd
                                 );
 
                                 if (jobId) {

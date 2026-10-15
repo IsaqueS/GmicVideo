@@ -112,6 +112,8 @@ fn main() {
             filter_name: filter.name,
             base_values: std::collections::HashMap::new(),
             tweens: std::collections::HashMap::new(),
+            cut_start_secs: None,
+            cut_end_secs: None,
         };
 
         match renderer.run(request, &filter_db, |p| {
