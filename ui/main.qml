@@ -26,6 +26,11 @@ Kirigami.ApplicationWindow {
     property bool splitPreview: false
     property bool isPreviewLoading: false
 
+    // Render Queue state
+    property var renderQueue: []
+    property int activeRenderCount: 0
+    property real activeRenderPercent: 0.0
+
     // Tween easing names
     property var easeList: [
         { key: "linear", label: "Linear" },
@@ -165,25 +170,28 @@ Kirigami.ApplicationWindow {
             appWindow.previewEffectPath = "file://" + effectPath;
             appWindow.isPreviewLoading = false;
         }
-        function onRenderProgressUpdated(jsonStr) {
-            var prog = JSON.parse(jsonStr);
-            renderDialog.stage = prog.stage;
-            renderDialog.percent = prog.percent;
-            renderDialog.statusMessage = prog.message;
-            renderDialog.totalFrames = prog.total_frames;
-            renderDialog.completedFrames = prog.completed_frames;
-            renderDialog.fps = prog.fps;
-            renderDialog.etaSecs = prog.eta_secs;
-            renderDialog.elapsedSecs = prog.elapsed_secs;
-        }
-        function onRenderCompleted(outputPath) {
-            renderDialog.outputPath = outputPath;
-            renderDialog.isFinished = true;
-            renderDialog.statusMessage = "Video rendered successfully to: " + outputPath;
-        }
-        function onRenderFailed(errorMsg) {
-            renderDialog.isError = true;
-            renderDialog.statusMessage = "Render error: " + errorMsg;
+        function onQueueUpdated(jsonStr) {
+            try {
+                var items = JSON.parse(jsonStr) || [];
+                appWindow.renderQueue = items;
+                renderDialog.queueItems = items;
+
+                var activeCount = 0;
+                var currPercent = 0.0;
+                for (var i = 0; i < items.length; i++) {
+                    var item = items[i];
+                    if (item.status === "rendering" || item.status === "queued") {
+                        activeCount++;
+                    }
+                    if (item.status === "rendering" && item.progress) {
+                        currPercent = item.progress.percent || 0.0;
+                    }
+                }
+                appWindow.activeRenderCount = activeCount;
+                appWindow.activeRenderPercent = currPercent;
+            } catch (e) {
+                console.error("Error parsing queue update: " + e);
+            }
         }
     }
 
@@ -206,6 +214,11 @@ Kirigami.ApplicationWindow {
 
     RenderDialog {
         id: renderDialog
+        videoInfo: appWindow.videoInfo
+        selectedFilter: appWindow.selectedFilter
+        paramValues: appWindow.paramValues
+        paramTweens: appWindow.paramTweens
+        queueItems: appWindow.renderQueue
     }
 
     // Top Header
@@ -249,65 +262,13 @@ Kirigami.ApplicationWindow {
 
             Item { Layout.fillWidth: true }
 
-            Label {
-                text: "Format:"
-                opacity: 0.8
-            }
-
-            ComboBox {
-                id: formatCombo
-                model: [
-                    { key: "h264", label: "H.264 (MP4)" },
-                    { key: "h265", label: "H.265 / HEVC (MP4)" },
-                    { key: "vp9", label: "VP9 (WebM)" },
-                    { key: "av1", label: "AV1 (MP4)" },
-                    { key: "lossless", label: "Lossless RGB (MP4)" }
-                ]
-                textRole: "label"
-                currentIndex: 0
-            }
-
-            Label {
-                text: "CRF:"
-                opacity: 0.8
-            }
-
-            SpinBox {
-                id: crfSpin
-                from: 0
-                to: 51
-                value: 18
-                editable: true
-            }
-
             Button {
-                text: "Render Video"
-                icon.name: "media-record"
+                id: renderBtn
+                text: appWindow.activeRenderCount > 0 ? ("Render (" + appWindow.activeRenderCount + " in queue | " + appWindow.activeRenderPercent.toFixed(0) + "%)") : "Render"
+                icon.name: appWindow.activeRenderCount > 0 ? "system-run" : "media-record"
                 highlighted: true
-                enabled: videoInfo !== null && selectedFilter !== null
                 onClicked: {
-                    var fmt = formatCombo.model[formatCombo.currentIndex].key;
-                    var ext = fmt === "vp9" ? "webm" : "mp4";
-                    var baseName = videoInfo.filename.replace(/\.[^/.]+$/, "") + "_" + selectedFilter.command + "." + ext;
-                    var outPath = Backend.chooseOutputFile(baseName, ext);
-                    if (outPath) {
-                        renderDialog.stage = "preparing";
-                        renderDialog.percent = 0.0;
-                        renderDialog.isFinished = false;
-                        renderDialog.isError = false;
-                        renderDialog.statusMessage = "Starting parallel batch rendering with G'MIC...";
-                        renderDialog.open();
-
-                        Backend.startRender(
-                            videoInfo.path,
-                            outPath,
-                            fmt,
-                            crfSpin.value,
-                            selectedFilter.id,
-                            JSON.stringify(appWindow.paramValues),
-                            JSON.stringify(appWindow.paramTweens)
-                        );
-                    }
+                    renderDialog.open();
                 }
             }
         }

@@ -101,11 +101,15 @@ fn main() {
 
         let renderer = renderer::BatchRenderer::new();
         let request = renderer::RenderJobRequest {
+            id: "cli_job".to_string(),
+            name: format!("CLI: {}", filter.name),
             video_path: input,
             output_path: output,
             format,
             crf: args.crf,
-            filter_id: filter.id,
+            speed_preset: "medium".to_string(),
+            filter_id: filter.id.clone(),
+            filter_name: filter.name,
             base_values: std::collections::HashMap::new(),
             tweens: std::collections::HashMap::new(),
         };

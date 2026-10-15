@@ -226,6 +226,7 @@ pub fn encode_video(
     fps: f64,
     crf: u32,
     has_audio: bool,
+    speed_preset: &str,
 ) -> Result<PathBuf, String> {
     if let Some(parent) = out_path.parent() {
         let _ = std::fs::create_dir_all(parent);
@@ -255,6 +256,8 @@ pub fn encode_video(
         args.push("copy".into());
     }
 
+    let clean_preset = if speed_preset.is_empty() { "medium" } else { speed_preset };
+
     match format {
         ExportFormat::H264 => {
             args.extend([
@@ -265,7 +268,7 @@ pub fn encode_video(
                 "-crf".into(),
                 crf.to_string(),
                 "-preset".into(),
-                "medium".into(),
+                clean_preset.into(),
             ]);
         }
         ExportFormat::H265 => {
@@ -277,10 +280,17 @@ pub fn encode_video(
                 "-crf".into(),
                 crf.to_string(),
                 "-preset".into(),
-                "medium".into(),
+                clean_preset.into(),
             ]);
         }
         ExportFormat::Vp9 => {
+            let cpu_used = match clean_preset {
+                "ultrafast" | "superfast" | "veryfast" => "4",
+                "faster" | "fast" => "3",
+                "medium" => "2",
+                "slow" => "1",
+                _ => "0",
+            };
             args.extend([
                 "-c:v".into(),
                 "libvpx-vp9".into(),
@@ -290,9 +300,18 @@ pub fn encode_video(
                 crf.to_string(),
                 "-b:v".into(),
                 "0".into(),
+                "-cpu-used".into(),
+                cpu_used.into(),
             ]);
         }
         ExportFormat::Av1 => {
+            let av1_preset = match clean_preset {
+                "ultrafast" | "superfast" | "veryfast" => "8",
+                "faster" | "fast" => "7",
+                "medium" => "6",
+                "slow" => "5",
+                _ => "4",
+            };
             args.extend([
                 "-c:v".into(),
                 "libsvtav1".into(),
@@ -301,7 +320,7 @@ pub fn encode_video(
                 "-crf".into(),
                 crf.to_string(),
                 "-preset".into(),
-                "6".into(),
+                av1_preset.into(),
             ]);
         }
         ExportFormat::Lossless => {

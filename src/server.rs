@@ -8,6 +8,33 @@ use std::io::{BufRead, Write};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum JobStatus {
+    Queued,
+    Rendering,
+    Completed,
+    Failed,
+    Canceled,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RenderQueueItem {
+    pub id: String,
+    pub name: String,
+    pub video_path: String,
+    pub output_path: String,
+    pub format: String,
+    pub crf: u32,
+    pub speed_preset: String,
+    pub filter_id: String,
+    pub filter_name: String,
+    pub status: JobStatus,
+    pub progress: RenderProgress,
+    pub error: Option<String>,
+    pub created_at_secs: f64,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "action", content = "payload", rename_all = "snake_case")]
 pub enum IpcRequest {
@@ -29,6 +56,14 @@ pub enum IpcRequest {
         curve_points: Option<Vec<(f64, f64)>>,
         sample_count: usize,
     },
+    // New Queue Actions
+    QueueRender(RenderJobRequest),
+    GetRenderQueue,
+    CancelRenderJob {
+        job_id: String,
+    },
+    ClearCompletedJobs,
+    // Legacy Single-Job Actions
     StartRender(RenderJobRequest),
     GetRenderProgress,
     CancelRender,
@@ -44,9 +79,12 @@ pub enum IpcResponse {
 pub struct ServerState {
     pub filter_db: FilterDatabase,
     pub renderer: Arc<BatchRenderer>,
+    pub queue_items: Arc<Mutex<Vec<RenderQueueItem>>>,
+    pub active_job_id: Arc<Mutex<Option<String>>>,
+    pub preview_temp_dir: PathBuf,
+    pub queue_tx: std::sync::mpsc::Sender<RenderJobRequest>,
     pub current_progress: Arc<Mutex<RenderProgress>>,
     pub is_rendering: Arc<Mutex<bool>>,
-    pub preview_temp_dir: PathBuf,
 }
 
 impl ServerState {
@@ -54,12 +92,110 @@ impl ServerState {
         let temp_dir = std::env::temp_dir().join("gmic_video_previews");
         let _ = std::fs::create_dir_all(&temp_dir);
 
+        let filter_db = FilterDatabase::load_default();
+        let renderer = Arc::new(BatchRenderer::new());
+        let queue_items: Arc<Mutex<Vec<RenderQueueItem>>> = Arc::new(Mutex::new(Vec::new()));
+        let active_job_id: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(None));
+        let current_progress = Arc::new(Mutex::new(RenderProgress::default()));
+        let is_rendering = Arc::new(Mutex::new(false));
+
+        let (queue_tx, queue_rx) = std::sync::mpsc::channel::<RenderJobRequest>();
+
+        // Background FIFO Queue Worker Thread
+        let worker_queue = queue_items.clone();
+        let worker_active_id = active_job_id.clone();
+        let worker_renderer = renderer.clone();
+        let worker_db = filter_db.clone();
+        let worker_prog = current_progress.clone();
+        let worker_is_rend = is_rendering.clone();
+
+        std::thread::spawn(move || {
+            while let Ok(job) = queue_rx.recv() {
+                // Check if already canceled while in queue
+                {
+                    let items = worker_queue.lock().unwrap();
+                    if let Some(item) = items.iter().find(|i| i.id == job.id) {
+                        if item.status == JobStatus::Canceled {
+                            continue;
+                        }
+                    }
+                }
+
+                // Mark as Rendering
+                {
+                    let mut items = worker_queue.lock().unwrap();
+                    if let Some(item) = items.iter_mut().find(|i| i.id == job.id) {
+                        item.status = JobStatus::Rendering;
+                        item.progress.stage = RenderStage::Extracting;
+                        item.progress.percent = 5.0;
+                        item.progress.message = "Starting render...".to_string();
+                    }
+                    let mut active = worker_active_id.lock().unwrap();
+                    *active = Some(job.id.clone());
+                    let mut rend_guard = worker_is_rend.lock().unwrap();
+                    *rend_guard = true;
+                }
+
+                let job_id = job.id.clone();
+                let queue_clone = worker_queue.clone();
+                let prog_clone = worker_prog.clone();
+
+                let on_progress = move |p: RenderProgress| {
+                    // Update queue item progress
+                    let mut items = queue_clone.lock().unwrap();
+                    if let Some(item) = items.iter_mut().find(|i| i.id == job_id) {
+                        item.progress = p.clone();
+                    }
+                    // Update legacy progress
+                    let mut guard = prog_clone.lock().unwrap();
+                    *guard = p;
+                };
+
+                let result = worker_renderer.run(job.clone(), &worker_db, on_progress);
+
+                // Update final status
+                {
+                    let mut items = worker_queue.lock().unwrap();
+                    let mut active = worker_active_id.lock().unwrap();
+                    *active = None;
+                    let mut rend_guard = worker_is_rend.lock().unwrap();
+                    *rend_guard = false;
+
+                    if let Some(item) = items.iter_mut().find(|i| i.id == job.id) {
+                        match result {
+                            Ok(path) => {
+                                item.status = JobStatus::Completed;
+                                item.progress.stage = RenderStage::Completed;
+                                item.progress.percent = 100.0;
+                                item.progress.message = format!("Completed: {}", path.display());
+                            }
+                            Err(e) => {
+                                if e.contains("canceled") || e.contains("Canceled") {
+                                    item.status = JobStatus::Canceled;
+                                    item.progress.stage = RenderStage::Canceled;
+                                    item.progress.message = "Render was canceled".to_string();
+                                } else {
+                                    item.status = JobStatus::Failed;
+                                    item.progress.stage = RenderStage::Failed;
+                                    item.progress.message = format!("Failed: {e}");
+                                    item.error = Some(e);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
         Self {
-            filter_db: FilterDatabase::load_default(),
-            renderer: Arc::new(BatchRenderer::new()),
-            current_progress: Arc::new(Mutex::new(RenderProgress::default())),
-            is_rendering: Arc::new(Mutex::new(false)),
+            filter_db,
+            renderer,
+            queue_items,
+            active_job_id,
             preview_temp_dir: temp_dir,
+            queue_tx,
+            current_progress,
+            is_rendering,
         }
     }
 
@@ -130,7 +266,7 @@ impl ServerState {
                     "raw_preview": raw_frame_path.to_string_lossy(),
                     "effect_preview": out_frame_path.to_string_lossy(),
                     "time_secs": time_secs,
-                    "normalized_t": t,
+                    "normalized_t": t
                 });
 
                 IpcResponse::Ok(result)
@@ -168,52 +304,121 @@ impl ServerState {
 
                 IpcResponse::Ok(serde_json::to_value(points).unwrap_or_default())
             }
-            IpcRequest::StartRender(job) => {
-                let mut is_rend = self.is_rendering.lock().unwrap();
-                if *is_rend {
-                    return IpcResponse::Error("A render job is already running".to_string());
+            // Queue Render Action
+            IpcRequest::QueueRender(mut job) => {
+                if job.id.is_empty() {
+                    job.id = format!(
+                        "job_{}",
+                        std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap_or_default()
+                            .as_millis()
+                    );
                 }
-                *is_rend = true;
 
-                let renderer = self.renderer.clone();
-                let filter_db = self.filter_db.clone();
-                let prog_arc = self.current_progress.clone();
-                let is_rend_arc = self.is_rendering.clone();
+                let filter_name = self
+                    .filter_db
+                    .find_filter(&job.filter_id)
+                    .map(|f| f.name.clone())
+                    .unwrap_or_else(|| job.filter_id.clone());
 
-                std::thread::spawn(move || {
-                    let prog_callback = {
-                        let prog_arc = prog_arc.clone();
-                        move |p: RenderProgress| {
-                            let mut guard = prog_arc.lock().unwrap();
-                            *guard = p;
-                        }
-                    };
+                let now_secs = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_secs_f64();
 
-                    let res = renderer.run(job, &filter_db, prog_callback);
+                let queue_item = RenderQueueItem {
+                    id: job.id.clone(),
+                    name: job.name.clone(),
+                    video_path: job.video_path.to_string_lossy().to_string(),
+                    output_path: job.output_path.to_string_lossy().to_string(),
+                    format: job.format.display_name().to_string(),
+                    crf: job.crf,
+                    speed_preset: job.speed_preset.clone(),
+                    filter_id: job.filter_id.clone(),
+                    filter_name,
+                    status: JobStatus::Queued,
+                    progress: RenderProgress::default(),
+                    error: None,
+                    created_at_secs: now_secs,
+                };
 
-                    let mut guard = prog_arc.lock().unwrap();
-                    let mut is_rend_guard = is_rend_arc.lock().unwrap();
-                    *is_rend_guard = false;
+                {
+                    let mut items = self.queue_items.lock().unwrap();
+                    items.push(queue_item);
+                }
 
-                    match res {
-                        Ok(p) => {
-                            guard.stage = RenderStage::Completed;
-                            guard.percent = 100.0;
-                            guard.message = format!("Render completed: {}", p.display());
-                        }
-                        Err(e) => {
-                            if e.contains("canceled") || e.contains("Canceled") {
-                                guard.stage = RenderStage::Canceled;
-                                guard.message = "Render was canceled".into();
-                            } else {
-                                guard.stage = RenderStage::Failed;
-                                guard.message = format!("Render failed: {e}");
-                            }
+                let _ = self.queue_tx.send(job.clone());
+                IpcResponse::Ok(serde_json::json!({ "status": "queued", "job_id": job.id }))
+            }
+            IpcRequest::GetRenderQueue => {
+                let items = self.queue_items.lock().unwrap();
+                IpcResponse::Ok(serde_json::to_value(&*items).unwrap_or_default())
+            }
+            IpcRequest::CancelRenderJob { job_id } => {
+                let mut was_active = false;
+                {
+                    let active = self.active_job_id.lock().unwrap();
+                    if let Some(ref aid) = *active {
+                        if aid == &job_id {
+                            was_active = true;
                         }
                     }
-                });
+                }
 
-                IpcResponse::Ok(serde_json::json!({ "status": "started" }))
+                if was_active {
+                    self.renderer.cancel();
+                } else {
+                    let mut items = self.queue_items.lock().unwrap();
+                    if let Some(item) = items.iter_mut().find(|i| i.id == job_id) {
+                        item.status = JobStatus::Canceled;
+                        item.progress.stage = RenderStage::Canceled;
+                        item.progress.message = "Canceled in queue".into();
+                    }
+                }
+                IpcResponse::Ok(serde_json::json!({ "status": "canceled", "job_id": job_id }))
+            }
+            IpcRequest::ClearCompletedJobs => {
+                let mut items = self.queue_items.lock().unwrap();
+                items.retain(|i| i.status == JobStatus::Queued || i.status == JobStatus::Rendering);
+                IpcResponse::Ok(serde_json::json!({ "status": "cleared" }))
+            }
+            // Legacy single-job handlers
+            IpcRequest::StartRender(job) => {
+                let filter_name = self
+                    .filter_db
+                    .find_filter(&job.filter_id)
+                    .map(|f| f.name.clone())
+                    .unwrap_or_else(|| job.filter_id.clone());
+
+                let now_secs = std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_secs_f64();
+
+                let queue_item = RenderQueueItem {
+                    id: job.id.clone(),
+                    name: job.name.clone(),
+                    video_path: job.video_path.to_string_lossy().to_string(),
+                    output_path: job.output_path.to_string_lossy().to_string(),
+                    format: job.format.display_name().to_string(),
+                    crf: job.crf,
+                    speed_preset: job.speed_preset.clone(),
+                    filter_id: job.filter_id.clone(),
+                    filter_name,
+                    status: JobStatus::Queued,
+                    progress: RenderProgress::default(),
+                    error: None,
+                    created_at_secs: now_secs,
+                };
+
+                {
+                    let mut items = self.queue_items.lock().unwrap();
+                    items.push(queue_item);
+                }
+
+                let _ = self.queue_tx.send(job.clone());
+                IpcResponse::Ok(serde_json::json!({ "status": "started", "job_id": job.id }))
             }
             IpcRequest::GetRenderProgress => {
                 let guard = self.current_progress.lock().unwrap();
@@ -240,19 +445,19 @@ pub fn run_stdio_server() {
             Ok(l) => l,
             Err(_) => break,
         };
-        let trimmed = line.trim();
-        if trimmed.is_empty() {
+        let line = line.trim();
+        if line.is_empty() {
             continue;
         }
 
-        let resp = match serde_json::from_str::<IpcRequest>(trimmed) {
-            Ok(req) => state.handle_request(req),
-            Err(e) => IpcResponse::Error(format!("Failed to parse request JSON: {e}")),
+        let req: Result<IpcRequest, _> = serde_json::from_str(line);
+        let resp = match req {
+            Ok(r) => state.handle_request(r),
+            Err(e) => IpcResponse::Error(format!("Invalid JSON-IPC request: {e}")),
         };
 
-        if let Ok(json_str) = serde_json::to_string(&resp) {
-            let _ = writeln!(stdout, "{}", json_str);
-            let _ = stdout.flush();
-        }
+        let resp_json = serde_json::to_string(&resp).unwrap_or_else(|_| "{}".to_string());
+        let _ = writeln!(stdout, "{}", resp_json);
+        let _ = stdout.flush();
     }
 }

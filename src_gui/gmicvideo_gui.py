@@ -4,13 +4,15 @@ import os
 import json
 import subprocess
 import threading
+import time
 from PySide6.QtCore import QObject, Slot, Signal, Property, QUrl
 from PySide6.QtWidgets import QApplication, QFileDialog
 from PySide6.QtQml import QQmlApplicationEngine
 
 class RustBackendBridge(QObject):
     previewReady = Signal(str, str, float) # raw_path, effect_path, time_secs
-    renderProgressUpdated = Signal(str)    # json progress
+    queueUpdated = Signal(str)             # json array of RenderQueueItems
+    renderProgressUpdated = Signal(str)    # legacy json progress
     renderCompleted = Signal(str)          # output path
     renderFailed = Signal(str)             # error message
     effectsLoaded = Signal(str)            # json effects
@@ -20,7 +22,10 @@ class RustBackendBridge(QObject):
         self.backend_bin_path = backend_bin_path
         self.process = None
         self.lock = threading.Lock()
+        self._last_queue_json = ""
+        self._completed_notified = set()
         self._start_backend()
+        self._start_queue_poller()
 
     def _start_backend(self):
         try:
@@ -38,11 +43,11 @@ class RustBackendBridge(QObject):
     def _send_request(self, action, payload=None):
         if not self.process or self.process.poll() is not None:
             self._start_backend()
-        
+
         req = {"action": action}
         if payload is not None:
             req["payload"] = payload
-        
+
         req_line = json.dumps(req) + "\n"
         with self.lock:
             try:
@@ -58,6 +63,32 @@ class RustBackendBridge(QObject):
             except Exception as e:
                 return {"status": "error", "data": str(e)}
 
+    def _start_queue_poller(self):
+        def poller():
+            while True:
+                time.sleep(0.25)
+                res = self._send_request("get_render_queue")
+                if res.get("status") == "ok":
+                    items = res.get("data", [])
+                    raw_json = json.dumps(items)
+                    if raw_json != self._last_queue_json:
+                        self._last_queue_json = raw_json
+                        self.queueUpdated.emit(raw_json)
+
+                    # Also update legacy progress for active item
+                    for item in items:
+                        if item.get("status") == "rendering":
+                            prog = item.get("progress", {})
+                            self.renderProgressUpdated.emit(json.dumps(prog))
+                        elif item.get("status") == "completed":
+                            j_id = item.get("id")
+                            if j_id not in self._completed_notified:
+                                self._completed_notified.add(j_id)
+                                self.renderCompleted.emit(item.get("output_path", ""))
+
+        t = threading.Thread(target=poller, daemon=True)
+        t.start()
+
     @Slot(result=str)
     def getEffects(self):
         res = self._send_request("get_effects")
@@ -67,7 +98,6 @@ class RustBackendBridge(QObject):
 
     @Slot(str, result=str)
     def probeVideo(self, path):
-        # Strip file:// if present
         clean_path = path.replace("file://", "")
         res = self._send_request("probe_video", {"path": clean_path})
         if res.get("status") == "ok":
@@ -122,8 +152,13 @@ class RustBackendBridge(QObject):
             return json.dumps(res.get("data", []))
         return "[]"
 
-    @Slot(str, str, str, int, str, str, str)
-    def startRender(self, video_path, output_path, format_str, crf, filter_id, base_values_json, tweens_json):
+    @Slot(str, str, str, int, int, str, str, str, str, result=str)
+    def queueRender(self, video_path, output_path, format_str, quality, speed, filter_id, filter_name, base_values_json, tweens_json):
+        """
+        Simplified queue render slot:
+          - quality: integer 1..10 (1 = draft, 10 = maximum)
+          - speed: integer 1..10 (1 = max compression, 10 = ultrafast)
+        """
         clean_in = video_path.replace("file://", "")
         clean_out = output_path.replace("file://", "")
         base_values = json.loads(base_values_json) if base_values_json else {}
@@ -131,39 +166,80 @@ class RustBackendBridge(QObject):
         tweens = json.loads(tweens_json) if tweens_json else {}
         tweens_parsed = {int(k): v for k, v in tweens.items()}
 
+        # Map Quality 1..10 -> CRF 32..14 (lower CRF is higher quality)
+        q = max(1, min(10, int(quality)))
+        crf = int(round(32 - (q - 1) * 2.0))
+
+        # Map Speed 1..10 -> ffmpeg preset
+        s = max(1, min(10, int(speed)))
+        if s <= 2:
+            preset = "veryslow"
+        elif s <= 4:
+            preset = "slow"
+        elif s <= 6:
+            preset = "medium"
+        elif s <= 8:
+            preset = "fast"
+        else:
+            preset = "ultrafast"
+
+        job_id = f"job_{int(time.time() * 1000)}"
+        job_name = os.path.basename(clean_out) if clean_out else f"Render_{filter_name}.mp4"
+
         payload = {
+            "id": job_id,
+            "name": job_name,
             "video_path": clean_in,
             "output_path": clean_out,
             "format": format_str.lower(),
-            "crf": int(crf),
+            "crf": crf,
+            "speed_preset": preset,
             "filter_id": filter_id,
+            "filter_name": filter_name,
             "base_values": base_values_parsed,
             "tweens": tweens_parsed
         }
-        res = self._send_request("start_render", payload)
-        if res.get("status") != "ok":
-            self.renderFailed.emit(str(res.get("data", "Failed to start render")))
-            return
 
-        def monitor():
-            import time
-            while True:
-                time.sleep(0.3)
-                prog_res = self._send_request("get_render_progress")
-                if prog_res.get("status") == "ok":
-                    prog = prog_res.get("data", {})
-                    self.renderProgressUpdated.emit(json.dumps(prog))
-                    stage = prog.get("stage")
-                    if stage == "completed":
-                        self.renderCompleted.emit(clean_out)
-                        break
-                    elif stage in ("failed", "canceled"):
-                        self.renderFailed.emit(prog.get("message", "Render ended"))
-                        break
-                else:
-                    break
+        res = self._send_request("queue_render", payload)
+        if res.get("status") == "ok":
+            # Force immediate queue update
+            q_res = self._send_request("get_render_queue")
+            if q_res.get("status") == "ok":
+                self.queueUpdated.emit(json.dumps(q_res.get("data", [])))
+            return job_id
+        else:
+            err = str(res.get("data", "Failed to queue render"))
+            self.renderFailed.emit(err)
+            return ""
 
-        threading.Thread(target=monitor, daemon=True).start()
+    @Slot(result=str)
+    def getRenderQueue(self):
+        res = self._send_request("get_render_queue")
+        if res.get("status") == "ok":
+            return json.dumps(res.get("data", []))
+        return "[]"
+
+    @Slot(str)
+    def cancelRenderJob(self, job_id):
+        self._send_request("cancel_render_job", {"job_id": job_id})
+        q_res = self._send_request("get_render_queue")
+        if q_res.get("status") == "ok":
+            self.queueUpdated.emit(json.dumps(q_res.get("data", [])))
+
+    @Slot()
+    def clearCompletedJobs(self):
+        self._send_request("clear_completed_jobs")
+        q_res = self._send_request("get_render_queue")
+        if q_res.get("status") == "ok":
+            self.queueUpdated.emit(json.dumps(q_res.get("data", [])))
+
+    # Legacy startRender for compatibility
+    @Slot(str, str, str, int, str, str, str)
+    def startRender(self, video_path, output_path, format_str, crf, filter_id, base_values_json, tweens_json):
+        self.queueRender(
+            video_path, output_path, format_str, 7, 6,
+            filter_id, filter_id, base_values_json, tweens_json
+        )
 
     @Slot()
     def cancelRender(self):
@@ -181,7 +257,10 @@ class RustBackendBridge(QObject):
 
     @Slot(str, str, result=str)
     def chooseOutputFile(self, default_name, extension="mp4"):
-        default_path = os.path.join(os.path.expanduser("~"), default_name)
+        default_path = os.path.join(os.path.expanduser("~/Vídeos"), default_name)
+        if not os.path.exists(os.path.dirname(default_path)):
+            default_path = os.path.join(os.path.expanduser("~"), default_name)
+
         file_path, _ = QFileDialog.getSaveFileName(
             None,
             "Choose Render Destination",
@@ -225,10 +304,9 @@ def main():
     engine = QQmlApplicationEngine()
     engine.rootContext().setContextProperty("Backend", bridge)
 
-    qml_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ui")
-    main_qml = os.path.join(qml_dir, "main.qml")
+    qml_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ui", "main.qml")
+    engine.load(QUrl.fromLocalFile(qml_file))
 
-    engine.load(QUrl.fromLocalFile(main_qml))
     if not engine.rootObjects():
         print("[Error] Failed to load main.qml", file=sys.stderr)
         sys.exit(1)

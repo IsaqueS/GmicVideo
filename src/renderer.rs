@@ -48,13 +48,44 @@ impl Default for RenderProgress {
     }
 }
 
+fn default_job_id() -> String {
+    format!(
+        "job_{}",
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_millis()
+    )
+}
+
+fn default_job_name() -> String {
+    "Video Render".to_string()
+}
+
+fn default_crf() -> u32 {
+    22
+}
+
+fn default_speed_preset() -> String {
+    "medium".to_string()
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RenderJobRequest {
+    #[serde(default = "default_job_id")]
+    pub id: String,
+    #[serde(default = "default_job_name")]
+    pub name: String,
     pub video_path: PathBuf,
     pub output_path: PathBuf,
     pub format: ExportFormat,
+    #[serde(default = "default_crf")]
     pub crf: u32,
+    #[serde(default = "default_speed_preset")]
+    pub speed_preset: String,
     pub filter_id: String,
+    #[serde(default)]
+    pub filter_name: String,
     pub base_values: HashMap<usize, f64>,
     pub tweens: HashMap<usize, ParameterTween>,
 }
@@ -264,6 +295,7 @@ impl BatchRenderer {
             video_info.fps,
             request.crf,
             video_info.has_audio,
+            &request.speed_preset,
         )?;
 
         // 7. Completed!
