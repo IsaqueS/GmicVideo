@@ -305,6 +305,8 @@ Window {
                         Layout.fillWidth: true
                         spacing: Kirigami.Units.mediumSpacing
 
+                        Item { Layout.fillWidth: true }
+
                         Button {
                             text: "Add to Render Queue & Start"
                             icon.name: "media-record"
@@ -330,14 +332,6 @@ Window {
                                     renderTabs.currentIndex = 1;
                                 }
                             }
-                        }
-
-                        Item { Layout.fillWidth: true }
-
-                        Button {
-                            text: "Close Window"
-                            icon.name: "window-close"
-                            onClicked: renderWindow.close()
                         }
                     }
                 }
