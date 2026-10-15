@@ -214,6 +214,7 @@ Kirigami.ApplicationWindow {
 
     RenderDialog {
         id: renderDialog
+        objectName: "renderDialog"
         videoInfo: appWindow.videoInfo
         selectedFilter: appWindow.selectedFilter
         paramValues: appWindow.paramValues

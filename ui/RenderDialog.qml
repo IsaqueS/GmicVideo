@@ -3,9 +3,21 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 
-Kirigami.OverlaySheet {
-    id: renderSheet
-    title: "Render Manager & Task Queue"
+Window {
+    id: renderWindow
+    title: "Render Manager & Task Queue - G'MIC Video"
+    width: 720
+    height: 680
+    minimumWidth: 560
+    minimumHeight: 480
+    visible: false
+    color: Kirigami.Theme.backgroundColor
+
+    function open() {
+        show();
+        raise();
+        requestActivate();
+    }
 
     property var videoInfo: null
     property var selectedFilter: null
@@ -63,10 +75,10 @@ Kirigami.OverlaySheet {
         return count;
     }
 
-    contentItem: ColumnLayout {
-        spacing: Kirigami.Units.largeSpacing
-        implicitWidth: 640
-        Layout.preferredWidth: 640
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: Kirigami.Units.largeSpacing
+        spacing: Kirigami.Units.mediumSpacing
 
         // Top Navigation Tabs
         TabBar {
@@ -80,8 +92,8 @@ Kirigami.OverlaySheet {
             }
             TabButton {
                 text: {
-                    var c = renderSheet.getActiveJobCount();
-                    return c > 0 ? "Task Queue (" + c + ")" : "Task Queue (" + renderSheet.queueItems.length + ")";
+                    var c = renderWindow.getActiveJobCount();
+                    return c > 0 ? "Task Queue (" + c + ")" : "Task Queue (" + renderWindow.queueItems.length + ")";
                 }
                 icon.name: "view-list-details"
             }
@@ -89,237 +101,244 @@ Kirigami.OverlaySheet {
 
         StackLayout {
             Layout.fillWidth: true
+            Layout.fillHeight: true
             currentIndex: renderTabs.currentIndex
 
             // TAB 0: Configure New Render
-            ColumnLayout {
-                spacing: Kirigami.Units.largeSpacing
+            ScrollView {
                 Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                contentWidth: availableWidth
 
-                // Video & Effect Summary Card
-                Rectangle {
-                    Layout.fillWidth: true
-                    implicitHeight: summaryLayout.implicitHeight + 20
-                    color: Kirigami.Theme.backgroundColor
-                    border.color: Kirigami.Theme.separatorColor
-                    border.width: 1
-                    radius: 6
-
-                    ColumnLayout {
-                        id: summaryLayout
-                        anchors.fill: parent
-                        anchors.margins: 10
-                        spacing: 6
-
-                        RowLayout {
-                            spacing: 8
-                            Kirigami.Icon {
-                                source: "video-x-generic"
-                                implicitWidth: 18
-                                implicitHeight: 18
-                            }
-                            Label {
-                                text: videoInfo ? (videoInfo.filename + " (" + videoInfo.width + "x" + videoInfo.height + ", " + videoInfo.duration_secs.toFixed(1) + "s, " + videoInfo.fps.toFixed(0) + " fps)") : "No video imported"
-                                font.bold: true
-                            }
-                        }
-
-                        RowLayout {
-                            spacing: 8
-                            Kirigami.Icon {
-                                source: "color-management"
-                                implicitWidth: 18
-                                implicitHeight: 18
-                            }
-                            Label {
-                                text: selectedFilter ? ("Effect: " + selectedFilter.name + " [" + selectedFilter.category + "]") : "No effect selected"
-                                opacity: 0.85
-                            }
-                        }
-                    }
-                }
-
-                // Output Destination
                 ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 4
+                    width: parent.width
+                    spacing: Kirigami.Units.largeSpacing
 
-                    Label {
-                        text: "Output Destination File:"
-                        font.bold: true
-                    }
-
-                    RowLayout {
+                    // Video & Effect Summary Card
+                    Rectangle {
                         Layout.fillWidth: true
-                        spacing: Kirigami.Units.smallSpacing
+                        implicitHeight: summaryLayout.implicitHeight + 20
+                        color: Kirigami.Theme.backgroundColor
+                        border.color: Kirigami.Theme.separatorColor
+                        border.width: 1
+                        radius: 6
 
-                        TextField {
-                            id: destPathField
-                            Layout.fillWidth: true
-                            text: renderSheet.chosenOutputPath !== "" ? renderSheet.chosenOutputPath : renderSheet.defaultOutputPath
-                            placeholderText: renderSheet.defaultOutputPath
-                            onTextEdited: renderSheet.chosenOutputPath = text
-                        }
+                        ColumnLayout {
+                            id: summaryLayout
+                            anchors.fill: parent
+                            anchors.margins: 10
+                            spacing: 6
 
-                        Button {
-                            text: "Browse..."
-                            icon.name: "document-save"
-                            onClicked: {
-                                var res = Backend.chooseOutputFile(renderSheet.defaultOutputPath, "mp4");
-                                if (res) {
-                                    renderSheet.chosenOutputPath = res;
-                                    destPathField.text = res;
+                            RowLayout {
+                                spacing: 8
+                                Kirigami.Icon {
+                                    source: "video-x-generic"
+                                    implicitWidth: 18
+                                    implicitHeight: 18
+                                }
+                                Label {
+                                    text: videoInfo ? (videoInfo.filename + " (" + videoInfo.width + "x" + videoInfo.height + ", " + videoInfo.duration_secs.toFixed(1) + "s, " + videoInfo.fps.toFixed(0) + " fps)") : "No video imported"
+                                    font.bold: true
+                                }
+                            }
+
+                            RowLayout {
+                                spacing: 8
+                                Kirigami.Icon {
+                                    source: "color-management"
+                                    implicitWidth: 18
+                                    implicitHeight: 18
+                                }
+                                Label {
+                                    text: selectedFilter ? ("Effect: " + selectedFilter.name + " [" + selectedFilter.category + "]") : "No effect selected"
+                                    opacity: 0.85
                                 }
                             }
                         }
                     }
-                }
 
-                Kirigami.Separator { Layout.fillWidth: true }
-
-                // Simplified Slider 1: Quality
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 4
-
-                    RowLayout {
+                    // Output Destination
+                    ColumnLayout {
                         Layout.fillWidth: true
+                        spacing: 4
+
                         Label {
-                            text: "Quality"
+                            text: "Output Destination File:"
                             font.bold: true
                         }
-                        Item { Layout.fillWidth: true }
-                        Label {
-                            text: renderSheet.qualityDescription(qualitySlider.value)
-                            font.bold: true
-                            color: Kirigami.Theme.highlightColor
-                        }
-                    }
 
-                    Slider {
-                        id: qualitySlider
-                        Layout.fillWidth: true
-                        from: 1
-                        to: 10
-                        stepSize: 1
-                        value: renderSheet.qualityLevel
-                        onValueChanged: renderSheet.qualityLevel = value
-                    }
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: Kirigami.Units.smallSpacing
 
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Label {
-                            text: "Draft (Smaller file)"
-                            opacity: 0.6
-                            font.pixelSize: 11
-                        }
-                        Item { Layout.fillWidth: true }
-                        Label {
-                            text: "Balanced"
-                            opacity: 0.6
-                            font.pixelSize: 11
-                        }
-                        Item { Layout.fillWidth: true }
-                        Label {
-                            text: "Maximum Quality"
-                            opacity: 0.6
-                            font.pixelSize: 11
-                        }
-                    }
-                }
+                            TextField {
+                                id: destPathField
+                                Layout.fillWidth: true
+                                text: renderWindow.chosenOutputPath !== "" ? renderWindow.chosenOutputPath : renderWindow.defaultOutputPath
+                                placeholderText: renderWindow.defaultOutputPath
+                                onTextEdited: renderWindow.chosenOutputPath = text
+                            }
 
-                // Simplified Slider 2: Speed
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 4
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Label {
-                            text: "Encoding Speed"
-                            font.bold: true
-                        }
-                        Item { Layout.fillWidth: true }
-                        Label {
-                            text: renderSheet.speedDescription(speedSlider.value)
-                            font.bold: true
-                            color: Kirigami.Theme.highlightColor
-                        }
-                    }
-
-                    Slider {
-                        id: speedSlider
-                        Layout.fillWidth: true
-                        from: 1
-                        to: 10
-                        stepSize: 1
-                        value: renderSheet.speedLevel
-                        onValueChanged: renderSheet.speedLevel = value
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        Label {
-                            text: "Max Compression"
-                            opacity: 0.6
-                            font.pixelSize: 11
-                        }
-                        Item { Layout.fillWidth: true }
-                        Label {
-                            text: "Balanced"
-                            opacity: 0.6
-                            font.pixelSize: 11
-                        }
-                        Item { Layout.fillWidth: true }
-                        Label {
-                            text: "Ultrafast Encode"
-                            opacity: 0.6
-                            font.pixelSize: 11
-                        }
-                    }
-                }
-
-                Kirigami.Separator { Layout.fillWidth: true }
-
-                // Actions
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: Kirigami.Units.mediumSpacing
-
-                    Button {
-                        text: "Add to Render Queue & Start"
-                        icon.name: "media-record"
-                        highlighted: true
-                        enabled: videoInfo !== null && selectedFilter !== null
-                        onClicked: {
-                            var outPath = destPathField.text.trim();
-                            if (!outPath) outPath = renderSheet.defaultOutputPath;
-
-                            var jobId = Backend.queueRender(
-                                videoInfo.path,
-                                outPath,
-                                "h264",
-                                renderSheet.qualityLevel,
-                                renderSheet.speedLevel,
-                                selectedFilter.id,
-                                selectedFilter.name,
-                                JSON.stringify(renderSheet.paramValues),
-                                JSON.stringify(renderSheet.paramTweens)
-                            );
-
-                            if (jobId) {
-                                // Automatically switch to queue tab to see live progress
-                                renderTabs.currentIndex = 1;
+                            Button {
+                                text: "Browse..."
+                                icon.name: "document-save"
+                                onClicked: {
+                                    var res = Backend.chooseOutputFile(renderWindow.defaultOutputPath, "mp4");
+                                    if (res) {
+                                        renderWindow.chosenOutputPath = res;
+                                        destPathField.text = res;
+                                    }
+                                }
                             }
                         }
                     }
 
-                    Item { Layout.fillWidth: true }
+                    Kirigami.Separator { Layout.fillWidth: true }
 
-                    Button {
-                        text: "Close (Continue Editing)"
-                        icon.name: "dialog-close"
-                        onClicked: renderSheet.close()
+                    // Simplified Slider 1: Quality
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 4
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Label {
+                                text: "Quality"
+                                font.bold: true
+                            }
+                            Item { Layout.fillWidth: true }
+                            Label {
+                                text: renderWindow.qualityDescription(qualitySlider.value)
+                                font.bold: true
+                                color: Kirigami.Theme.highlightColor
+                            }
+                        }
+
+                        Slider {
+                            id: qualitySlider
+                            Layout.fillWidth: true
+                            from: 1
+                            to: 10
+                            stepSize: 1
+                            value: renderWindow.qualityLevel
+                            onValueChanged: renderWindow.qualityLevel = value
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Label {
+                                text: "Draft (Smaller file)"
+                                opacity: 0.6
+                                font.pixelSize: 11
+                            }
+                            Item { Layout.fillWidth: true }
+                            Label {
+                                text: "Balanced"
+                                opacity: 0.6
+                                font.pixelSize: 11
+                            }
+                            Item { Layout.fillWidth: true }
+                            Label {
+                                text: "Maximum Quality"
+                                opacity: 0.6
+                                font.pixelSize: 11
+                            }
+                        }
+                    }
+
+                    // Simplified Slider 2: Speed
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 4
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Label {
+                                text: "Encoding Speed"
+                                font.bold: true
+                            }
+                            Item { Layout.fillWidth: true }
+                            Label {
+                                text: renderWindow.speedDescription(speedSlider.value)
+                                font.bold: true
+                                color: Kirigami.Theme.highlightColor
+                            }
+                        }
+
+                        Slider {
+                            id: speedSlider
+                            Layout.fillWidth: true
+                            from: 1
+                            to: 10
+                            stepSize: 1
+                            value: renderWindow.speedLevel
+                            onValueChanged: renderWindow.speedLevel = value
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Label {
+                                text: "Max Compression"
+                                opacity: 0.6
+                                font.pixelSize: 11
+                            }
+                            Item { Layout.fillWidth: true }
+                            Label {
+                                text: "Balanced"
+                                opacity: 0.6
+                                font.pixelSize: 11
+                            }
+                            Item { Layout.fillWidth: true }
+                            Label {
+                                text: "Ultrafast Encode"
+                                opacity: 0.6
+                                font.pixelSize: 11
+                            }
+                        }
+                    }
+
+                    Kirigami.Separator { Layout.fillWidth: true }
+
+                    // Actions
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: Kirigami.Units.mediumSpacing
+
+                        Button {
+                            text: "Add to Render Queue & Start"
+                            icon.name: "media-record"
+                            highlighted: true
+                            enabled: videoInfo !== null && selectedFilter !== null
+                            onClicked: {
+                                var outPath = destPathField.text.trim();
+                                if (!outPath) outPath = renderWindow.defaultOutputPath;
+
+                                var jobId = Backend.queueRender(
+                                    videoInfo.path,
+                                    outPath,
+                                    "h264",
+                                    renderWindow.qualityLevel,
+                                    renderWindow.speedLevel,
+                                    selectedFilter.id,
+                                    selectedFilter.name,
+                                    JSON.stringify(renderWindow.paramValues),
+                                    JSON.stringify(renderWindow.paramTweens)
+                                );
+
+                                if (jobId) {
+                                    renderTabs.currentIndex = 1;
+                                }
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
+
+                        Button {
+                            text: "Close Window"
+                            icon.name: "window-close"
+                            onClicked: renderWindow.close()
+                        }
                     }
                 }
             }
@@ -328,11 +347,12 @@ Kirigami.OverlaySheet {
             ColumnLayout {
                 spacing: Kirigami.Units.mediumSpacing
                 Layout.fillWidth: true
+                Layout.fillHeight: true
 
                 RowLayout {
                     Layout.fillWidth: true
                     Kirigami.Heading {
-                        text: "Render Queue (" + renderSheet.queueItems.length + " items)"
+                        text: "Render Queue (" + renderWindow.queueItems.length + " items)"
                         level: 4
                     }
                     Item { Layout.fillWidth: true }
@@ -340,16 +360,16 @@ Kirigami.OverlaySheet {
                     Button {
                         text: "Clear Finished"
                         icon.name: "edit-clear-all"
-                        visible: renderSheet.hasFinishedJobs()
+                        visible: renderWindow.hasFinishedJobs()
                         onClicked: Backend.clearCompletedJobs()
                     }
                 }
 
                 // Placeholder when queue is empty
                 Rectangle {
-                    visible: renderSheet.queueItems.length === 0
+                    visible: renderWindow.queueItems.length === 0
                     Layout.fillWidth: true
-                    implicitHeight: 180
+                    Layout.fillHeight: true
                     color: Kirigami.Theme.backgroundColor
                     border.color: Kirigami.Theme.separatorColor
                     border.width: 1
@@ -357,7 +377,7 @@ Kirigami.OverlaySheet {
 
                     ColumnLayout {
                         anchors.centerIn: parent
-                        spacing: 12
+                        spacing: 8
                         Kirigami.Icon {
                             source: "view-list-details"
                             implicitWidth: 48
@@ -382,16 +402,16 @@ Kirigami.OverlaySheet {
 
                 // Scrollable Task List
                 ScrollView {
-                    visible: renderSheet.queueItems.length > 0
+                    visible: renderWindow.queueItems.length > 0
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 340
+                    Layout.fillHeight: true
                     clip: true
 
                     ListView {
                         id: queueListView
                         width: parent.width
                         spacing: 10
-                        model: renderSheet.queueItems
+                        model: renderWindow.queueItems
 
                         delegate: Rectangle {
                             id: jobCard
@@ -572,17 +592,32 @@ Kirigami.OverlaySheet {
                         }
                     }
                 }
+            }
+        }
 
-                // Bottom Close Button
-                RowLayout {
-                    Layout.fillWidth: true
-                    Item { Layout.fillWidth: true }
-                    Button {
-                        text: "Close Window (Render Continues in Background)"
-                        icon.name: "dialog-close"
-                        onClicked: renderSheet.close()
-                    }
+        // Bottom Status & Window Controls
+        Kirigami.Separator { Layout.fillWidth: true }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: Kirigami.Units.mediumSpacing
+
+            Label {
+                text: {
+                    var c = renderWindow.getActiveJobCount();
+                    if (c > 0) return c + " active task" + (c > 1 ? "s" : "") + " rendering in background...";
+                    return "Ready - Rendering runs independently in the background";
                 }
+                opacity: 0.7
+                font.pixelSize: 11
+            }
+
+            Item { Layout.fillWidth: true }
+
+            Button {
+                text: "Close Window"
+                icon.name: "window-close"
+                onClicked: renderWindow.close()
             }
         }
     }
