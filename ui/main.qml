@@ -9,7 +9,8 @@ Kirigami.ApplicationWindow {
     height: 800
     minimumWidth: 960
     minimumHeight: 650
-    title: "G'MIC Video Effects Editor - Spiritual Successor to UltraWarp"
+    title: videoInfo ? "G'MIC Video - Effects Workspace" : "G'MIC Video - Import Screen"
+    pageStack.globalToolBar.style: Kirigami.ApplicationHeaderStyle.None
 
     // App state
     property var videoInfo: null
@@ -283,7 +284,8 @@ Kirigami.ApplicationWindow {
 
     // Main Body: If no video is loaded, show welcoming selection screen; otherwise show full effects workspace!
     pageStack.initialPage: Kirigami.Page {
-        title: videoInfo ? "Video Effects Workspace" : "Video Selection Screen"
+        title: ""
+        globalToolBarStyle: Kirigami.ApplicationHeaderStyle.None
 
         // Video Selection View
         Item {
