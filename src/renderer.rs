@@ -252,8 +252,21 @@ impl BatchRenderer {
                 let mut frame_values: HashMap<usize, f64> = (*base_values).clone();
 
                 for (param_id, tween) in tweens.iter() {
-                    if tween.enabled {
-                        let evaluated_val = tween.evaluate(t);
+                    let is_active = match tween.mode {
+                        crate::tween::AnimationMode::Disabled => tween.enabled,
+                        _ => true,
+                    };
+                    if is_active {
+                        let (pmin, pmax) = filter_arc.parameters.iter()
+                            .find(|p| p.id == *param_id)
+                            .map(|p| match p.param_type {
+                                crate::gmic::GmicParamType::Float { min, max, .. } => (min, max),
+                                crate::gmic::GmicParamType::Int { min, max, .. } => (min as f64, max as f64),
+                                _ => (-1e9, 1e9),
+                            })
+                            .unwrap_or((-1e9, 1e9));
+
+                        let evaluated_val = tween.evaluate_at(t, idx, pmin, pmax);
                         frame_values.insert(*param_id, evaluated_val);
                     }
                 }

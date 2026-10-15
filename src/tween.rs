@@ -2,6 +2,20 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
+pub enum AnimationMode {
+    Disabled,
+    Random,
+    Curve,
+}
+
+impl Default for AnimationMode {
+    fn default() -> Self {
+        AnimationMode::Disabled
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum EaseType {
     Linear,
     EaseInQuad,
@@ -42,36 +56,85 @@ impl Default for EaseType {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ParameterTween {
+    #[serde(default)]
+    pub mode: AnimationMode,
+    #[serde(default)]
     pub enabled: bool,
+    #[serde(default)]
     pub start_value: f64,
+    #[serde(default)]
     pub end_value: f64,
+    #[serde(default)]
     pub ease_type: EaseType,
     /// [x1, y1, x2, y2] for cubic bezier easing P0=(0,0), P1, P2, P3=(1,1)
+    #[serde(default)]
     pub bezier_points: Option<[f64; 4]>,
     /// Optional arbitrary keyframe curve points: [(t, normalized_val), ...] where t in [0.0, 1.0]
+    #[serde(default)]
     pub curve_points: Option<Vec<(f64, f64)>>,
+    /// Random seed or frame seed tracking
+    #[serde(default)]
+    pub random_min: Option<f64>,
+    #[serde(default)]
+    pub random_max: Option<f64>,
 }
 
 impl Default for ParameterTween {
     fn default() -> Self {
         Self {
+            mode: AnimationMode::Disabled,
             enabled: false,
             start_value: 0.0,
             end_value: 1.0,
             ease_type: EaseType::Linear,
             bezier_points: Some([0.25, 0.1, 0.25, 1.0]), // default ease
             curve_points: None,
+            random_min: None,
+            random_max: None,
         }
     }
 }
 
 impl ParameterTween {
-    /// Calculate parameter value at normalized time t in [0.0, 1.0]
-    pub fn evaluate(&self, t: f64) -> f64 {
-        if !self.enabled {
-            return self.start_value;
+    /// Calculate parameter value at normalized time t in [0.0, 1.0] and frame index
+    pub fn evaluate_at(&self, t: f64, frame_idx: usize, param_min: f64, param_max: f64) -> f64 {
+        match self.mode {
+            AnimationMode::Disabled => {
+                if self.enabled {
+                    self.evaluate_curve(t)
+                } else {
+                    self.start_value
+                }
+            }
+            AnimationMode::Random => {
+                let rmin = self.random_min.unwrap_or(self.start_value.min(self.end_value)).max(param_min);
+                let rmax = self.random_max.unwrap_or(self.start_value.max(self.end_value)).min(param_max);
+                let (lo, hi) = if rmin <= rmax { (rmin, rmax) } else { (rmax, rmin) };
+                if (hi - lo).abs() < 1e-6 {
+                    return lo;
+                }
+                // Deterministic pseudo-random based on frame_idx and start_value bits
+                let mut hash = (frame_idx as u64)
+                    .wrapping_mul(0x9E3779B97F4A7C15)
+                    .wrapping_add((self.start_value.to_bits() ^ self.end_value.to_bits()).wrapping_mul(0xBF58476D1CE4E5B9));
+                hash = (hash ^ (hash >> 30)).wrapping_mul(0xBF58476D1CE4E5B9);
+                hash = (hash ^ (hash >> 27)).wrapping_mul(0x94D049BB133111EB);
+                hash = hash ^ (hash >> 31);
+                let norm = (hash & 0xFFFFFFFFFFFFu64) as f64 / 281474976710655.0;
+                lo + (hi - lo) * norm
+            }
+            AnimationMode::Curve => {
+                self.evaluate_curve(t)
+            }
         }
+    }
 
+    /// Legacy evaluate method
+    pub fn evaluate(&self, t: f64) -> f64 {
+        self.evaluate_at(t, (t * 1000.0) as usize, -1e9, 1e9)
+    }
+
+    fn evaluate_curve(&self, t: f64) -> f64 {
         let clamped_t = t.clamp(0.0, 1.0);
         let factor = match self.ease_type {
             EaseType::CustomBezier => {

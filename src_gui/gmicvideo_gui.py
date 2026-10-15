@@ -279,6 +279,101 @@ class RustBackendBridge(QObject):
         if os.path.exists(folder):
             subprocess.Popen(["xdg-open", folder])
 
+    @Slot(str, str, str, str, str, result=str)
+    def savePresetFile(self, filter_id, filter_name, base_values_json, tweens_json, suggested_name=""):
+        """
+        Saves current filter settings, values, and animation curves into a .geffect JSON file.
+        """
+        try:
+            base_values = json.loads(base_values_json) if base_values_json else {}
+            tweens = json.loads(tweens_json) if tweens_json else {}
+
+            preset_data = {
+                "format_version": "1.0",
+                "generator": "GmicVideo",
+                "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "filter_id": filter_id,
+                "filter_name": filter_name,
+                "base_values": base_values,
+                "tweens": tweens
+            }
+
+            sugg = suggested_name if suggested_name else f"{filter_id}.geffect"
+            if not sugg.endswith(".geffect"):
+                sugg += ".geffect"
+
+            default_dir = os.path.expanduser("~")
+            file_path, _ = QFileDialog.getSaveFileName(
+                None,
+                "Save Effect Preset (.geffect)",
+                os.path.join(default_dir, sugg),
+                "G'MIC Video Effect Preset (*.geffect);;JSON Files (*.json);;All Files (*.*)"
+            )
+
+            if not file_path:
+                return ""
+
+            if not file_path.endswith(".geffect") and not file_path.endswith(".json"):
+                file_path += ".geffect"
+
+            with open(file_path, "w", encoding="utf-8") as f:
+                json.dump(preset_data, f, indent=2, ensure_ascii=False)
+
+            return file_path
+        except Exception as e:
+            print(f"[Error] Failed to save .geffect: {e}", file=sys.stderr)
+            return ""
+
+    @Slot(result=str)
+    def loadPresetFile(self):
+        """
+        Prompts user to select a .geffect file, performs thorough validation, and returns the JSON payload.
+        """
+        try:
+            file_path, _ = QFileDialog.getOpenFileName(
+                None,
+                "Load Effect Preset (.geffect)",
+                os.path.expanduser("~"),
+                "G'MIC Video Effect Preset (*.geffect);;JSON Files (*.json);;All Files (*.*)"
+            )
+
+            if not file_path:
+                return ""
+
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            # Validation steps
+            if not isinstance(data, dict):
+                raise ValueError("Invalid file: Root must be a JSON object")
+
+            if "filter_id" not in data:
+                raise ValueError("Missing required field: 'filter_id'")
+
+            if "base_values" not in data or not isinstance(data["base_values"], dict):
+                raise ValueError("Missing or invalid 'base_values' object")
+
+            if "tweens" not in data or not isinstance(data["tweens"], dict):
+                raise ValueError("Missing or invalid 'tweens' object")
+
+            # Validate curve points and normalized percentages if present
+            for pid, tw in data["tweens"].items():
+                if not isinstance(tw, dict):
+                    continue
+                c_pts = tw.get("curve_points")
+                if c_pts and isinstance(c_pts, list):
+                    for pt in c_pts:
+                        if isinstance(pt, (list, tuple)) and len(pt) >= 2:
+                            t_pct, v_pct = pt[0], pt[1]
+                            # clamp percentage in [0.0, 1.0]
+                            pt[0] = max(0.0, min(1.0, float(t_pct)))
+
+            data["_file_path"] = file_path
+            return json.dumps(data)
+        except Exception as e:
+            print(f"[Error] Failed to load .geffect: {e}", file=sys.stderr)
+            return json.dumps({"error": str(e)})
+
     @Slot(str)
     def openFile(self, file_path):
         clean_path = file_path.replace("file://", "")

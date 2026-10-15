@@ -117,9 +117,10 @@ Kirigami.ApplicationWindow {
                 newValues[p.id] = defVal;
 
                 newTweens[p.id] = {
+                    mode: "disabled",
                     enabled: false,
-                    start_value: defVal,
-                    end_value: (ptype === "float" || ptype === "int") ? (pdata.max !== undefined ? pdata.max : defVal * 2) : defVal,
+                    start_value: (ptype === "float" || ptype === "int") ? (pdata.min !== undefined ? pdata.min : 0.0) : defVal,
+                    end_value: (ptype === "float" || ptype === "int") ? (pdata.max !== undefined ? pdata.max : 100.0) : defVal,
                     ease_type: "linear",
                     bezier_points: [0.25, 0.1, 0.25, 1.0]
                 };
@@ -454,6 +455,69 @@ Kirigami.ApplicationWindow {
                         }
 
                         Button {
+                            text: "Save .geffect..."
+                            icon.name: "document-save"
+                            enabled: selectedFilter !== null
+                            onClicked: {
+                                var sName = selectedFilter ? (selectedFilter.id + ".geffect") : "preset.geffect";
+                                var savedPath = Backend.savePresetFile(
+                                    selectedFilter.id,
+                                    selectedFilter.name,
+                                    JSON.stringify(appWindow.paramValues),
+                                    JSON.stringify(appWindow.paramTweens),
+                                    sName
+                                );
+                                if (savedPath) {
+                                    showPassiveNotification("Saved preset to: " + savedPath, "short");
+                                }
+                            }
+                        }
+
+                        Button {
+                            text: "Load .geffect..."
+                            icon.name: "document-open"
+                            onClicked: {
+                                var resJson = Backend.loadPresetFile();
+                                if (!resJson) return;
+                                try {
+                                    var res = JSON.parse(resJson);
+                                    if (res.error) {
+                                        showPassiveNotification("Failed to load preset: " + res.error, "long");
+                                        return;
+                                    }
+                                    // Find filter
+                                    var fId = res.filter_id;
+                                    var targetFilter = null;
+                                    for (var i = 0; i < allFilters.length; i++) {
+                                        if (allFilters[i].id === fId) {
+                                            targetFilter = allFilters[i];
+                                            break;
+                                        }
+                                    }
+                                    if (!targetFilter) {
+                                        showPassiveNotification("Preset requires filter '" + fId + "' which is not found!", "long");
+                                        return;
+                                    }
+                                    selectedFilter = targetFilter;
+                                    var parsedValues = {};
+                                    for (var k in res.base_values) {
+                                        parsedValues[parseInt(k)] = res.base_values[k];
+                                    }
+                                    var parsedTweens = {};
+                                    for (var tk in res.tweens) {
+                                        parsedTweens[parseInt(tk)] = res.tweens[tk];
+                                    }
+                                    paramValues = parsedValues;
+                                    paramTweens = parsedTweens;
+                                    requestPreviewUpdate();
+                                    showPassiveNotification("Loaded preset: " + (res.filter_name || fId), "short");
+                                } catch (e) {
+                                    showPassiveNotification("Preset parse error: " + e, "long");
+                                }
+                            }
+                        }
+
+                        Button {
                             text: "Reset Defaults"
                             icon.name: "edit-undo"
                             onClicked: {
@@ -498,7 +562,8 @@ Kirigami.ApplicationWindow {
                                     property var p: modelData
                                     property var ptype: p.param_type.type
                                     property var pdata: p.param_type.data
-                                    property bool isTweening: appWindow.paramTweens[p.id] ? appWindow.paramTweens[p.id].enabled : false
+                                    property var curTween: appWindow.paramTweens[p.id] || {}
+                                    property string animMode: curTween.mode ? curTween.mode : (curTween.enabled ? "curve" : "disabled")
 
                                     visible: ptype !== "separator" && ptype !== "note"
 
@@ -527,21 +592,69 @@ Kirigami.ApplicationWindow {
                                             visible: ptype === "float" || ptype === "int"
                                         }
 
-                                        // Tween Toggle Button (enabled for animatable types)
+                                        // Animate Dropdown Button (Disabled, Random, Curve)
                                         Button {
+                                            id: animMenuBtn
                                             visible: ptype === "float" || ptype === "int"
-                                            text: isTweening ? "Tween Active" : "Tween"
-                                            icon.name: isTweening ? "chronometer" : "speedometer"
-                                            checkable: true
-                                            checked: isTweening
-                                            highlighted: isTweening
-                                            onClicked: {
-                                                var tws = Object.assign({}, appWindow.paramTweens);
-                                                var cur = tws[p.id] || {};
-                                                cur.enabled = !cur.enabled;
-                                                tws[p.id] = cur;
-                                                appWindow.paramTweens = tws;
-                                                requestPreviewUpdate();
+                                            text: animMode === "random" ? "Animate: Random" : (animMode === "curve" ? "Animate: Curve" : "Animate")
+                                            icon.name: animMode === "random" ? "roll" : (animMode === "curve" ? "draw-bezier-curves" : "media-playback-start")
+                                            highlighted: animMode !== "disabled"
+                                            onClicked: animMenu.open()
+
+                                            Menu {
+                                                id: animMenu
+                                                y: animMenuBtn.height
+
+                                                MenuItem {
+                                                    text: "Disabled (Static Value)"
+                                                    icon.name: "dialog-cancel"
+                                                    checked: animMode === "disabled"
+                                                    onTriggered: {
+                                                        var tws = Object.assign({}, appWindow.paramTweens);
+                                                        var cur = Object.assign({}, tws[p.id] || {});
+                                                        cur.mode = "disabled";
+                                                        cur.enabled = false;
+                                                        tws[p.id] = cur;
+                                                        appWindow.paramTweens = tws;
+                                                        requestPreviewUpdate();
+                                                    }
+                                                }
+
+                                                MenuItem {
+                                                    text: "Random (New Value Every Frame)"
+                                                    icon.name: "roll"
+                                                    checked: animMode === "random"
+                                                    onTriggered: {
+                                                        var tws = Object.assign({}, appWindow.paramTweens);
+                                                        var cur = Object.assign({}, tws[p.id] || {});
+                                                        cur.mode = "random";
+                                                        cur.enabled = true;
+                                                        if (cur.start_value === undefined) cur.start_value = (pdata.min !== undefined ? pdata.min : 0.0);
+                                                        if (cur.end_value === undefined) cur.end_value = (pdata.max !== undefined ? pdata.max : 100.0);
+                                                        tws[p.id] = cur;
+                                                        appWindow.paramTweens = tws;
+                                                        requestPreviewUpdate();
+                                                    }
+                                                }
+
+                                                MenuItem {
+                                                    text: "Curve (Keyframe & Ease Curve)"
+                                                    icon.name: "draw-bezier-curves"
+                                                    checked: animMode === "curve"
+                                                    onTriggered: {
+                                                        var tws = Object.assign({}, appWindow.paramTweens);
+                                                        var cur = Object.assign({}, tws[p.id] || {});
+                                                        cur.mode = "curve";
+                                                        cur.enabled = true;
+                                                        if (cur.start_value === undefined) cur.start_value = (pdata.min !== undefined ? pdata.min : 0.0);
+                                                        if (cur.end_value === undefined) cur.end_value = (pdata.max !== undefined ? pdata.max : 100.0);
+                                                        if (!cur.ease_type) cur.ease_type = "linear";
+                                                        if (!cur.bezier_points) cur.bezier_points = [0.25, 0.1, 0.25, 1.0];
+                                                        tws[p.id] = cur;
+                                                        appWindow.paramTweens = tws;
+                                                        requestPreviewUpdate();
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -550,7 +663,7 @@ Kirigami.ApplicationWindow {
                                     RowLayout {
                                         Layout.fillWidth: true
                                         width: parent.width
-                                        visible: !isTweening
+                                        visible: animMode === "disabled"
 
                                         // Float control
                                         Slider {
@@ -610,97 +723,77 @@ Kirigami.ApplicationWindow {
                                         }
                                     }
 
-                                    // Tweening Controls Panel (appears when Tween is active)
+                                    // Embedded Inline Curve Editor (appears only when Animation Mode is Curve)
                                     Rectangle {
-                                        visible: isTweening
+                                        visible: animMode === "curve"
                                         Layout.fillWidth: true
                                         width: parent.width
-                                        implicitHeight: tweenCol.implicitHeight + 16
-                                        color: Kirigami.Theme.highlightColor
-                                        opacity: 0.12
-                                        radius: 4
+                                        implicitHeight: inlineCurve.implicitHeight + 16
+                                        color: Kirigami.Theme.backgroundColor
                                         border.color: Kirigami.Theme.highlightColor
                                         border.width: 1
+                                        radius: 4
 
-                                        ColumnLayout {
-                                            id: tweenCol
+                                        InlineCurveEditor {
+                                            id: inlineCurve
                                             anchors.fill: parent
                                             anchors.margins: 8
-                                            spacing: 6
 
-                                            RowLayout {
-                                                Layout.fillWidth: true
-                                                spacing: 8
+                                            paramMin: pdata.min !== undefined ? pdata.min : 0.0
+                                            paramMax: pdata.max !== undefined ? pdata.max : 100.0
+                                            currentStart: curTween.start_value !== undefined ? curTween.start_value : paramMin
+                                            currentEnd: curTween.end_value !== undefined ? curTween.end_value : paramMax
+                                            currentEase: curTween.ease_type || "linear"
+                                            pX1: curTween.bezier_points ? curTween.bezier_points[0] : 0.25
+                                            pY1: curTween.bezier_points ? curTween.bezier_points[1] : 0.1
+                                            pX2: curTween.bezier_points ? curTween.bezier_points[2] : 0.25
+                                            pY2: curTween.bezier_points ? curTween.bezier_points[3] : 1.0
 
-                                                Label { text: "Start Val:"; opacity: 0.9 }
-                                                SpinBox {
-                                                    from: pdata.min !== undefined ? pdata.min * 100 : -10000
-                                                    to: pdata.max !== undefined ? pdata.max * 100 : 10000
-                                                    value: appWindow.paramTweens[p.id] ? appWindow.paramTweens[p.id].start_value * 100 : 0
-                                                    editable: true
-                                                    onValueModified: {
-                                                        var tws = Object.assign({}, appWindow.paramTweens);
-                                                        tws[p.id].start_value = value / 100.0;
-                                                        appWindow.paramTweens = tws;
-                                                        requestPreviewUpdate();
-                                                    }
-                                                }
+                                            onCurveChanged: function(sVal, eVal, eType, x1, y1, x2, y2) {
+                                                var tws = Object.assign({}, appWindow.paramTweens);
+                                                var cur = Object.assign({}, tws[p.id] || {});
+                                                cur.mode = "curve";
+                                                cur.enabled = true;
+                                                cur.start_value = sVal;
+                                                cur.end_value = eVal;
+                                                cur.ease_type = eType;
+                                                cur.bezier_points = [x1, y1, x2, y2];
+                                                tws[p.id] = cur;
+                                                appWindow.paramTweens = tws;
+                                                requestPreviewUpdate();
+                                            }
+                                        }
+                                    }
 
-                                                Label { text: "End Val:"; opacity: 0.9 }
-                                                SpinBox {
-                                                    from: pdata.min !== undefined ? pdata.min * 100 : -10000
-                                                    to: pdata.max !== undefined ? pdata.max * 100 : 10000
-                                                    value: appWindow.paramTweens[p.id] ? appWindow.paramTweens[p.id].end_value * 100 : 100
-                                                    editable: true
-                                                    onValueModified: {
-                                                        var tws = Object.assign({}, appWindow.paramTweens);
-                                                        tws[p.id].end_value = value / 100.0;
-                                                        appWindow.paramTweens = tws;
-                                                        requestPreviewUpdate();
-                                                    }
-                                                }
+                                    // Random Mode Info Card (appears when Animation Mode is Random)
+                                    Rectangle {
+                                        visible: animMode === "random"
+                                        Layout.fillWidth: true
+                                        width: parent.width
+                                        implicitHeight: randomLayout.implicitHeight + 14
+                                        color: Kirigami.Theme.backgroundColor
+                                        border.color: "#9b59b6"
+                                        border.width: 1
+                                        radius: 4
+
+                                        RowLayout {
+                                            id: randomLayout
+                                            anchors.fill: parent
+                                            anchors.margins: 8
+                                            spacing: 8
+
+                                            Kirigami.Icon {
+                                                source: "roll"
+                                                implicitWidth: 16
+                                                implicitHeight: 16
                                             }
 
-                                            RowLayout {
+                                            Label {
+                                                text: "Random Mode Active: Generating pseudo-random values between " + (pdata.min !== undefined ? pdata.min : 0) + " and " + (pdata.max !== undefined ? pdata.max : 100) + " on every video frame."
+                                                font.pixelSize: 11
+                                                opacity: 0.85
+                                                wrapMode: Text.WordWrap
                                                 Layout.fillWidth: true
-                                                spacing: 8
-
-                                                Label { text: "Transition / Ease:"; opacity: 0.9 }
-
-                                                ComboBox {
-                                                    Layout.fillWidth: true
-                                                    model: appWindow.easeList
-                                                    textRole: "label"
-                                                    currentIndex: {
-                                                        var curEase = appWindow.paramTweens[p.id] ? appWindow.paramTweens[p.id].ease_type : "linear";
-                                                        for (var i = 0; i < appWindow.easeList.length; i++) {
-                                                            if (appWindow.easeList[i].key === curEase) return i;
-                                                        }
-                                                        return 0;
-                                                    }
-                                                    onActivated: {
-                                                        var tws = Object.assign({}, appWindow.paramTweens);
-                                                        tws[p.id].ease_type = appWindow.easeList[currentIndex].key;
-                                                        appWindow.paramTweens = tws;
-                                                        requestPreviewUpdate();
-                                                    }
-                                                }
-
-                                                Button {
-                                                    text: "Edit Curve..."
-                                                    icon.name: "draw-bezier-curves"
-                                                    visible: appWindow.paramTweens[p.id] && appWindow.paramTweens[p.id].ease_type === "custom_bezier"
-                                                    onClicked: {
-                                                        appWindow.activeTweenParamId = p.id;
-                                                        curveEditor.paramName = p.name;
-                                                        var bpts = appWindow.paramTweens[p.id].bezier_points || [0.25, 0.1, 0.25, 1.0];
-                                                        curveEditor.x1 = bpts[0];
-                                                        curveEditor.y1 = bpts[1];
-                                                        curveEditor.x2 = bpts[2];
-                                                        curveEditor.y2 = bpts[3];
-                                                        curveEditor.open();
-                                                    }
-                                                }
                                             }
                                         }
                                     }

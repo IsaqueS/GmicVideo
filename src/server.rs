@@ -252,9 +252,23 @@ impl ServerState {
                 };
 
                 let mut current_values = base_values;
+                let frame_idx = (time_secs * 30.0).round() as usize;
                 for (param_id, tween) in tweens {
-                    if tween.enabled {
-                        current_values.insert(param_id, tween.evaluate(t));
+                    let is_active = match tween.mode {
+                        crate::tween::AnimationMode::Disabled => tween.enabled,
+                        _ => true,
+                    };
+                    if is_active {
+                        let (pmin, pmax) = filter.parameters.iter()
+                            .find(|p| p.id == param_id)
+                            .map(|p| match p.param_type {
+                                crate::gmic::GmicParamType::Float { min, max, .. } => (min, max),
+                                crate::gmic::GmicParamType::Int { min, max, .. } => (min as f64, max as f64),
+                                _ => (-1e9, 1e9),
+                            })
+                            .unwrap_or((-1e9, 1e9));
+
+                        current_values.insert(param_id, tween.evaluate_at(t, frame_idx, pmin, pmax));
                     }
                 }
 
