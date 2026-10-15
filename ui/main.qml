@@ -467,12 +467,15 @@ Kirigami.ApplicationWindow {
 
                     // Parameters List
                     ScrollView {
+                        id: paramsScrollView
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         clip: true
+                        contentWidth: availableWidth
 
                         ColumnLayout {
-                            width: parent.width - 16
+                            id: paramsCol
+                            width: paramsScrollView.availableWidth
                             spacing: Kirigami.Units.mediumSpacing
 
                             Repeater {
@@ -481,6 +484,7 @@ Kirigami.ApplicationWindow {
                                 delegate: ColumnLayout {
                                     id: paramDelegate
                                     Layout.fillWidth: true
+                                    width: paramsScrollView.availableWidth
                                     spacing: Kirigami.Units.smallSpacing
 
                                     property var p: modelData
@@ -493,6 +497,7 @@ Kirigami.ApplicationWindow {
                                     // Parameter Header Row
                                     RowLayout {
                                         Layout.fillWidth: true
+                                        width: parent.width
                                         spacing: Kirigami.Units.smallSpacing
 
                                         Label {
@@ -536,6 +541,7 @@ Kirigami.ApplicationWindow {
                                     // Normal control (when not tweening or base value)
                                     RowLayout {
                                         Layout.fillWidth: true
+                                        width: parent.width
                                         visible: !isTweening
 
                                         // Float control
@@ -600,6 +606,7 @@ Kirigami.ApplicationWindow {
                                     Rectangle {
                                         visible: isTweening
                                         Layout.fillWidth: true
+                                        width: parent.width
                                         implicitHeight: tweenCol.implicitHeight + 16
                                         color: Kirigami.Theme.highlightColor
                                         opacity: 0.12
