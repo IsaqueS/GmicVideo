@@ -218,6 +218,24 @@ Kirigami.ApplicationWindow {
     }
     property var activeTweenParamId: null
 
+    VisualSearchWindow {
+        id: visualSearchWindow
+        allFilters: appWindow.allFilters
+        allCategories: appWindow.allCategories
+        onEffectSelected: function(filter) {
+            appWindow.selectFilter(filter);
+            appWindow.selectedCategory = filter.category;
+            if (categoryComboBox && categoryComboBox.model) {
+                for (var i = 0; i < categoryComboBox.model.length; i++) {
+                    if (categoryComboBox.model[i] === filter.category) {
+                        categoryComboBox.currentIndex = i;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     RenderDialog {
         id: renderDialog
         objectName: "renderDialog"
@@ -358,10 +376,24 @@ Kirigami.ApplicationWindow {
                     anchors.margins: Kirigami.Units.smallSpacing
                     spacing: Kirigami.Units.smallSpacing
 
-                    Kirigami.SearchField {
+                    RowLayout {
                         Layout.fillWidth: true
-                        placeholderText: "Search effects (e.g. half, warp)..."
-                        onTextChanged: appWindow.searchQuery = text.toLowerCase()
+                        spacing: 4
+
+                        Kirigami.SearchField {
+                            id: effectSearchField
+                            Layout.fillWidth: true
+                            placeholderText: "Search effects..."
+                            onTextChanged: appWindow.searchQuery = text.toLowerCase()
+                        }
+
+                        Button {
+                            id: visualSearchBtn
+                            icon.name: "view-preview"
+                            text: "Visual"
+                            highlighted: true
+                            onClicked: visualSearchWindow.open()
+                        }
                     }
 
                     Label {
@@ -371,6 +403,7 @@ Kirigami.ApplicationWindow {
                     }
 
                     ComboBox {
+                        id: categoryComboBox
                         Layout.fillWidth: true
                         model: appWindow.allCategories
                         onCurrentTextChanged: appWindow.selectedCategory = currentText

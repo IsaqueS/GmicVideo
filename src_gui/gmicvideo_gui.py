@@ -94,7 +94,23 @@ class RustBackendBridge(QObject):
     def getEffects(self):
         res = self._send_request("get_effects")
         if res.get("status") == "ok":
-            return json.dumps(res.get("data", {}))
+            data = res.get("data", {})
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            tests_dir = os.path.join(base_dir, "Tests", "valid_effects")
+            if os.path.exists(tests_dir) and "filters" in data:
+                try:
+                    available_images = set(os.listdir(tests_dir))
+                    for f in data["filters"]:
+                        fid = f.get("id", "")
+                        fname = f"{fid}.png"
+                        if fname in available_images:
+                            full_path = os.path.join(tests_dir, fname)
+                            f["preview_path"] = f"file://{full_path}"
+                        else:
+                            f["preview_path"] = ""
+                except Exception as e:
+                    print(f"[Warning] Failed scanning preview images: {e}", file=sys.stderr)
+            return json.dumps(data)
         return "{}"
 
     @Slot(str, result=str)
