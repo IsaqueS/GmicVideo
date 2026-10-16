@@ -372,19 +372,42 @@ Kirigami.ApplicationWindow {
         }
 
         // Active Workspace View (3 columns: Categories/Effects | Parameters & Tweens | Preview & Timeline)
-        RowLayout {
+        SplitView {
+            id: mainWorkspaceSplit
             anchors.fill: parent
             visible: videoInfo !== null
-            spacing: Kirigami.Units.smallSpacing
+            orientation: Qt.Horizontal
+
+            handle: Rectangle {
+                implicitWidth: 6
+                color: SplitHandle.pressed ? Kirigami.Theme.highlightColor : (SplitHandle.hovered ? Kirigami.Theme.hoverColor : Kirigami.Theme.separatorColor)
+                opacity: SplitHandle.hovered || SplitHandle.pressed ? 1.0 : 0.35
+
+                Behavior on opacity {
+                    NumberAnimation { duration: 150 }
+                }
+
+                Rectangle {
+                    anchors.centerIn: parent
+                    width: 2
+                    height: 28
+                    radius: 1
+                    color: SplitHandle.pressed ? "white" : Kirigami.Theme.textColor
+                    opacity: 0.6
+                }
+            }
 
             // Left Column: Filter Search & Categories
             Rectangle {
-                Layout.preferredWidth: 280
-                Layout.fillHeight: true
+                id: leftColumnRect
+                SplitView.preferredWidth: 260
+                SplitView.minimumWidth: 180
+                SplitView.maximumWidth: 420
                 color: palette.window
                 border.color: palette.mid
                 border.width: 1
                 radius: 4
+                clip: true
 
                 ColumnLayout {
                     anchors.fill: parent
@@ -479,28 +502,35 @@ Kirigami.ApplicationWindow {
 
             // Center Column: Selected Effect Parameters & Tweening Options
             Rectangle {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+                id: centerColumnRect
+                SplitView.fillWidth: true
+                SplitView.minimumWidth: 300
                 color: palette.window
                 border.color: palette.mid
                 border.width: 1
                 radius: 4
+                clip: true
 
                 ColumnLayout {
                     anchors.fill: parent
                     anchors.margins: Kirigami.Units.mediumSpacing
                     spacing: Kirigami.Units.smallSpacing
 
-                    // Effect Header
+                    // Effect Header Row (Title)
                     RowLayout {
                         Layout.fillWidth: true
-                        spacing: Kirigami.Units.mediumSpacing
-
                         Kirigami.Heading {
                             level: 2
                             text: selectedFilter ? selectedFilter.name : i18n.t("Select an Effect")
                             Layout.fillWidth: true
+                            elide: Text.ElideRight
                         }
+                    }
+
+                    // Effect Actions Toolbar (Save, Load, Reset Defaults)
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: Kirigami.Units.smallSpacing
 
                         Button {
                             text: i18n.t("Save .geffect...")
@@ -572,6 +602,8 @@ Kirigami.ApplicationWindow {
                                 if (selectedFilter) selectFilter(selectedFilter);
                             }
                         }
+
+                        Item { Layout.fillWidth: true }
                     }
 
                     Label {
@@ -591,11 +623,12 @@ Kirigami.ApplicationWindow {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         clip: true
-                        contentWidth: availableWidth
+                        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                        ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
                         ColumnLayout {
                             id: paramsCol
-                            width: paramsScrollView.availableWidth
+                            width: paramsScrollView.availableWidth - 8
                             spacing: Kirigami.Units.mediumSpacing
 
                             Repeater {
@@ -604,7 +637,7 @@ Kirigami.ApplicationWindow {
                                 delegate: ColumnLayout {
                                     id: paramDelegate
                                     Layout.fillWidth: true
-                                    width: paramsScrollView.availableWidth
+                                    width: paramsCol.width
                                     spacing: Kirigami.Units.smallSpacing
 
                                     property var p: modelData
@@ -618,13 +651,13 @@ Kirigami.ApplicationWindow {
                                     // Parameter Header Row
                                     RowLayout {
                                         Layout.fillWidth: true
-                                        width: parent.width
                                         spacing: Kirigami.Units.smallSpacing
 
                                         Label {
                                             text: p.name
                                             font.bold: true
                                             Layout.fillWidth: true
+                                            elide: Text.ElideRight
                                         }
 
                                         // Current evaluated value badge
@@ -710,7 +743,6 @@ Kirigami.ApplicationWindow {
                                     // Normal control (when not tweening or base value)
                                     RowLayout {
                                         Layout.fillWidth: true
-                                        width: parent.width
                                         visible: animMode === "disabled"
 
                                         // Float control
@@ -775,7 +807,6 @@ Kirigami.ApplicationWindow {
                                     Rectangle {
                                         visible: animMode === "curve"
                                         Layout.fillWidth: true
-                                        width: parent.width
                                         implicitHeight: inlineCurve.implicitHeight + 16
                                         color: Kirigami.Theme.backgroundColor
                                         border.color: Kirigami.Theme.highlightColor
@@ -817,7 +848,6 @@ Kirigami.ApplicationWindow {
                                     Rectangle {
                                         visible: animMode === "random"
                                         Layout.fillWidth: true
-                                        width: parent.width
                                         implicitHeight: randomLayout.implicitHeight + 14
                                         color: Kirigami.Theme.backgroundColor
                                         border.color: "#9b59b6"
@@ -860,12 +890,14 @@ Kirigami.ApplicationWindow {
 
             // Right Column: Video Preview & Timeline Scrubber
             Rectangle {
-                Layout.preferredWidth: 460
-                Layout.fillHeight: true
+                id: rightColumnRect
+                SplitView.preferredWidth: 460
+                SplitView.minimumWidth: 280
                 color: palette.window
                 border.color: palette.mid
                 border.width: 1
                 radius: 4
+                clip: true
 
                 ColumnLayout {
                     anchors.fill: parent
