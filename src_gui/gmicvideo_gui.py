@@ -9,6 +9,7 @@ from PySide6.QtCore import QObject, Slot, Signal, Property, QUrl
 from PySide6.QtWidgets import QApplication, QFileDialog
 from PySide6.QtGui import QIcon
 from PySide6.QtQml import QQmlApplicationEngine
+from i18n import I18nManager
 
 class RustBackendBridge(QObject):
     previewReady = Signal(str, str, float) # raw_path, effect_path, time_secs
@@ -17,6 +18,7 @@ class RustBackendBridge(QObject):
     renderCompleted = Signal(str)          # output path
     renderFailed = Signal(str)             # error message
     effectsLoaded = Signal(str)            # json effects
+    postRenderActionChanged = Signal(str)
 
     def __init__(self, backend_bin_path):
         super().__init__()
@@ -25,6 +27,8 @@ class RustBackendBridge(QObject):
         self.lock = threading.Lock()
         self._last_queue_json = ""
         self._completed_notified = set()
+        self._post_render_action = "none" # "none" or "shutdown"
+        self._had_active_jobs = False
         self._start_backend()
         self._start_queue_poller()
 
@@ -77,6 +81,14 @@ class RustBackendBridge(QObject):
                         self.queueUpdated.emit(raw_json)
 
                     # Also update legacy progress for active item
+                    active_jobs = [item for item in items if item.get("status") in ("rendering", "queued")]
+                    if self._had_active_jobs and not active_jobs:
+                        self._had_active_jobs = False
+                        if self._post_render_action == "shutdown":
+                            self._trigger_shutdown()
+                    elif active_jobs:
+                        self._had_active_jobs = True
+
                     for item in items:
                         if item.get("status") == "rendering":
                             prog = item.get("progress", {})
@@ -231,6 +243,27 @@ class RustBackendBridge(QObject):
             err = str(res.get("data", "Failed to queue render"))
             self.renderFailed.emit(err)
             return ""
+
+    @Property(str, notify=postRenderActionChanged)
+    def postRenderAction(self):
+        return self._post_render_action
+
+    @Slot(str)
+    def setPostRenderAction(self, action):
+        if action in ("none", "shutdown") and action != self._post_render_action:
+            self._post_render_action = action
+            self.postRenderActionChanged.emit(action)
+
+    def _trigger_shutdown(self):
+        print("[System] All rendering tasks completed! Triggering system shutdown...", flush=True)
+        for cmd in (["systemctl", "poweroff"], ["shutdown", "-h", "now"], ["poweroff"]):
+            try:
+                res = subprocess.run(cmd, capture_output=True, timeout=5)
+                if res.returncode == 0:
+                    print(f"[System] Shutdown executed successfully: {' '.join(cmd)}", flush=True)
+                    break
+            except Exception as e:
+                print(f"[System] Failed shutdown attempt ({' '.join(cmd)}): {e}", flush=True)
 
     @Slot(result=str)
     def getRenderQueue(self):
@@ -433,7 +466,9 @@ def main():
     bridge = RustBackendBridge(backend_bin)
 
     engine = QQmlApplicationEngine()
+    i18n_manager = I18nManager()
     engine.rootContext().setContextProperty("Backend", bridge)
+    engine.rootContext().setContextProperty("i18n", i18n_manager)
 
     qml_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "ui", "main.qml")
     engine.load(QUrl.fromLocalFile(qml_file))

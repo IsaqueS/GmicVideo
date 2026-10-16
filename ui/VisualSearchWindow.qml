@@ -5,7 +5,7 @@ import org.kde.kirigami as Kirigami
 
 Window {
     id: visualSearchWin
-    title: "Visual Effect Search - G'MIC Video"
+    title: i18n.t("Visual Effect Search - G'MIC Video")
     width: 1040
     height: 720
     minimumWidth: 680
@@ -76,7 +76,7 @@ Window {
             Kirigami.SearchField {
                 id: searchField
                 Layout.fillWidth: true
-                placeholderText: "Search effects visually (e.g. bokeh, warp, glitch, blur, halftone)..."
+                placeholderText: i18n.t("Search effects visually (e.g. bokeh, warp, glitch, blur, halftone)...")
                 onTextChanged: visualSearchWin.currentSearchText = text
             }
 
@@ -89,13 +89,13 @@ Window {
 
             CheckBox {
                 id: previewToggle
-                text: "With Previews Only"
+                text: i18n.t("With Previews Only")
                 checked: visualSearchWin.onlyWithPreview
                 onToggled: visualSearchWin.onlyWithPreview = checked
             }
 
             Button {
-                text: "Close"
+                text: i18n.t("Close")
                 icon.name: "window-close"
                 onClicked: visualSearchWin.close()
             }
@@ -105,15 +105,16 @@ Window {
         RowLayout {
             Layout.fillWidth: true
             Label {
-                text: "Showing " + visualSearchWin.filteredFilters.length + " effects" + 
-                      (visualSearchWin.selectedCategory !== "All Categories" ? (" in " + visualSearchWin.selectedCategory) : "")
+                text: visualSearchWin.selectedCategory !== "All Categories" ?
+                      i18n.t("Showing %1 effects in %2").replace("%1", visualSearchWin.filteredFilters.length).replace("%2", visualSearchWin.selectedCategory) :
+                      i18n.t("Showing %1 effects").replace("%1", visualSearchWin.filteredFilters.length)
                 font.bold: true
                 font.pixelSize: 11
                 opacity: 0.75
             }
             Item { Layout.fillWidth: true }
             Label {
-                text: "Click any effect card to apply it to your video"
+                text: i18n.t("Click any effect card to apply it to your video")
                 font.pixelSize: 11
                 opacity: 0.5
             }

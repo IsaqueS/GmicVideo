@@ -9,7 +9,7 @@ Kirigami.ApplicationWindow {
     height: 800
     minimumWidth: 960
     minimumHeight: 650
-    title: videoInfo ? "G'MIC Video - Effects Workspace" : "G'MIC Video - Import Screen"
+    title: videoInfo ? i18n.t("G'MIC Video - Effects Workspace") : i18n.t("G'MIC Video - Import Screen")
     pageStack.globalToolBar.style: Kirigami.ApplicationHeaderStyle.None
 
     // App state
@@ -255,7 +255,7 @@ Kirigami.ApplicationWindow {
             spacing: Kirigami.Units.mediumSpacing
 
             ToolButton {
-                text: "Import Video"
+                text: i18n.t("Import Video")
                 icon.name: "document-open"
                 onClicked: {
                     var file = Backend.chooseVideoFile();
@@ -289,9 +289,24 @@ Kirigami.ApplicationWindow {
 
             Item { Layout.fillWidth: true }
 
+            ComboBox {
+                id: langSelector
+                model: i18n.availableLanguages()
+                textRole: "name"
+                currentIndex: {
+                    for (var i = 0; i < model.length; i++) {
+                        if (model[i].code === i18n.currentLanguage) return i;
+                    }
+                    return 0;
+                }
+                onActivated: {
+                    i18n.setLanguage(model[currentIndex].code);
+                }
+            }
+
             Button {
                 id: renderBtn
-                text: appWindow.activeRenderCount > 0 ? ("Render (" + appWindow.activeRenderCount + " in queue | " + appWindow.activeRenderPercent.toFixed(0) + "%)") : "Render"
+                text: appWindow.activeRenderCount > 0 ? (i18n.t("Render (%1 in queue | %2%)").replace("%1", appWindow.activeRenderCount).replace("%2", appWindow.activeRenderPercent.toFixed(0))) : i18n.t("Render")
                 icon.name: appWindow.activeRenderCount > 0 ? "system-run" : "media-record"
                 highlighted: true
                 onClicked: {
@@ -325,10 +340,10 @@ Kirigami.ApplicationWindow {
                     ColumnLayout {
                         Kirigami.Heading {
                             level: 2
-                            text: "Import a Video to Apply G'MIC Effects"
+                            text: i18n.t("Import a Video to Apply G'MIC Effects")
                         }
                         Label {
-                            text: "Select a video to start adding animated G'MIC effects with custom tweening, easing and curves."
+                            text: i18n.t("Select a video to start adding animated G'MIC effects with custom tweening, easing and curves.")
                             opacity: 0.7
                             wrapMode: Text.WordWrap
                             Layout.fillWidth: true
@@ -338,7 +353,7 @@ Kirigami.ApplicationWindow {
 
                 actions: [
                     Kirigami.Action {
-                        text: "Import Video File..."
+                        text: i18n.t("Import Video File...")
                         icon.name: "document-open"
                         onTriggered: {
                             var f = Backend.chooseVideoFile();
@@ -346,7 +361,7 @@ Kirigami.ApplicationWindow {
                         }
                     },
                     Kirigami.Action {
-                        text: "Load Sample: Original.mp4"
+                        text: i18n.t("Load Sample: Original.mp4")
                         icon.name: "media-playback-start"
                         onTriggered: {
                             loadVideo("/home/isaques/Code/Projetos/Python/ultrawarp-batch/Exemplos de Videos/Original.mp4");
@@ -383,21 +398,21 @@ Kirigami.ApplicationWindow {
                         Kirigami.SearchField {
                             id: effectSearchField
                             Layout.fillWidth: true
-                            placeholderText: "Search effects..."
+                            placeholderText: i18n.t("Search effects...")
                             onTextChanged: appWindow.searchQuery = text.toLowerCase()
                         }
 
                         Button {
                             id: visualSearchBtn
                             icon.name: "view-preview"
-                            text: "Visual"
+                            text: i18n.t("Visual")
                             highlighted: true
                             onClicked: visualSearchWindow.open()
                         }
                     }
 
                     Label {
-                        text: "Category:"
+                        text: i18n.t("Category:")
                         font.bold: true
                         opacity: 0.8
                     }
@@ -410,7 +425,7 @@ Kirigami.ApplicationWindow {
                     }
 
                     Label {
-                        text: "Effects:"
+                        text: i18n.t("Effects:")
                         font.bold: true
                         opacity: 0.8
                     }
@@ -483,12 +498,12 @@ Kirigami.ApplicationWindow {
 
                         Kirigami.Heading {
                             level: 2
-                            text: selectedFilter ? selectedFilter.name : "Select an Effect"
+                            text: selectedFilter ? selectedFilter.name : i18n.t("Select an Effect")
                             Layout.fillWidth: true
                         }
 
                         Button {
-                            text: "Save .geffect..."
+                            text: i18n.t("Save .geffect...")
                             icon.name: "document-save"
                             enabled: selectedFilter !== null
                             onClicked: {
@@ -501,13 +516,13 @@ Kirigami.ApplicationWindow {
                                     sName
                                 );
                                 if (savedPath) {
-                                    showPassiveNotification("Saved preset to: " + savedPath, "short");
+                                    showPassiveNotification(i18n.t("Saved preset to: %1").replace("%1", savedPath), "short");
                                 }
                             }
                         }
 
                         Button {
-                            text: "Load .geffect..."
+                            text: i18n.t("Load .geffect...")
                             icon.name: "document-open"
                             onClicked: {
                                 var resJson = Backend.loadPresetFile();
@@ -515,7 +530,7 @@ Kirigami.ApplicationWindow {
                                 try {
                                     var res = JSON.parse(resJson);
                                     if (res.error) {
-                                        showPassiveNotification("Failed to load preset: " + res.error, "long");
+                                        showPassiveNotification(i18n.t("Failed to load preset: %1").replace("%1", res.error), "long");
                                         return;
                                     }
                                     // Find filter
@@ -528,7 +543,7 @@ Kirigami.ApplicationWindow {
                                         }
                                     }
                                     if (!targetFilter) {
-                                        showPassiveNotification("Preset requires filter '" + fId + "' which is not found!", "long");
+                                        showPassiveNotification(i18n.t("Preset requires filter '%1' which is not found!").replace("%1", fId), "long");
                                         return;
                                     }
                                     selectedFilter = targetFilter;
@@ -543,15 +558,15 @@ Kirigami.ApplicationWindow {
                                     paramValues = parsedValues;
                                     paramTweens = parsedTweens;
                                     requestPreviewUpdate();
-                                    showPassiveNotification("Loaded preset: " + (res.filter_name || fId), "short");
+                                    showPassiveNotification(i18n.t("Loaded preset: %1").replace("%1", (res.filter_name || fId)), "short");
                                 } catch (e) {
-                                    showPassiveNotification("Preset parse error: " + e, "long");
+                                    showPassiveNotification(i18n.t("Preset parse error: %1").replace("%1", e), "long");
                                 }
                             }
                         }
 
                         Button {
-                            text: "Reset Defaults"
+                            text: i18n.t("Reset Defaults")
                             icon.name: "edit-undo"
                             onClicked: {
                                 if (selectedFilter) selectFilter(selectedFilter);
@@ -560,7 +575,7 @@ Kirigami.ApplicationWindow {
                     }
 
                     Label {
-                        text: selectedFilter && selectedFilter.description ? selectedFilter.description : "Customize effect parameters and tween values over the video duration."
+                        text: selectedFilter && selectedFilter.description ? selectedFilter.description : i18n.t("Customize effect parameters and tween values over the video duration.")
                         wrapMode: Text.WordWrap
                         Layout.fillWidth: true
                         opacity: 0.7
@@ -629,7 +644,7 @@ Kirigami.ApplicationWindow {
                                         Button {
                                             id: animMenuBtn
                                             visible: ptype === "float" || ptype === "int"
-                                            text: animMode === "random" ? "Animate: Random" : (animMode === "curve" ? "Animate: Curve" : "Animate")
+                                            text: animMode === "random" ? i18n.t("Animate: Random") : (animMode === "curve" ? i18n.t("Animate: Curve") : i18n.t("Animate"))
                                             icon.name: animMode === "random" ? "roll" : (animMode === "curve" ? "draw-bezier-curves" : "media-playback-start")
                                             highlighted: animMode !== "disabled"
                                             onClicked: animMenu.open()
@@ -639,7 +654,7 @@ Kirigami.ApplicationWindow {
                                                 y: animMenuBtn.height
 
                                                 MenuItem {
-                                                    text: "Disabled (Static Value)"
+                                                    text: i18n.t("Disabled (Static Value)")
                                                     icon.name: "dialog-cancel"
                                                     checked: animMode === "disabled"
                                                     onTriggered: {
@@ -654,7 +669,7 @@ Kirigami.ApplicationWindow {
                                                 }
 
                                                 MenuItem {
-                                                    text: "Random (New Value Every Frame)"
+                                                    text: i18n.t("Random (New Value Every Frame)")
                                                     icon.name: "roll"
                                                     checked: animMode === "random"
                                                     onTriggered: {
@@ -671,7 +686,7 @@ Kirigami.ApplicationWindow {
                                                 }
 
                                                 MenuItem {
-                                                    text: "Curve (Keyframe & Ease Curve)"
+                                                    text: i18n.t("Curve (Keyframe & Ease Curve)")
                                                     icon.name: "draw-bezier-curves"
                                                     checked: animMode === "curve"
                                                     onTriggered: {
@@ -822,7 +837,9 @@ Kirigami.ApplicationWindow {
                                             }
 
                                             Label {
-                                                text: "Random Mode Active: Generating pseudo-random values between " + (pdata.min !== undefined ? pdata.min : 0) + " and " + (pdata.max !== undefined ? pdata.max : 100) + " on every video frame."
+                                                text: i18n.t("Random Mode Active: Generating pseudo-random values between %1 and %2 on every video frame.")
+                                                    .replace("%1", (pdata.min !== undefined ? pdata.min : 0))
+                                                    .replace("%2", (pdata.max !== undefined ? pdata.max : 100))
                                                 font.pixelSize: 11
                                                 opacity: 0.85
                                                 wrapMode: Text.WordWrap
@@ -859,13 +876,13 @@ Kirigami.ApplicationWindow {
                     RowLayout {
                         Layout.fillWidth: true
                         Label {
-                            text: "Preview"
+                            text: i18n.t("Preview")
                             font.bold: true
                             Layout.fillWidth: true
                         }
 
                         Button {
-                            text: appWindow.splitPreview ? "Split View" : "Full View"
+                            text: appWindow.splitPreview ? i18n.t("Split View") : i18n.t("Full View")
                             icon.name: appWindow.splitPreview ? "view-split-left-right" : "view-fullscreen"
                             checkable: true
                             checked: appWindow.splitPreview
@@ -874,7 +891,7 @@ Kirigami.ApplicationWindow {
 
                         Button {
                             icon.name: "view-refresh"
-                            ToolTip.text: "Refresh Preview"
+                            ToolTip.text: i18n.t("Refresh Preview")
                             onClicked: requestPreviewUpdate()
                         }
                     }
@@ -911,7 +928,7 @@ Kirigami.ApplicationWindow {
                                     anchors.bottom: parent.bottom
                                     anchors.left: parent.left
                                     anchors.margins: 8
-                                    text: "Original"
+                                    text: i18n.t("Original")
                                     color: "white"
                                     font.bold: true
                                     background: Rectangle { color: "#80000000"; radius: 3 }
@@ -934,7 +951,7 @@ Kirigami.ApplicationWindow {
                                     anchors.bottom: parent.bottom
                                     anchors.right: parent.right
                                     anchors.margins: 8
-                                    text: "G'MIC Effect"
+                                    text: i18n.t("G'MIC Effect")
                                     color: "white"
                                     font.bold: true
                                     background: Rectangle { color: "#80000000"; radius: 3 }
@@ -1003,7 +1020,7 @@ Kirigami.ApplicationWindow {
                                 text: {
                                     if (!videoInfo) return "00:00.00";
                                     var curFrame = Math.round(appWindow.currentScrubTime * videoInfo.fps);
-                                    return "Frame: " + curFrame + " / " + videoInfo.frame_count;
+                                    return i18n.t("Frame: %1 / %2").replace("%1", curFrame).replace("%2", videoInfo.frame_count);
                                 }
                                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                                 opacity: 0.8
@@ -1038,7 +1055,7 @@ Kirigami.ApplicationWindow {
                                     implicitHeight: 16
                                 }
                                 Label {
-                                    text: "Cut Range (Trim Video):"
+                                    text: i18n.t("Cut Range (Trim Video):")
                                     font.bold: true
                                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                                 }
@@ -1047,7 +1064,7 @@ Kirigami.ApplicationWindow {
                                     text: {
                                         if (!videoInfo) return "";
                                         var dur = (appWindow.cutEndTime - appWindow.cutStartTime).toFixed(2);
-                                        return appWindow.cutStartTime.toFixed(2) + "s -> " + appWindow.cutEndTime.toFixed(2) + "s (Duration: " + dur + "s)";
+                                        return i18n.t("Cut Range: %1s -> %2s (Duration: %3s)").replace("%1", appWindow.cutStartTime.toFixed(2)).replace("%2", appWindow.cutEndTime.toFixed(2)).replace("%3", dur);
                                     }
                                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                                     color: (appWindow.cutStartTime > 0.05 || (videoInfo && appWindow.cutEndTime < videoInfo.duration_secs - 0.05)) ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
@@ -1055,7 +1072,7 @@ Kirigami.ApplicationWindow {
                                 }
                                 ToolButton {
                                     icon.name: "edit-undo"
-                                    ToolTip.text: "Reset Cut to Full Video"
+                                    ToolTip.text: i18n.t("Reset Cut to Full Video")
                                     visible: videoInfo && (appWindow.cutStartTime > 0.05 || appWindow.cutEndTime < videoInfo.duration_secs - 0.05)
                                     onClicked: {
                                         appWindow.cutStartTime = 0.0;
@@ -1095,13 +1112,13 @@ Kirigami.ApplicationWindow {
                             RowLayout {
                                 Layout.fillWidth: true
                                 Label {
-                                    text: "Start: " + appWindow.cutStartTime.toFixed(2) + "s"
+                                    text: i18n.t("Start: %1s").replace("%1", appWindow.cutStartTime.toFixed(2))
                                     font.pixelSize: 11
                                     opacity: 0.75
                                 }
                                 Item { Layout.fillWidth: true }
                                 Label {
-                                    text: "End: " + appWindow.cutEndTime.toFixed(2) + "s"
+                                    text: i18n.t("End: %1s").replace("%1", appWindow.cutEndTime.toFixed(2))
                                     font.pixelSize: 11
                                     opacity: 0.75
                                 }

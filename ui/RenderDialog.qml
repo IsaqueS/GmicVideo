@@ -5,7 +5,7 @@ import org.kde.kirigami as Kirigami
 
 Window {
     id: renderWindow
-    title: "Render Manager & Task Queue - G'MIC Video"
+    title: i18n.t("Render Manager & Task Queue - G'MIC Video")
     width: 720
     height: 680
     minimumWidth: 560
@@ -69,18 +69,18 @@ property string selectedFormat: "h264"
     property int speedLevel: 7
 
     function qualityDescription(val) {
-        if (val <= 3) return "Draft Quality (Faster, larger compression artifacts)";
-        if (val <= 6) return "Standard Quality (Balanced, recommended for sharing)";
-        if (val <= 8) return "High Quality (Crisp details, high bitrate - Recommended)";
-        return "Maximum Quality (Visually lossless, large file size)";
+        if (val <= 3) return i18n.t("Draft Quality (Faster, larger compression artifacts)");
+        if (val <= 6) return i18n.t("Standard Quality (Balanced, recommended for sharing)");
+        if (val <= 8) return i18n.t("High Quality (Crisp details, high bitrate - Recommended)");
+        return i18n.t("Maximum Quality (Visually lossless, large file size)");
     }
 
     function speedDescription(val) {
-        if (val <= 2) return "Maximum Compression (Slowest encode, smallest file)";
-        if (val <= 4) return "Slow (Thorough compression)";
-        if (val <= 6) return "Balanced (Medium speed and size)";
-        if (val <= 8) return "Fast (Faster encoding - Recommended)";
-        return "Ultrafast (Instant encode, ideal for quick testing)";
+        if (val <= 2) return i18n.t("Maximum Compression (Slowest encode, smallest file)");
+        if (val <= 4) return i18n.t("Slow (Thorough compression)");
+        if (val <= 6) return i18n.t("Balanced (Medium speed and size)");
+        if (val <= 8) return i18n.t("Fast (Faster encoding - Recommended)");
+        return i18n.t("Ultrafast (Instant encode, ideal for quick testing)");
     }
 
     function hasFinishedJobs() {
@@ -116,13 +116,13 @@ property string selectedFormat: "h264"
             currentIndex: 0
 
             TabButton {
-                text: "New Render"
+                text: i18n.t("New Render")
                 icon.name: "media-record"
             }
             TabButton {
                 text: {
                     var c = renderWindow.getActiveJobCount();
-                    return c > 0 ? "Task Queue (" + c + ")" : "Task Queue (" + renderWindow.queueItems.length + ")";
+                    return (c > 0 ? i18n.t("Task Queue (%1)").replace("%1", c) : i18n.t("Task Queue (%1)").replace("%1", renderWindow.queueItems.length));
                 }
                 icon.name: "view-list-details"
             }
@@ -216,7 +216,7 @@ property string selectedFormat: "h264"
                         spacing: 4
 
                         Label {
-                            text: "Output Destination File:"
+                            text: i18n.t("Output Destination File:")
                             font.bold: true
                         }
 
@@ -249,7 +249,7 @@ property string selectedFormat: "h264"
                             }
 
                             Button {
-                                text: "Browse..."
+                                text: i18n.t("Browse...")
                                 icon.name: "document-save"
                                 onClicked: {
                                     var res = Backend.chooseOutputFile(renderWindow.defaultOutputPath, renderWindow.currentFormatExt());
@@ -284,7 +284,7 @@ property string selectedFormat: "h264"
                             RowLayout {
                                 Layout.fillWidth: true
                                 Label {
-                                    text: "Quality"
+                                    text: i18n.t("Encoding Quality:")
                                     font.bold: true
                                 }
                                 Item { Layout.fillWidth: true }
@@ -335,7 +335,7 @@ property string selectedFormat: "h264"
                             RowLayout {
                                 Layout.fillWidth: true
                                 Label {
-                                    text: "Encoding Speed"
+                                    text: i18n.t("Encoding Speed:")
                                     font.bold: true
                                 }
                                 Item { Layout.fillWidth: true }
@@ -403,12 +403,47 @@ property string selectedFormat: "h264"
 
                             Label {
                                 Layout.fillWidth: true
-                                text: "Lossless RGB encoding active: Quality and speed presets are bypassed to guarantee exact 1:1 mathematical pixel fidelity."
+                                text: i18n.t("Lossless RGB encoding active: Quality and speed presets are bypassed to guarantee exact 1:1 mathematical pixel fidelity.")
                                 font.pixelSize: 11
                                 opacity: 0.85
                                 wrapMode: Text.WordWrap
                             }
                         }
+                    }
+
+                    Kirigami.Separator { Layout.fillWidth: true }
+
+                    // Post-render action (Shutdown computer or do nothing)
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: Kirigami.Units.mediumSpacing
+
+                        Kirigami.Icon {
+                            source: "system-shutdown"
+                            implicitWidth: 18
+                            implicitHeight: 18
+                        }
+
+                        Label {
+                            text: i18n.t("When Rendering Completes:")
+                            font.bold: true
+                        }
+
+                        ComboBox {
+                            id: postRenderActionCombo
+                            model: [
+                                { key: "none", label: i18n.t("Do nothing") },
+                                { key: "shutdown", label: i18n.t("Shutdown computer") }
+                            ]
+                            textRole: "label"
+                            currentIndex: Backend.postRenderAction === "shutdown" ? 1 : 0
+                            onActivated: {
+                                var chosen = model[currentIndex].key;
+                                Backend.setPostRenderAction(chosen);
+                            }
+                        }
+
+                        Item { Layout.fillWidth: true }
                     }
 
                     Kirigami.Separator { Layout.fillWidth: true }
@@ -421,7 +456,7 @@ property string selectedFormat: "h264"
                         Item { Layout.fillWidth: true }
 
                         Button {
-                            text: "Add to Render Queue & Start"
+                            text: i18n.t("Add to Render Queue & Start")
                             icon.name: "media-record"
                             highlighted: true
                             enabled: videoInfo !== null && selectedFilter !== null
@@ -465,13 +500,13 @@ property string selectedFormat: "h264"
                 RowLayout {
                     Layout.fillWidth: true
                     Kirigami.Heading {
-                        text: "Render Queue (" + renderWindow.queueItems.length + " items)"
+                        text: i18n.t("Render Queue (%1 items)").replace("%1", renderWindow.queueItems.length)
                         level: 4
                     }
                     Item { Layout.fillWidth: true }
 
                     Button {
-                        text: "Clear Finished"
+                        text: i18n.t("Clear Finished")
                         icon.name: "edit-clear-all"
                         visible: renderWindow.hasFinishedJobs()
                         onClicked: Backend.clearCompletedJobs()
@@ -499,13 +534,13 @@ property string selectedFormat: "h264"
                             opacity: 0.4
                         }
                         Label {
-                            text: "No render tasks in queue"
+                            text: i18n.t("No render tasks in queue")
                             font.bold: true
                             Layout.alignment: Qt.AlignHCenter
                             opacity: 0.7
                         }
                         Label {
-                            text: "Use the 'New Render' tab to add a video rendering task to the background queue."
+                            text: i18n.t("Use the 'New Render' tab to add a video rendering task to the background queue.")
                             font.pixelSize: 12
                             Layout.alignment: Qt.AlignHCenter
                             opacity: 0.5
@@ -609,7 +644,7 @@ property string selectedFormat: "h264"
 
                                     Button {
                                         icon.name: "dialog-cancel"
-                                        text: "Cancel"
+                                        text: i18n.t("Cancel")
                                         visible: modelData.status === "rendering" || modelData.status === "queued"
                                         onClicked: Backend.cancelRenderJob(modelData.id)
                                     }
@@ -679,13 +714,13 @@ property string selectedFormat: "h264"
                                     }
 
                                     Button {
-                                        text: "Open Folder"
+                                        text: i18n.t("Open Folder")
                                         icon.name: "folder-open"
                                         onClicked: Backend.openFolder(modelData.output_path)
                                     }
 
                                     Button {
-                                        text: "Play Video"
+                                        text: i18n.t("Play Video")
                                         icon.name: "media-playback-start"
                                         highlighted: true
                                         onClicked: Backend.openFile(modelData.output_path)
@@ -718,8 +753,8 @@ property string selectedFormat: "h264"
             Label {
                 text: {
                     var c = renderWindow.getActiveJobCount();
-                    if (c > 0) return c + " active task" + (c > 1 ? "s" : "") + " rendering in background...";
-                    return "Ready - Rendering runs independently in the background";
+                    if (c > 0) return i18n.t("%1 active tasks rendering in background...").replace("%1", c);
+                    return i18n.t("Ready - Rendering runs independently in the background");
                 }
                 opacity: 0.7
                 font.pixelSize: 11
@@ -728,7 +763,7 @@ property string selectedFormat: "h264"
             Item { Layout.fillWidth: true }
 
             Button {
-                text: "Close Window"
+                text: i18n.t("Close Window")
                 icon.name: "window-close"
                 onClicked: renderWindow.close()
             }

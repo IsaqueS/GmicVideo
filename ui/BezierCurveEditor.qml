@@ -5,7 +5,7 @@ import org.kde.kirigami as Kirigami
 
 Kirigami.OverlaySheet {
     id: curveSheet
-    title: "Curve Transition Editor"
+    title: i18n.t("Curve Transition Editor")
 
     property real x1: 0.25
     property real y1: 0.1
@@ -21,11 +21,11 @@ Kirigami.OverlaySheet {
 
         Kirigami.Heading {
             level: 3
-            text: "Cubic Bezier Transition for " + curveSheet.paramName
+            text: i18n.t("Cubic Bezier Transition for %1").replace("%1", curveSheet.paramName)
         }
 
         Label {
-            text: "Drag the control points P1 and P2 or choose a preset to sculpt value transitions over video duration."
+            text: i18n.t("Drag the control points P1 and P2 or choose a preset to sculpt value transitions over video duration.")
             wrapMode: Text.WordWrap
             Layout.fillWidth: true
             opacity: 0.8
@@ -36,26 +36,26 @@ Kirigami.OverlaySheet {
             spacing: Kirigami.Units.smallSpacing
             Layout.fillWidth: true
 
-            Label { text: "Presets:" }
+            Label { text: i18n.t("Presets:") }
 
             Button {
-                text: "Ease"
+                text: i18n.t("Ease")
                 onClicked: { curveSheet.x1 = 0.25; curveSheet.y1 = 0.1; curveSheet.x2 = 0.25; curveSheet.y2 = 1.0; canvas.requestPaint(); }
             }
             Button {
-                text: "Ease In"
+                text: i18n.t("Ease In")
                 onClicked: { curveSheet.x1 = 0.42; curveSheet.y1 = 0.0; curveSheet.x2 = 1.0; curveSheet.y2 = 1.0; canvas.requestPaint(); }
             }
             Button {
-                text: "Ease Out"
+                text: i18n.t("Ease Out")
                 onClicked: { curveSheet.x1 = 0.0; curveSheet.y1 = 0.0; curveSheet.x2 = 0.58; curveSheet.y2 = 1.0; canvas.requestPaint(); }
             }
             Button {
-                text: "Ease In-Out"
+                text: i18n.t("Ease In-Out")
                 onClicked: { curveSheet.x1 = 0.42; curveSheet.y1 = 0.0; curveSheet.x2 = 0.58; curveSheet.y2 = 1.0; canvas.requestPaint(); }
             }
             Button {
-                text: "Overshoot"
+                text: i18n.t("Overshoot")
                 onClicked: { curveSheet.x1 = 0.34; curveSheet.y1 = 1.56; curveSheet.x2 = 0.64; curveSheet.y2 = 1.0; canvas.requestPaint(); }
             }
         }
@@ -223,7 +223,7 @@ Kirigami.OverlaySheet {
             }
 
             Button {
-                text: "Apply Curve"
+                text: i18n.t("Apply Curve")
                 highlighted: true
                 icon.name: "dialog-ok"
                 onClicked: {

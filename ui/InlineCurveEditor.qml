@@ -44,7 +44,7 @@ ColumnLayout {
         spacing: 6
 
         Label {
-            text: "Curve Preset:"
+            text: i18n.t("Curve Preset:")
             font.bold: true
             font.pixelSize: 11
             opacity: 0.85
@@ -54,35 +54,35 @@ ColumnLayout {
             id: presetCombo
             Layout.fillWidth: true
             model: [
-                { key: "linear", label: "Linear (Default)" },
-                { key: "ease_in_quad", label: "Ease In (Quad)" },
-                { key: "ease_out_quad", label: "Ease Out (Quad)" },
-                { key: "ease_in_out_quad", label: "Ease In-Out (Quad)" },
-                { key: "ease_in_cubic", label: "Ease In (Cubic)" },
-                { key: "ease_out_cubic", label: "Ease Out (Cubic)" },
-                { key: "ease_in_out_cubic", label: "Ease In-Out (Cubic)" },
-                { key: "ease_in_quart", label: "Ease In (Quart)" },
-                { key: "ease_out_quart", label: "Ease Out (Quart)" },
-                { key: "ease_in_out_quart", label: "Ease In-Out (Quart)" },
-                { key: "ease_in_sine", label: "Ease In (Sine)" },
-                { key: "ease_out_sine", label: "Ease Out (Sine)" },
-                { key: "ease_in_out_sine", label: "Ease In-Out (Sine)" },
-                { key: "ease_in_expo", label: "Ease In (Expo)" },
-                { key: "ease_out_expo", label: "Ease Out (Expo)" },
-                { key: "ease_in_out_expo", label: "Ease In-Out (Expo)" },
-                { key: "ease_in_circ", label: "Ease In (Circ)" },
-                { key: "ease_out_circ", label: "Ease Out (Circ)" },
-                { key: "ease_in_out_circ", label: "Ease In-Out (Circ)" },
-                { key: "ease_in_back", label: "Ease In (Back/Overshoot)" },
-                { key: "ease_out_back", label: "Ease Out (Back/Overshoot)" },
-                { key: "ease_in_out_back", label: "Ease In-Out (Back)" },
-                { key: "ease_in_elastic", label: "Ease In (Elastic)" },
-                { key: "ease_out_elastic", label: "Ease Out (Elastic)" },
-                { key: "ease_in_out_elastic", label: "Ease In-Out (Elastic)" },
-                { key: "ease_in_bounce", label: "Ease In (Bounce)" },
-                { key: "ease_out_bounce", label: "Ease Out (Bounce)" },
-                { key: "ease_in_out_bounce", label: "Ease In-Out (Bounce)" },
-                { key: "custom_bezier", label: "Custom Editable Bezier" }
+                { key: "linear", label: i18n.t("Linear (Default)") },
+                { key: "ease_in_quad", label: i18n.t("Ease In (Quad)") },
+                { key: "ease_out_quad", label: i18n.t("Ease Out (Quad)") },
+                { key: "ease_in_out_quad", label: i18n.t("Ease In-Out (Quad)") },
+                { key: "ease_in_cubic", label: i18n.t("Ease In (Cubic)") },
+                { key: "ease_out_cubic", label: i18n.t("Ease Out (Cubic)") },
+                { key: "ease_in_out_cubic", label: i18n.t("Ease In-Out (Cubic)") },
+                { key: "ease_in_quart", label: i18n.t("Ease In (Quart)") },
+                { key: "ease_out_quart", label: i18n.t("Ease Out (Quart)") },
+                { key: "ease_in_out_quart", label: i18n.t("Ease In-Out (Quart)") },
+                { key: "ease_in_sine", label: i18n.t("Ease In (Sine)") },
+                { key: "ease_out_sine", label: i18n.t("Ease Out (Sine)") },
+                { key: "ease_in_out_sine", label: i18n.t("Ease In-Out (Sine)") },
+                { key: "ease_in_expo", label: i18n.t("Ease In (Expo)") },
+                { key: "ease_out_expo", label: i18n.t("Ease Out (Expo)") },
+                { key: "ease_in_out_expo", label: i18n.t("Ease In-Out (Expo)") },
+                { key: "ease_in_circ", label: i18n.t("Ease In (Circ)") },
+                { key: "ease_out_circ", label: i18n.t("Ease Out (Circ)") },
+                { key: "ease_in_out_circ", label: i18n.t("Ease In-Out (Circ)") },
+                { key: "ease_in_back", label: i18n.t("Ease In (Back/Overshoot)") },
+                { key: "ease_out_back", label: i18n.t("Ease Out (Back/Overshoot)") },
+                { key: "ease_in_out_back", label: i18n.t("Ease In-Out (Back)") },
+                { key: "ease_in_elastic", label: i18n.t("Ease In (Elastic)") },
+                { key: "ease_out_elastic", label: i18n.t("Ease Out (Elastic)") },
+                { key: "ease_in_out_elastic", label: i18n.t("Ease In-Out (Elastic)") },
+                { key: "ease_in_bounce", label: i18n.t("Ease In (Bounce)") },
+                { key: "ease_out_bounce", label: i18n.t("Ease Out (Bounce)") },
+                { key: "ease_in_out_bounce", label: i18n.t("Ease In-Out (Bounce)") },
+                { key: "custom_bezier", label: i18n.t("Custom Editable Bezier") }
             ]
             textRole: "label"
             currentIndex: {
@@ -108,7 +108,7 @@ ColumnLayout {
         RowLayout {
             Layout.fillWidth: true
             Label {
-                text: "Curve Amplitude (Range Limits):"
+                text: i18n.t("Curve Amplitude (Range Limits):")
                 font.bold: true
                 font.pixelSize: 11
                 opacity: 0.85
@@ -146,13 +146,13 @@ ColumnLayout {
         RowLayout {
             Layout.fillWidth: true
             Label {
-                text: "Min Limit: " + curveControl.paramMin.toFixed(2)
+                text: i18n.t("Min Limit: %1").replace("%1", curveControl.paramMin.toFixed(2))
                 font.pixelSize: 10
                 opacity: 0.6
             }
             Item { Layout.fillWidth: true }
             Label {
-                text: "Max Limit: " + curveControl.paramMax.toFixed(2)
+                text: i18n.t("Max Limit: %1").replace("%1", curveControl.paramMax.toFixed(2))
                 font.pixelSize: 10
                 opacity: 0.6
             }
