@@ -136,15 +136,39 @@ fn main() {
 
 fn launch_kirigami_gui() {
     let current_exe = std::env::current_exe().unwrap_or_else(|_| PathBuf::from("gmicvideo"));
-    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let python_script = manifest_dir.join("src_gui").join("gmicvideo_gui.py");
+    
+    // Find gmicvideo_gui.py in:
+    // 1. GMIC_VIDEO_GUI_SCRIPT env var
+    // 2. Relative to current_exe in AppDir or install prefix (../share/gmicvideo/src_gui/gmicvideo_gui.py)
+    // 3. Next to executable (src_gui/gmicvideo_gui.py)
+    // 4. Fallback to CARGO_MANIFEST_DIR
+    let python_script = if let Ok(custom) = std::env::var("GMIC_VIDEO_GUI_SCRIPT") {
+        PathBuf::from(custom)
+    } else if let Some(parent) = current_exe.parent() {
+        let in_share = parent.join("../share/gmicvideo/src_gui/gmicvideo_gui.py");
+        let next_to = parent.join("src_gui/gmicvideo_gui.py");
+        if in_share.exists() {
+            in_share
+        } else if next_to.exists() {
+            next_to
+        } else {
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src_gui").join("gmicvideo_gui.py")
+        }
+    } else {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src_gui").join("gmicvideo_gui.py")
+    };
 
     println!("Launching G'MIC Video Editor (Kirigami KDE UI)...");
 
-    let status = Command::new("python3")
-        .arg(&python_script)
-        .env("GMIC_VIDEO_BACKEND_BIN", current_exe)
-        .status();
+    let mut cmd = Command::new("python3");
+    cmd.arg(&python_script)
+       .env("GMIC_VIDEO_BACKEND_BIN", &current_exe);
+
+    for arg in std::env::args().skip(1) {
+        cmd.arg(arg);
+    }
+
+    let status = cmd.status();
 
     match status {
         Ok(s) => {

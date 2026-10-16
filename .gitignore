@@ -1,1 +1,5 @@
 /target
+*.AppImage
+packaging/AppDir/
+packaging/tools/
+temp/

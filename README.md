@@ -1,81 +1,184 @@
 # G'MIC Video Effects Editor
 
-A modern Rust-based video effects editor and spiritual successor to `ultrawarp-batch`. Built using the **KDE Kirigami Framework**, **FFmpeg**, and **G'MIC** CLI image computing library.
+<!-- Project Badges: Replace or add relevant badges -->
+[![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
+[![Framework](https://img.shields.io/badge/UI-KDE%20Kirigami%20%7C%20PySide6-blueviolet.svg)](https://develop.kde.org/frameworks/kirigami/)
+[![License](https://img.shields.io/badge/License-GPLv3-green.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Linux-lightgrey.svg)](https://www.kernel.org/)
+
+A high-performance, non-linear video effects editor powered by **Rust**, **G'MIC**, **FFmpeg**, and the **KDE Kirigami Framework**. Designed as the spiritual successor to `ultrawarp-batch`, G'MIC Video combines the full image-processing power of over 1,100 G'MIC filters with parameter tweening, mathematical curve sculpting, and multi-threaded parallel rendering.
 
 ---
 
-## Features
+## 📸 Screenshots
 
-- **KDE Kirigami UI**:
-  - Video selection welcome screen for single-video import.
-  - Three-column workspace:
-    - **Left**: Category explorer & real-time search bar across 1,100+ G'MIC filters (including UltraWarp 2, UltraWarp++++, Halftone, Bloom, Pixel Art, Kaleidoscope, and more).
-    - **Center**: Filter customization parameters with inline controls (Sliders, SpinBoxes, ComboBoxes, Switches).
-    - **Right**: Video preview with full-view or side-by-side split comparison, and an interactive timeline scrubber.
-- **Advanced Parameter Tweening & Curves**:
-  - Every numerical parameter can have an animated **Tween** over the video's duration.
-  - Built-in transitions: `linear`, `ease_in_quad`, `ease_out_quad`, `ease_in_out_cubic`, `elastic`, `bounce`, `back`, `sine`, `expo`, `circ`.
-  - **Interactive Cubic Bezier Curve Editor**: Drag handles $P_1$ and $P_2$ on an interactive canvas or select presets (`Ease`, `Ease In`, `Ease Out`, `Ease In-Out`, `Overshoot`).
-- **High-Performance Parallel Rendering**:
-  - Multi-threaded frame processing using Rust's `rayon` work-stealing pool across all available CPU cores.
-  - Live progress tracking dialog with completed frame count, encoding speed (FPS), elapsed time, and ETA.
-- **Versatile Video Formats**:
-  - Render with custom CRF / quality control to:
-    - **H.264** (`libx264`, MP4)
-    - **H.265 / HEVC** (`libx265`, MP4)
-    - **VP9** (`libvpx-vp9`, WebM)
-    - **AV1** (`libsvtav1`, MP4)
-    - **Lossless Video** (`libx264rgb` CRF 0, RGB 4:4:4)
+<!-- FILL IN: Add your interface screenshots and GIFs below -->
+| Main Effects Workspace | Inline Curve Editor |
+| :---: | :---: |
+| ![Effects Workspace](<!-- FILL IN: Path or URL to workspace screenshot -->) | ![Curve Editor](<!-- FILL IN: Path or URL to curve screenshot -->) |
+
+| Independent Render Manager & Task Queue | Video Cut & Trimming |
+| :---: | :---: |
+| ![Render Queue](<!-- FILL IN: Path or URL to render queue screenshot -->) | ![Video Cut](<!-- FILL IN: Path or URL to cut slider screenshot -->) |
 
 ---
 
-## Project Structure
+## ✨ Features
+
+### 🎨 1,100+ G'MIC Visual Effects
+- Real-time search and categorization across the entire G'MIC filter library:
+  - Distortions, Halftones, Glitches, Film Emulation, Color Grading, Warps, Stylizations, and more.
+- Dynamic property controls (Sliders, SpinBoxes, Color selectors, Switches) tailored to each effect's schema.
+
+### 📈 Parameter Animation & Curve Sculpting
+Every numeric filter parameter can be animated over the video duration via the **Animate** menu:
+- **Disabled**: Fixed parameter value (default).
+- **Random**: Generates deterministic pseudo-random values frame-by-frame within defined amplitude bounds.
+- **Curve**: Interactive mathematical animation curve:
+  - **28 Built-in Mathematical Easing Presets**:
+    - Linear diagonal
+    - Quad, Cubic, Quart, Sine, Expo, Circular
+    - Back / Overshoot
+    - Elastic (sinusoidal spring decay)
+    - Bounce (realistic multi-arc ground bounce)
+  - **Custom Editable Bézier Mode**: Real-time interactive canvas with draggable control handles ($P_1$ & $P_2$) for custom ease curves.
+  - **Amplitude Range Slider**: Set minimum and maximum parameter boundary limits.
+
+### 💾 Preset System (`.geffect`)
+- Export and import complete effect configurations including active parameters, animation modes, and curve definitions.
+- Saved in human-readable JSON format with percentage-normalized timeline definitions (`0.0` to `1.0`).
+- Strict schema validation on file import.
+
+### ✂️ Video Cut & Trimming
+- Interactive dual-handle range slider to select start and end trimming times directly below the video timeline.
+- Frame extraction and audio alignment automatically adjust to the selected cut range.
+
+### 🚀 Independent Background Render Manager & Queue
+- Runs in a separate window so you can continue editing new videos while previous renders process in the background.
+- Multi-task queue with real-time status cards (Queued, Rendering, Completed, Failed).
+- Simplified rendering settings:
+  - **Quality Slider**: Draft to Maximum Quality (automatically mapped to optimal CRF values).
+  - **Encoding Speed Slider**: Maximum Compression to Ultrafast Encode.
+  - **Smooth Fading on Lossless**: Quality and speed sliders fade out gracefully when Lossless RGB is selected.
+
+### 🎬 Multi-Format Video Export
+- **H.264 (MP4)**: Standard compatibility (default).
+- **H.265 / HEVC (MP4)**: High-efficiency modern compression.
+- **VP9 (WebM)**: Open web video format.
+- **AV1 (MP4)**: Next-generation ultra-compressed format via SVT-AV1.
+- **Lossless RGB (MP4)**: Mathematically exact 1:1 pixel fidelity with zero compression artifacts.
+- Automatic even-dimension padding (`pad=ceil(iw/2)*2:ceil(ih/2)*2`) ensures non-standard video resolutions (e.g. `971x356`) encode cleanly without FFmpeg errors.
+- Real-time FFmpeg encoding progress bar with live frame counter, FPS speed, and remaining time estimation.
+
+---
+
+## 🛠️ Tech Stack & Architecture
 
 ```
-├── Cargo.toml
-├── src/
-│   ├── main.rs         # CLI entry point, argument parsing & Kirigami launcher
-│   ├── gmic.rs         # G'MIC command parser, filter database & CLI runner
-│   ├── tween.rs        # Easing formulas, Bezier evaluation & curve interpolation
-│   ├── video.rs        # FFmpeg & FFprobe frame extraction, probing & video encoding
-│   ├── renderer.rs     # Multi-threaded Rayon batch rendering pipeline
-│   └── server.rs       # JSON-over-stdio IPC server for Kirigami UI communication
-├── src_gui/
-│   └── gmicvideo_gui.py # PySide6 + Kirigami QML application loader & IPC bridge
-└── ui/
-    ├── main.qml            # Main Kirigami application window & effects panel
-    ├── BezierCurveEditor.qml # Interactive cubic Bezier curve editor overlay sheet
-    └── RenderDialog.qml    # Render progress and completion modal
+┌─────────────────────────────────────────────────────────────┐
+│                 Frontend UI (PySide6 / QML)                 │
+│  - KDE Kirigami Framework (Adaptive, responsive desktop UX) │
+│  - Inline Curve Canvas & Real-time Timeline Scrubber        │
+│  - Independent Render Window & Multi-Task Queue             │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ JSON-over-stdio IPC
+┌──────────────────────────────▼──────────────────────────────┐
+│                  Backend Core (Rust 2021)                   │
+│  - Rayon: Work-stealing multi-threaded frame rendering      │
+│  - FFmpeg & FFprobe: High-speed extraction & audio muxing   │
+│  - G'MIC CLI Engine: Image computing & mathematical filters │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Running the Application
+## 📋 System Requirements
 
-### 1. Launch the Kirigami GUI
-Run from anywhere in your terminal:
-```bash
-gmicvideo
-```
-Or directly from the project directory:
-```bash
-./target/release/GmicVideo
-```
-*(Also accessible from your KDE Plasma Application Menu under Multimedia / Video)*
+<!-- FILL IN: Update any minimum requirements -->
+- **OS**: Linux (Fedora, Ubuntu/Debian, Arch Linux, openSUSE, etc.)
+- **Rust**: `1.75+` (with `cargo`)
+- **Python**: `3.10+` with `PySide6`
+- **KDE Frameworks**: `kf6-kirigami` (or `kf5-kirigami`)
+- **System Binaries**:
+  - `ffmpeg` & `ffprobe`
+  - `gmic` (`3.0+`)
 
-### 2. Command Line / Batch Mode
-List available G'MIC filters:
-```bash
-gmicvideo --list-effects
-```
+---
 
-Search for filters:
+## 🚀 Building & Running
+
+### 1. Clone Repository
 ```bash
-gmicvideo --search ultrawarp
+git clone https://github.com/<!-- FILL IN: username -->/GmicVideo.git
+cd GmicVideo
 ```
 
-Headless render a video with an effect:
+### 2. Install Dependencies
+
+#### Fedora / RHEL:
 ```bash
-gmicvideo --input input.mp4 --output output.mp4 --filter patterns_halftone --format h264 --crf 18
+sudo dnf install cargo python3 python3-pip ffmpeg gmic kf6-kirigami
+pip install PySide6
 ```
-Supported formats: `h264`, `h265`, `vp9`, `av1`, `lossless`.
+
+#### Ubuntu / Debian:
+```bash
+sudo apt install cargo python3 python3-pip ffmpeg gmic qml-module-org-kde-kirigami2
+pip install PySide6
+```
+
+#### Arch Linux:
+```bash
+sudo pacman -S rust python python-pip ffmpeg gmic kirigami
+pip install PySide6
+```
+
+### 3. Build Rust Backend
+```bash
+cargo build --release
+```
+
+### 4. Launch the Application
+```bash
+python3 src_gui/gmicvideo_gui.py
+```
+*(Or use the compiled launcher `./target/release/GmicVideo`)*
+
+---
+
+## 📦 AppImage Packaging
+
+An automated build script is provided in the `packaging/` directory:
+
+```bash
+chmod +x packaging/build_appimage.sh
+./packaging/build_appimage.sh
+```
+
+This compiles the release binary, bundles the application, desktop entry, and icon, packages it into a standalone `.AppImage` file, and executes a self-test to verify startup.
+
+---
+
+## 🎨 Custom Application Icon
+
+To customize the application and window icon:
+1. Navigate to the [`assets/icon/`](assets/icon/) directory.
+2. Drop your custom artwork as `app_icon.png` (or `app_icon.svg`).
+3. The app will automatically detect and load your icon on startup.
+
+---
+
+## 📄 License
+
+<!-- FILL IN: Set your project license (e.g. GPL-3.0, MIT, etc.) -->
+Distributed under the **GPL-3.0 License**. See `LICENSE` for more information.
+
+---
+
+## 🤝 Acknowledgments
+
+<!-- FILL IN: Add credits or personal thanks -->
+- [G'MIC Team (GREYC)](https://gmic.eu/) for the G'MIC image processing library.
+- [KDE Kirigami](https://develop.kde.org/frameworks/kirigami/) for the desktop UI components.
+- [FFmpeg](https://ffmpeg.org/) for multimedia extraction and video encoding.

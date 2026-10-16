@@ -7,6 +7,7 @@ import threading
 import time
 from PySide6.QtCore import QObject, Slot, Signal, Property, QUrl
 from PySide6.QtWidgets import QApplication, QFileDialog
+from PySide6.QtGui import QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 
 class RustBackendBridge(QObject):
@@ -385,6 +386,22 @@ def main():
     app.setApplicationName("GmicVideo")
     app.setOrganizationName("KDE")
 
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+    # Load custom application icon
+    icon_candidates = [
+        os.path.join(base_dir, "assets", "icon", "app_icon.png"),
+        os.path.join(base_dir, "assets", "icon", "icon.png"),
+        os.path.join(base_dir, "assets", "icon", "app_icon.svg"),
+        os.path.join(base_dir, "assets", "icon", "icon.svg"),
+        os.path.join(base_dir, "assets", "icons", "app_icon.png"),
+        os.path.join(base_dir, "assets", "icons", "icon.png"),
+    ]
+    for ic_path in icon_candidates:
+        if os.path.exists(ic_path):
+            app.setWindowIcon(QIcon(ic_path))
+            break
+
     backend_bin = os.environ.get("GMIC_VIDEO_BACKEND_BIN")
     if not backend_bin or not os.path.exists(backend_bin):
         base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -408,6 +425,10 @@ def main():
     if not engine.rootObjects():
         print("[Error] Failed to load main.qml", file=sys.stderr)
         sys.exit(1)
+
+    if "--test" in sys.argv:
+        print("[Success] GmicVideo GUI initialized and verified successfully!")
+        sys.exit(0)
 
     sys.exit(app.exec())
 
