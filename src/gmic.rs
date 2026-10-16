@@ -95,13 +95,34 @@ impl FilterDatabase {
         get_builtin_filters()
     }
 
+
+
     pub fn find_filter(&self, name_or_cmd: &str) -> Option<&GmicFilter> {
+        let clean = sanitize_id(name_or_cmd);
         self.filters.iter().find(|f| {
             f.name.eq_ignore_ascii_case(name_or_cmd)
                 || f.command.eq_ignore_ascii_case(name_or_cmd)
                 || f.id.eq_ignore_ascii_case(name_or_cmd)
+                || sanitize_id(&f.name) == clean
+                || sanitize_id(&f.command) == clean
+                || f.id == clean
         })
     }
+}
+
+pub fn strip_html(input: &str) -> String {
+    let re = Regex::new(r"<[^>]+>").unwrap();
+    re.replace_all(input, "")
+        .trim()
+        .trim_matches('_')
+        .trim()
+        .to_string()
+}
+
+pub fn sanitize_id(s: &str) -> String {
+    s.chars()
+        .map(|c| if c.is_alphanumeric() { c.to_ascii_lowercase() } else { '_' })
+        .collect()
 }
 
 fn dirs_home() -> Option<PathBuf> {
@@ -133,8 +154,11 @@ pub fn parse_gmic_definitions(path: &Path) -> Result<FilterDatabase, String> {
 
             // Category tag: #@gui Category Name
             if !body.contains(':') {
-                current_category = body.to_string();
-                current_subcategory = None;
+                let clean = strip_html(body);
+                if !clean.is_empty() {
+                    current_category = clean;
+                    current_subcategory = None;
+                }
                 continue;
             }
 
@@ -169,20 +193,21 @@ pub fn parse_gmic_definitions(path: &Path) -> Result<FilterDatabase, String> {
                 let command = cmd_parts.first().unwrap_or(&"").trim().to_string();
                 let preview_command = cmd_parts.get(1).unwrap_or(&"").trim().to_string();
 
+                let clean_name = strip_html(name_part);
                 let id = format!(
                     "{}_{}",
-                    current_category.to_lowercase().replace(' ', "_"),
-                    name_part.to_lowercase().replace(' ', "_").replace('/', "_")
+                    sanitize_id(&current_category),
+                    sanitize_id(&clean_name)
                 );
 
                 current_filter = Some(GmicFilter {
                     id,
-                    name: name_part.to_string(),
+                    name: clean_name.clone(),
                     category: current_category.clone(),
                     subcategory: current_subcategory.clone(),
                     command: if command.is_empty() { "fx_unknown".to_string() } else { command },
                     preview_command,
-                    description: format!("G'MIC filter: {}", name_part),
+                    description: format!("G'MIC filter: {}", clean_name),
                     author: "G'MIC Team".to_string(),
                     parameters: Vec::new(),
                 });
@@ -741,6 +766,19 @@ mod tests {
         assert!(!db.filters.is_empty(), "FilterDatabase should have loaded filters");
         assert!(db.filters.len() > 50, "Expected hundreds of filters, got {}", db.filters.len());
         assert!(!db.categories.is_empty(), "Categories should not be empty");
+    }
+
+    #[test]
+    fn test_filter_ids_and_categories_are_clean_for_thumbnails() {
+        let db = FilterDatabase::load_default();
+        let warhol = db.find_filter("warhol").expect("Warhol should exist");
+        assert_eq!(warhol.id, "artistic_warhol");
+        assert_eq!(warhol.category, "Artistic");
+
+        for cat in &db.categories {
+            assert!(!cat.contains('<') && !cat.contains('>'), "Category should not contain HTML tags: {}", cat);
+            assert!(!cat.starts_with('_'), "Category should not have leading underscore: {}", cat);
+        }
     }
 
     #[test]

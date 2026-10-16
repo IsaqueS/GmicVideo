@@ -114,24 +114,99 @@ class RustBackendBridge(QObject):
         t = threading.Thread(target=poller, daemon=True)
         t.start()
 
+    @staticmethod
+    def find_thumbnails_dir():
+        candidates = []
+        if "GMIC_VIDEO_THUMBNAILS_DIR" in os.environ:
+            candidates.append(os.environ["GMIC_VIDEO_THUMBNAILS_DIR"])
+        if "APPDIR" in os.environ:
+            candidates.append(os.path.join(os.environ["APPDIR"], "usr", "share", "gmicvideo", "Tests", "valid_effects"))
+            candidates.append(os.path.join(os.environ["APPDIR"], "Tests", "valid_effects"))
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        candidates.append(os.path.join(script_dir, "..", "Tests", "valid_effects"))
+        candidates.append(os.path.join(script_dir, "..", "share", "gmicvideo", "Tests", "valid_effects"))
+        candidates.append(os.path.join(script_dir, "Tests", "valid_effects"))
+        cwd = os.getcwd()
+        candidates.append(os.path.join(cwd, "Tests", "valid_effects"))
+        candidates.append(os.path.join(cwd, "packaging", "AppDir", "usr", "share", "gmicvideo", "Tests", "valid_effects"))
+        candidates.append("/usr/share/gmicvideo/Tests/valid_effects")
+
+        for c in candidates:
+            norm = os.path.normpath(c)
+            if os.path.isdir(norm) and os.path.exists(norm):
+                try:
+                    if any(f.endswith(".png") for f in os.listdir(norm)):
+                        return norm
+                except Exception:
+                    pass
+        return None
+
     @Slot(result=str)
     def getEffects(self):
         res = self._send_request("get_effects")
         if res.get("status") == "ok":
             data = res.get("data", {})
-            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            tests_dir = os.path.join(base_dir, "Tests", "valid_effects")
-            if os.path.exists(tests_dir) and "filters" in data:
+            tests_dir = self.find_thumbnails_dir()
+            if tests_dir and "filters" in data:
                 try:
-                    available_images = set(os.listdir(tests_dir))
+                    available_images = {img.lower(): img for img in os.listdir(tests_dir) if img.endswith(".png")}
+
+                    manifest_map = {}
+                    manifest_cand = [
+                        os.path.join(os.path.dirname(tests_dir), "valid_effects.json"),
+                        os.path.join(tests_dir, "valid_effects.json"),
+                        os.path.join(tests_dir, "..", "valid_effects.json"),
+                    ]
+                    for m_path in manifest_cand:
+                        if os.path.isfile(m_path):
+                            try:
+                                with open(m_path, "r", encoding="utf-8") as mf:
+                                    items = json.load(mf)
+                                    for item in items:
+                                        if item.get("status") == "valid":
+                                            i_id = item.get("id", "").lower()
+                                            i_cmd = item.get("command", "").split()[0].lower() if item.get("command") else ""
+                                            i_name = "".join(c.lower() if c.isalnum() else "_" for c in item.get("name", ""))
+                                            out_p = os.path.basename(item.get("output_path", ""))
+                                            if out_p in available_images:
+                                                if i_id: manifest_map[i_id] = available_images[out_p]
+                                                if i_cmd: manifest_map[i_cmd] = available_images[out_p]
+                                                if i_name: manifest_map[i_name] = available_images[out_p]
+                                break
+                            except Exception:
+                                pass
+
+                    loaded_count = 0
                     for f in data["filters"]:
-                        fid = f.get("id", "")
-                        fname = f"{fid}.png"
-                        if fname in available_images:
-                            full_path = os.path.join(tests_dir, fname)
+                        fid = f.get("id", "").lower()
+                        cmd = f.get("command", "").lower()
+                        name_clean = "".join(c.lower() if c.isalnum() else "_" for c in f.get("name", ""))
+                        cat_clean = "".join(c.lower() if c.isalnum() else "_" for c in f.get("category", ""))
+
+                        candidates = [
+                            f"{fid}.png",
+                            manifest_map.get(fid, ""),
+                            manifest_map.get(cmd, ""),
+                            manifest_map.get(name_clean, ""),
+                            f"{cat_clean}_{name_clean}.png",
+                            f"{cmd}.png",
+                            f"{name_clean}.png",
+                        ]
+                        matched_img = None
+                        for cand in candidates:
+                            if not cand:
+                                continue
+                            cand_low = cand.lower()
+                            if cand_low in available_images:
+                                matched_img = available_images[cand_low]
+                                break
+                        if matched_img:
+                            full_path = os.path.join(tests_dir, matched_img)
                             f["preview_path"] = f"file://{full_path}"
+                            loaded_count += 1
                         else:
                             f["preview_path"] = ""
+                    print(f"[Thumbnails] Loaded {loaded_count} effect thumbnails from {tests_dir}", flush=True)
                 except Exception as e:
                     print(f"[Warning] Failed scanning preview images: {e}", file=sys.stderr)
             return json.dumps(data)

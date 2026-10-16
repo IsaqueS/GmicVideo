@@ -289,21 +289,6 @@ Kirigami.ApplicationWindow {
 
             Item { Layout.fillWidth: true }
 
-            ComboBox {
-                id: langSelector
-                model: i18n.availableLanguages()
-                textRole: "name"
-                currentIndex: {
-                    for (var i = 0; i < model.length; i++) {
-                        if (model[i].code === i18n.currentLanguage) return i;
-                    }
-                    return 0;
-                }
-                onActivated: {
-                    i18n.setLanguage(model[currentIndex].code);
-                }
-            }
-
             Button {
                 id: renderBtn
                 text: appWindow.activeRenderCount > 0 ? (i18n.t("Render (%1 in queue | %2%)").replace("%1", appWindow.activeRenderCount).replace("%2", appWindow.activeRenderPercent.toFixed(0))) : i18n.t("Render")
@@ -443,8 +428,24 @@ Kirigami.ApplicationWindow {
                     ComboBox {
                         id: categoryComboBox
                         Layout.fillWidth: true
-                        model: appWindow.allCategories
-                        onCurrentTextChanged: appWindow.selectedCategory = currentText
+                        model: {
+                            var list = [];
+                            for (var i = 0; i < appWindow.allCategories.length; i++) {
+                                list.push(i18n.t(appWindow.allCategories[i]));
+                            }
+                            return list;
+                        }
+                        currentIndex: {
+                            for (var i = 0; i < appWindow.allCategories.length; i++) {
+                                if (appWindow.allCategories[i] === appWindow.selectedCategory) return i;
+                            }
+                            return 0;
+                        }
+                        onActivated: {
+                            if (currentIndex >= 0 && currentIndex < appWindow.allCategories.length) {
+                                appWindow.selectedCategory = appWindow.allCategories[currentIndex];
+                            }
+                        }
                     }
 
                     Label {
@@ -464,8 +465,13 @@ Kirigami.ApplicationWindow {
                             var cat = appWindow.selectedCategory;
                             for (var i = 0; i < appWindow.allFilters.length; i++) {
                                 var f = appWindow.allFilters[i];
-                                var matchCat = (cat === "All Categories" || f.category === cat);
-                                var matchQuery = (!q || f.name.toLowerCase().indexOf(q) !== -1 || f.command.toLowerCase().indexOf(q) !== -1);
+                                var matchCat = (cat === "All Categories" || f.category === cat || i18n.t(f.category) === cat);
+                                var transName = (i18n.t(f.name) || "").toLowerCase();
+                                var origName = (f.name || "").toLowerCase();
+                                var transCat = (i18n.t(f.category) || "").toLowerCase();
+                                var origCat = (f.category || "").toLowerCase();
+                                var cmd = (f.command || "").toLowerCase();
+                                var matchQuery = (!q || transName.indexOf(q) !== -1 || origName.indexOf(q) !== -1 || transCat.indexOf(q) !== -1 || origCat.indexOf(q) !== -1 || cmd.indexOf(q) !== -1);
                                 if (matchCat && matchQuery) {
                                     list.push(f);
                                 }
@@ -480,13 +486,13 @@ Kirigami.ApplicationWindow {
                             contentItem: ColumnLayout {
                                 spacing: 2
                                 Label {
-                                    text: modelData.name
+                                    text: i18n.t(modelData.name)
                                     font.bold: highlighted
                                     elide: Text.ElideRight
                                     Layout.fillWidth: true
                                 }
                                 Label {
-                                    text: modelData.category + " • " + modelData.command
+                                    text: (modelData.category ? i18n.t(modelData.category) : "") + " • " + modelData.command
                                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                                     opacity: 0.6
                                     elide: Text.ElideRight
@@ -521,7 +527,7 @@ Kirigami.ApplicationWindow {
                         Layout.fillWidth: true
                         Kirigami.Heading {
                             level: 2
-                            text: selectedFilter ? selectedFilter.name : i18n.t("Select an Effect")
+                            text: selectedFilter ? i18n.t(selectedFilter.name) : i18n.t("Select an Effect")
                             Layout.fillWidth: true
                             elide: Text.ElideRight
                         }

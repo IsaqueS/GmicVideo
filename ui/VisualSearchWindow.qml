@@ -24,35 +24,41 @@ Window {
     property var allCategories: ["All Categories"]
     property string currentSearchText: ""
     property string selectedCategory: "All Categories"
-    property bool onlyWithPreview: false
 
     signal effectSelected(var filter)
 
-    // Filtered list of effects based on search query, category, and preview availability
+    // Filtered list of effects based on search query and category
+    // Guarantees all displayed effects have thumbnails loaded
+    // Allows searching by either English name or translated name, as well as command and category
     property var filteredFilters: {
         var query = currentSearchText.toLowerCase().trim();
         var cat = selectedCategory;
-        var onlyPrev = onlyWithPreview;
         var result = [];
 
         for (var i = 0; i < allFilters.length; i++) {
             var f = allFilters[i];
 
+            // Visual search is strictly visual: only show effects with valid preview thumbnails
+            if (!f.preview_path || f.preview_path === "") {
+                continue;
+            }
+
             // Category filter
-            if (cat !== "All Categories" && f.category !== cat) {
+            if (cat !== "All Categories" && f.category !== cat && i18n.t(f.category) !== cat) {
                 continue;
             }
 
-            // Preview filter
-            if (onlyPrev && (!f.preview_path || f.preview_path === "")) {
-                continue;
-            }
-
-            // Search query filter
+            // Search query filter: matches both translated name and English name, plus command & category
             if (query !== "") {
-                var nameMatch = f.name && f.name.toLowerCase().indexOf(query) !== -1;
-                var catMatch = f.category && f.category.toLowerCase().indexOf(query) !== -1;
-                var cmdMatch = f.command && f.command.toLowerCase().indexOf(query) !== -1;
+                var transName = (i18n.t(f.name) || "").toLowerCase();
+                var origName = (f.name || "").toLowerCase();
+                var catTrans = (i18n.t(f.category) || "").toLowerCase();
+                var catOrig = (f.category || "").toLowerCase();
+                var cmd = (f.command || "").toLowerCase();
+
+                var nameMatch = transName.indexOf(query) !== -1 || origName.indexOf(query) !== -1;
+                var catMatch = catTrans.indexOf(query) !== -1 || catOrig.indexOf(query) !== -1;
+                var cmdMatch = cmd.indexOf(query) !== -1;
                 if (!nameMatch && !catMatch && !cmdMatch) {
                     continue;
                 }
@@ -82,16 +88,24 @@ Window {
 
             ComboBox {
                 id: catCombo
-                model: visualSearchWin.allCategories
-                currentIndex: 0
-                onActivated: visualSearchWin.selectedCategory = model[currentIndex]
-            }
-
-            CheckBox {
-                id: previewToggle
-                text: i18n.t("With Previews Only")
-                checked: visualSearchWin.onlyWithPreview
-                onToggled: visualSearchWin.onlyWithPreview = checked
+                model: {
+                    var list = [];
+                    for (var i = 0; i < visualSearchWin.allCategories.length; i++) {
+                        list.push(i18n.t(visualSearchWin.allCategories[i]));
+                    }
+                    return list;
+                }
+                currentIndex: {
+                    for (var i = 0; i < visualSearchWin.allCategories.length; i++) {
+                        if (visualSearchWin.allCategories[i] === visualSearchWin.selectedCategory) return i;
+                    }
+                    return 0;
+                }
+                onActivated: {
+                    if (currentIndex >= 0 && currentIndex < visualSearchWin.allCategories.length) {
+                        visualSearchWin.selectedCategory = visualSearchWin.allCategories[currentIndex];
+                    }
+                }
             }
 
             Button {
@@ -106,7 +120,7 @@ Window {
             Layout.fillWidth: true
             Label {
                 text: visualSearchWin.selectedCategory !== "All Categories" ?
-                      i18n.t("Showing %1 effects in %2").replace("%1", visualSearchWin.filteredFilters.length).replace("%2", visualSearchWin.selectedCategory) :
+                      i18n.t("Showing %1 effects in %2").replace("%1", visualSearchWin.filteredFilters.length).replace("%2", i18n.t(visualSearchWin.selectedCategory)) :
                       i18n.t("Showing %1 effects").replace("%1", visualSearchWin.filteredFilters.length)
                 font.bold: true
                 font.pixelSize: 11
@@ -185,7 +199,7 @@ Window {
                                         opacity: 0.35
                                     }
                                     Label {
-                                        text: "No preview"
+                                        text: i18n.t("No preview")
                                         font.pixelSize: 10
                                         opacity: 0.4
                                         Layout.alignment: Qt.AlignHCenter
@@ -205,7 +219,7 @@ Window {
                                     Label {
                                         id: catBadge
                                         anchors.centerIn: parent
-                                        text: modelData.category || ""
+                                        text: modelData.category ? i18n.t(modelData.category) : ""
                                         font.pixelSize: 9
                                         font.bold: true
                                         color: "white"
@@ -217,7 +231,7 @@ Window {
                             // Effect Title and Info
                             Label {
                                 Layout.fillWidth: true
-                                text: modelData.name || "Effect"
+                                text: modelData.name ? i18n.t(modelData.name) : i18n.t("Effect")
                                 font.bold: true
                                 font.pixelSize: 12
                                 elide: Text.ElideRight

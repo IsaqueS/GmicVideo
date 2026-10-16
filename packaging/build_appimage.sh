@@ -24,6 +24,10 @@ if [ ! -f "$BIN_SRC" ]; then
     exit 1
 fi
 
+# Run thumbnail test
+echo "[1.5/6] Verifying thumbnails and i18n tests..."
+python3 "$ROOT_DIR/Tests/test_visual_search_thumbnails.py"
+
 # 2. Prepare AppDir structure
 echo "[2/6] Preparing AppDir structure..."
 rm -rf "$APPDIR"
@@ -49,6 +53,10 @@ fi
 if [ -d "$ROOT_DIR/Tests/valid_effects" ]; then
     mkdir -p "$APPDIR/usr/share/gmicvideo/Tests"
     cp -r "$ROOT_DIR/Tests/valid_effects" "$APPDIR/usr/share/gmicvideo/Tests/"
+fi
+if [ -f "$ROOT_DIR/Tests/valid_effects.json" ]; then
+    mkdir -p "$APPDIR/usr/share/gmicvideo/Tests"
+    cp "$ROOT_DIR/Tests/valid_effects.json" "$APPDIR/usr/share/gmicvideo/Tests/"
 fi
 
 # Copy icon
