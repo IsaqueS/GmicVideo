@@ -293,15 +293,19 @@ impl BatchRenderer {
         }
 
         // 6. Encode video with ffmpeg
+        let enc_on_progress = on_progress.clone();
+        let enc_start_time = std::time::Instant::now();
+        let format_name = request.format.display_name().to_string();
+
         on_progress(RenderProgress {
             stage: RenderStage::Encoding,
             total_frames: num_frames,
-            completed_frames: num_frames,
+            completed_frames: 0,
             percent: 90.0,
             fps: 0.0,
             elapsed_secs: start_time.elapsed().as_secs_f64(),
             eta_secs: 0.0,
-            message: format!("Encoding final {} video...", request.format.display_name()),
+            message: format!("Starting {} encoding...", format_name),
         });
 
         encode_video(
@@ -315,6 +319,41 @@ impl BatchRenderer {
             &request.speed_preset,
             request.cut_start_secs,
             request.cut_end_secs,
+            Some(|enc_frame: usize, enc_fps: f64| {
+                let enc_frac = if num_frames > 0 {
+                    (enc_frame as f64 / num_frames as f64).min(1.0)
+                } else {
+                    1.0
+                };
+                let percent = 90.0 + enc_frac * 9.5;
+                let elapsed = start_time.elapsed().as_secs_f64();
+                let enc_elapsed = enc_start_time.elapsed().as_secs_f64();
+                let remaining_frames = num_frames.saturating_sub(enc_frame);
+                let eta = if enc_fps > 0.05 {
+                    remaining_frames as f64 / enc_fps
+                } else if enc_frac > 0.01 {
+                    (enc_elapsed / enc_frac) - enc_elapsed
+                } else {
+                    0.0
+                };
+
+                enc_on_progress(RenderProgress {
+                    stage: RenderStage::Encoding,
+                    total_frames: num_frames,
+                    completed_frames: enc_frame.min(num_frames),
+                    percent,
+                    fps: enc_fps,
+                    elapsed_secs: elapsed,
+                    eta_secs: eta.max(0.0),
+                    message: format!(
+                        "Encoding {} video: {} / {} frames ({:.1} fps)",
+                        format_name,
+                        enc_frame.min(num_frames),
+                        num_frames,
+                        enc_fps
+                    ),
+                });
+            }),
         )?;
 
         // 7. Completed!

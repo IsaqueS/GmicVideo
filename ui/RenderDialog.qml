@@ -264,104 +264,149 @@ property string selectedFormat: "h264"
 
                     Kirigami.Separator { Layout.fillWidth: true }
 
-                    // Simplified Slider 1: Quality
+                    // Quality & Speed Settings (faded out smoothly when Lossless is selected)
                     ColumnLayout {
+                        id: encodingSettingsBox
                         Layout.fillWidth: true
-                        spacing: 4
+                        spacing: Kirigami.Units.mediumSpacing
+                        enabled: renderWindow.selectedFormat !== "lossless"
+                        opacity: renderWindow.selectedFormat === "lossless" ? 0.25 : 1.0
 
-                        RowLayout {
+                        Behavior on opacity {
+                            NumberAnimation { duration: 250; easing.type: Easing.InOutQuad }
+                        }
+
+                        // Simplified Slider 1: Quality
+                        ColumnLayout {
                             Layout.fillWidth: true
-                            Label {
-                                text: "Quality"
-                                font.bold: true
+                            spacing: 4
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Label {
+                                    text: "Quality"
+                                    font.bold: true
+                                }
+                                Item { Layout.fillWidth: true }
+                                Label {
+                                    text: renderWindow.qualityDescription(qualitySlider.value)
+                                    font.bold: true
+                                    color: Kirigami.Theme.highlightColor
+                                }
                             }
-                            Item { Layout.fillWidth: true }
-                            Label {
-                                text: renderWindow.qualityDescription(qualitySlider.value)
-                                font.bold: true
-                                color: Kirigami.Theme.highlightColor
+
+                            Slider {
+                                id: qualitySlider
+                                Layout.fillWidth: true
+                                from: 1
+                                to: 10
+                                stepSize: 1
+                                value: renderWindow.qualityLevel
+                                onValueChanged: renderWindow.qualityLevel = value
+                            }
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Label {
+                                    text: "Draft (Smaller file)"
+                                    opacity: 0.6
+                                    font.pixelSize: 11
+                                }
+                                Item { Layout.fillWidth: true }
+                                Label {
+                                    text: "Balanced"
+                                    opacity: 0.6
+                                    font.pixelSize: 11
+                                }
+                                Item { Layout.fillWidth: true }
+                                Label {
+                                    text: "Maximum Quality"
+                                    opacity: 0.6
+                                    font.pixelSize: 11
+                                }
                             }
                         }
 
-                        Slider {
-                            id: qualitySlider
+                        // Simplified Slider 2: Speed
+                        ColumnLayout {
                             Layout.fillWidth: true
-                            from: 1
-                            to: 10
-                            stepSize: 1
-                            value: renderWindow.qualityLevel
-                            onValueChanged: renderWindow.qualityLevel = value
-                        }
+                            spacing: 4
 
-                        RowLayout {
-                            Layout.fillWidth: true
-                            Label {
-                                text: "Draft (Smaller file)"
-                                opacity: 0.6
-                                font.pixelSize: 11
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Label {
+                                    text: "Encoding Speed"
+                                    font.bold: true
+                                }
+                                Item { Layout.fillWidth: true }
+                                Label {
+                                    text: renderWindow.speedDescription(speedSlider.value)
+                                    font.bold: true
+                                    color: Kirigami.Theme.highlightColor
+                                }
                             }
-                            Item { Layout.fillWidth: true }
-                            Label {
-                                text: "Balanced"
-                                opacity: 0.6
-                                font.pixelSize: 11
+
+                            Slider {
+                                id: speedSlider
+                                Layout.fillWidth: true
+                                from: 1
+                                to: 10
+                                stepSize: 1
+                                value: renderWindow.speedLevel
+                                onValueChanged: renderWindow.speedLevel = value
                             }
-                            Item { Layout.fillWidth: true }
-                            Label {
-                                text: "Maximum Quality"
-                                opacity: 0.6
-                                font.pixelSize: 11
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Label {
+                                    text: "Max Compression"
+                                    opacity: 0.6
+                                    font.pixelSize: 11
+                                }
+                                Item { Layout.fillWidth: true }
+                                Label {
+                                    text: "Balanced"
+                                    opacity: 0.6
+                                    font.pixelSize: 11
+                                }
+                                Item { Layout.fillWidth: true }
+                                Label {
+                                    text: "Ultrafast Encode"
+                                    opacity: 0.6
+                                    font.pixelSize: 11
+                                }
                             }
                         }
                     }
 
-                    // Simplified Slider 2: Speed
-                    ColumnLayout {
+                    // Lossless Info Note (visible when Lossless is selected)
+                    Rectangle {
+                        visible: renderWindow.selectedFormat === "lossless"
                         Layout.fillWidth: true
-                        spacing: 4
+                        implicitHeight: losslessNoteLayout.implicitHeight + 14
+                        color: Kirigami.Theme.backgroundColor
+                        border.color: Kirigami.Theme.highlightColor
+                        border.width: 1
+                        radius: 4
 
                         RowLayout {
-                            Layout.fillWidth: true
-                            Label {
-                                text: "Encoding Speed"
-                                font.bold: true
-                            }
-                            Item { Layout.fillWidth: true }
-                            Label {
-                                text: renderWindow.speedDescription(speedSlider.value)
-                                font.bold: true
-                                color: Kirigami.Theme.highlightColor
-                            }
-                        }
+                            id: losslessNoteLayout
+                            anchors.fill: parent
+                            anchors.margins: 8
+                            spacing: 8
 
-                        Slider {
-                            id: speedSlider
-                            Layout.fillWidth: true
-                            from: 1
-                            to: 10
-                            stepSize: 1
-                            value: renderWindow.speedLevel
-                            onValueChanged: renderWindow.speedLevel = value
-                        }
+                            Kirigami.Icon {
+                                source: "dialog-information"
+                                implicitWidth: 16
+                                implicitHeight: 16
+                            }
 
-                        RowLayout {
-                            Layout.fillWidth: true
                             Label {
-                                text: "Max Compression"
-                                opacity: 0.6
+                                Layout.fillWidth: true
+                                text: "Lossless RGB encoding active: Quality and speed presets are bypassed to guarantee exact 1:1 mathematical pixel fidelity."
                                 font.pixelSize: 11
-                            }
-                            Item { Layout.fillWidth: true }
-                            Label {
-                                text: "Balanced"
-                                opacity: 0.6
-                                font.pixelSize: 11
-                            }
-                            Item { Layout.fillWidth: true }
-                            Label {
-                                text: "Ultrafast Encode"
-                                opacity: 0.6
-                                font.pixelSize: 11
+                                opacity: 0.85
+                                wrapMode: Text.WordWrap
                             }
                         }
                     }
@@ -581,7 +626,7 @@ property string selectedFormat: "h264"
                                         from: 0
                                         to: 100
                                         value: modelData.progress ? modelData.progress.percent : 0
-                                        indeterminate: modelData.progress ? (modelData.progress.stage === "extracting" || modelData.progress.stage === "encoding") : false
+                                        indeterminate: modelData.progress ? (modelData.progress.stage === "extracting") : false
                                     }
 
                                     RowLayout {

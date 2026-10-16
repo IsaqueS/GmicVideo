@@ -191,7 +191,6 @@ pub fn extract_all_frames(
     let pattern = out_dir.join("frame_%07d.png");
     let mut args: Vec<String> = vec![
         "-y".into(),
-        "-nostats".into(),
         "-loglevel".into(),
         "error".into(),
     ];
@@ -245,7 +244,7 @@ pub fn extract_all_frames(
     Ok(count)
 }
 
-pub fn encode_video(
+pub fn encode_video<F>(
     frames_dir: &Path,
     original_video: &Path,
     out_path: &Path,
@@ -256,7 +255,11 @@ pub fn encode_video(
     speed_preset: &str,
     cut_start_secs: Option<f64>,
     cut_end_secs: Option<f64>,
-) -> Result<PathBuf, String> {
+    mut on_progress: Option<F>,
+) -> Result<PathBuf, String>
+where
+    F: FnMut(usize, f64),
+{
     if let Some(parent) = out_path.parent() {
         let _ = std::fs::create_dir_all(parent);
     }
@@ -394,17 +397,57 @@ pub fn encode_video(
         }
     }
 
+    args.extend([
+        "-progress".into(),
+        "pipe:1".into(),
+        "-stats_period".into(),
+        "0.2".into(),
+    ]);
+
     args.push(out_path.to_string_lossy().to_string());
 
-    let output = Command::new("ffmpeg")
+    let mut child = Command::new("ffmpeg")
         .args(&args)
-        .output()
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
         .map_err(|e| format!("Failed to spawn ffmpeg encoder: {e}"))?;
 
-    if output.status.success() && out_path.exists() {
+    let mut stderr_opt = child.stderr.take();
+    let stderr_handle = std::thread::spawn(move || {
+        let mut err_str = String::new();
+        if let Some(ref mut r) = stderr_opt {
+            use std::io::Read;
+            let _ = r.read_to_string(&mut err_str);
+        }
+        err_str
+    });
+
+    if let Some(stdout) = child.stdout.take() {
+        use std::io::BufRead;
+        let reader = std::io::BufReader::new(stdout);
+        let mut cur_frame: usize = 0;
+        let mut cur_fps: f64 = 0.0;
+
+        for line in reader.lines().flatten() {
+            if let Some(val) = line.strip_prefix("frame=") {
+                cur_frame = val.trim().parse().unwrap_or(cur_frame);
+            } else if let Some(val) = line.strip_prefix("fps=") {
+                cur_fps = val.trim().parse().unwrap_or(cur_fps);
+            } else if line.starts_with("progress=") {
+                if let Some(ref mut cb) = on_progress {
+                    cb(cur_frame, cur_fps);
+                }
+            }
+        }
+    }
+
+    let status = child.wait().map_err(|e| format!("Failed to wait on ffmpeg encoder: {e}"))?;
+    let stderr_str = stderr_handle.join().unwrap_or_default();
+
+    if status.success() && out_path.exists() {
         Ok(out_path.to_path_buf())
     } else {
-        let err = String::from_utf8_lossy(&output.stderr);
-        Err(format!("ffmpeg encoding failed: {err}"))
+        Err(format!("ffmpeg encoding failed: {stderr_str}"))
     }
 }
