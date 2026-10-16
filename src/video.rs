@@ -13,7 +13,8 @@ pub enum ExportFormat {
 }
 
 impl ExportFormat {
-    pub fn extension(&self) -> &'static str {
+    #[allow(dead_code)]
+pub fn extension(&self) -> &'static str {
         match self {
             ExportFormat::H264 | ExportFormat::H265 | ExportFormat::Av1 | ExportFormat::Lossless => "mp4",
             ExportFormat::Vp9 => "webm",
@@ -180,6 +181,7 @@ pub fn extract_preview_frame(video_path: &Path, time_secs: f64, out_path: &Path)
     }
 }
 
+#[allow(dead_code)]
 pub fn extract_all_frames(
     video_path: &Path,
     out_dir: &Path,
@@ -244,6 +246,281 @@ pub fn extract_all_frames(
     Ok(count)
 }
 
+pub const PNG_MAGIC: &[u8; 8] = &[137, 80, 78, 71, 13, 10, 26, 10];
+
+/// Reads a single, complete PNG file from a streaming reader.
+/// Returns Ok(None) cleanly if EOF is reached before the start of a frame.
+pub fn read_png_frame<R: std::io::Read>(reader: &mut R) -> Result<Option<Vec<u8>>, String> {
+    let mut sig = [0u8; 8];
+    let mut first_byte = [0u8; 1];
+    match reader.read_exact(&mut first_byte) {
+        Ok(()) => {
+            sig[0] = first_byte[0];
+        }
+        Err(e) if e.kind() == std::io::ErrorKind::UnexpectedEof => {
+            return Ok(None);
+        }
+        Err(e) => return Err(format!("Failed to read frame signature: {e}")),
+    }
+
+    if let Err(e) = reader.read_exact(&mut sig[1..]) {
+        if e.kind() == std::io::ErrorKind::UnexpectedEof {
+            return Ok(None);
+        }
+        return Err(format!("Incomplete PNG signature: {e}"));
+    }
+
+    if &sig != PNG_MAGIC {
+        return Err(format!("Invalid PNG magic header: {:?}", &sig));
+    }
+
+    let mut frame_bytes = Vec::with_capacity(256 * 1024);
+    frame_bytes.extend_from_slice(&sig);
+
+    loop {
+        let mut header = [0u8; 8]; // 4 bytes length + 4 bytes chunk type
+        reader.read_exact(&mut header).map_err(|e| format!("Failed to read chunk header: {e}"))?;
+        frame_bytes.extend_from_slice(&header);
+
+        let length = u32::from_be_bytes([header[0], header[1], header[2], header[3]]) as usize;
+        let chunk_type = &header[4..8];
+
+        if length > 0 {
+            let start = frame_bytes.len();
+            frame_bytes.resize(start + length, 0);
+            reader
+                .read_exact(&mut frame_bytes[start..start + length])
+                .map_err(|e| format!("Failed to read chunk data: {e}"))?;
+        }
+
+        let mut crc = [0u8; 4];
+        reader.read_exact(&mut crc).map_err(|e| format!("Failed to read chunk crc: {e}"))?;
+        frame_bytes.extend_from_slice(&crc);
+
+        if chunk_type == b"IEND" {
+            break;
+        }
+    }
+
+    Ok(Some(frame_bytes))
+}
+
+/// Spawns an FFmpeg decoder subprocess that streams extracted PNG frames to stdout pipe.
+pub fn spawn_video_decoder(
+    video_path: &Path,
+    cut_start_secs: Option<f64>,
+    cut_end_secs: Option<f64>,
+) -> Result<std::process::Child, String> {
+    let mut args: Vec<String> = vec![
+        "-y".into(),
+        "-loglevel".into(),
+        "error".into(),
+    ];
+
+    if let Some(start) = cut_start_secs {
+        if start > 0.001 {
+            args.push("-ss".into());
+            args.push(format!("{:.3}", start));
+        }
+    }
+
+    if let Some(end) = cut_end_secs {
+        if let Some(start) = cut_start_secs {
+            if end > start + 0.001 {
+                args.push("-to".into());
+                args.push(format!("{:.3}", end));
+            }
+        } else if end > 0.001 {
+            args.push("-to".into());
+            args.push(format!("{:.3}", end));
+        }
+    }
+
+    args.push("-i".into());
+    args.push(video_path.to_str().ok_or("Invalid video path")?.to_string());
+    args.push("-vsync".into());
+    args.push("0".into());
+    args.push("-f".into());
+    args.push("image2pipe".into());
+    args.push("-vcodec".into());
+    args.push("png".into());
+    args.push("pipe:1".into());
+
+    Command::new("ffmpeg")
+        .args(&args)
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("Failed to spawn ffmpeg decoder: {e}"))
+}
+
+/// Spawns an FFmpeg streaming encoder subprocess that reads PNG frames from stdin pipe with zero disk files.
+pub fn spawn_video_streaming_encoder(
+    original_video: &Path,
+    out_path: &Path,
+    format: ExportFormat,
+    fps: f64,
+    crf: u32,
+    has_audio: bool,
+    speed_preset: &str,
+    cut_start_secs: Option<f64>,
+    cut_end_secs: Option<f64>,
+) -> Result<std::process::Child, String> {
+    if let Some(parent) = out_path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+
+    let mut args: Vec<String> = vec![
+        "-y".into(),
+        "-nostats".into(),
+        "-loglevel".into(),
+        "error".into(),
+        "-f".into(),
+        "image2pipe".into(),
+        "-vcodec".into(),
+        "png".into(),
+        "-framerate".into(),
+        format!("{:.3}", fps),
+        "-i".into(),
+        "pipe:0".into(),
+    ];
+
+    if has_audio {
+        if let Some(start) = cut_start_secs {
+            if start > 0.001 {
+                args.push("-ss".into());
+                args.push(format!("{:.3}", start));
+            }
+        }
+        if let Some(end) = cut_end_secs {
+            if let Some(start) = cut_start_secs {
+                if end > start + 0.001 {
+                    args.push("-to".into());
+                    args.push(format!("{:.3}", end));
+                }
+            } else if end > 0.001 {
+                args.push("-to".into());
+                args.push(format!("{:.3}", end));
+            }
+        }
+        args.push("-i".into());
+        args.push(original_video.to_string_lossy().to_string());
+        args.push("-map".into());
+        args.push("0:v:0".into());
+        args.push("-map".into());
+        args.push("1:a?".into());
+        args.push("-c:a".into());
+        args.push("aac".into());
+        args.push("-shortest".into());
+    }
+
+    let clean_preset = if speed_preset.is_empty() { "medium" } else { speed_preset };
+    let pad_filter = "pad=ceil(iw/2)*2:ceil(ih/2)*2";
+
+    match format {
+        ExportFormat::H264 => {
+            args.extend([
+                "-vf".into(),
+                pad_filter.into(),
+                "-c:v".into(),
+                "libx264".into(),
+                "-pix_fmt".into(),
+                "yuv420p".into(),
+                "-crf".into(),
+                crf.to_string(),
+                "-preset".into(),
+                clean_preset.into(),
+            ]);
+        }
+        ExportFormat::H265 => {
+            args.extend([
+                "-vf".into(),
+                pad_filter.into(),
+                "-c:v".into(),
+                "libx265".into(),
+                "-pix_fmt".into(),
+                "yuv420p".into(),
+                "-crf".into(),
+                crf.to_string(),
+                "-preset".into(),
+                clean_preset.into(),
+            ]);
+        }
+        ExportFormat::Vp9 => {
+            let cpu_used = match clean_preset {
+                "ultrafast" | "superfast" | "veryfast" => "4",
+                "faster" | "fast" => "3",
+                "medium" => "2",
+                "slow" => "1",
+                _ => "0",
+            };
+            args.extend([
+                "-vf".into(),
+                pad_filter.into(),
+                "-c:v".into(),
+                "libvpx-vp9".into(),
+                "-pix_fmt".into(),
+                "yuv420p".into(),
+                "-crf".into(),
+                crf.to_string(),
+                "-b:v".into(),
+                "0".into(),
+                "-cpu-used".into(),
+                cpu_used.into(),
+            ]);
+        }
+        ExportFormat::Av1 => {
+            let av1_preset = match clean_preset {
+                "ultrafast" | "superfast" | "veryfast" => "8",
+                "faster" | "fast" => "7",
+                "medium" => "6",
+                "slow" => "5",
+                _ => "4",
+            };
+            args.extend([
+                "-vf".into(),
+                pad_filter.into(),
+                "-c:v".into(),
+                "libsvtav1".into(),
+                "-pix_fmt".into(),
+                "yuv420p".into(),
+                "-crf".into(),
+                crf.to_string(),
+                "-preset".into(),
+                av1_preset.into(),
+            ]);
+        }
+        ExportFormat::Lossless => {
+            args.extend([
+                "-c:v".into(),
+                "libx264rgb".into(),
+                "-crf".into(),
+                "0".into(),
+                "-preset".into(),
+                "ultrafast".into(),
+            ]);
+        }
+    }
+
+    args.extend([
+        "-progress".into(),
+        "pipe:1".into(),
+        "-stats_period".into(),
+        "0.2".into(),
+    ]);
+
+    args.push(out_path.to_string_lossy().to_string());
+
+    Command::new("ffmpeg")
+        .args(&args)
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("Failed to spawn ffmpeg encoder: {e}"))
+}
+
+#[allow(dead_code)]
 pub fn encode_video<F>(
     frames_dir: &Path,
     original_video: &Path,
@@ -449,5 +726,22 @@ where
         Ok(out_path.to_path_buf())
     } else {
         Err(format!("ffmpeg encoding failed: {stderr_str}"))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_png_frame_from_bytes() {
+        let icon_path = PathBuf::from("assets/icon/app_icon.png");
+        assert!(icon_path.exists());
+        let bytes = std::fs::read(&icon_path).expect("read icon");
+        let mut cursor = std::io::Cursor::new(bytes);
+        let frame = read_png_frame(&mut cursor).expect("read frame");
+        assert!(frame.is_some(), "Should read valid frame");
+        let next_frame = read_png_frame(&mut cursor).expect("read second frame");
+        assert!(next_frame.is_none(), "Should be EOF after single image");
     }
 }

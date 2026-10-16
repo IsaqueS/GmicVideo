@@ -118,266 +118,171 @@ pub fn parse_gmic_definitions(path: &Path) -> Result<FilterDatabase, String> {
     let mut current_filter: Option<GmicFilter> = None;
 
     let tag_re = Regex::new(r"^#@gui(_[a-z]{2})?\s+(.+)$").map_err(|e| e.to_string())?;
-    let param_re = Regex::new(r"^:([^=]+)=(.*)$").map_err(|e| e.to_string())?;
 
     for line in content.lines() {
-        let line = line.trim();
-        if !line.starts_with("#@gui") {
+        let trimmed = line.trim();
+        if !trimmed.starts_with("#@gui") {
             continue;
         }
 
-        if let Some(caps) = tag_re.captures(line) {
-            let lang = caps.get(1).map(|m| m.as_str());
-            // Prefer default/English tags
-            if lang.is_some() && lang != Some("_en") {
+        if let Some(caps) = tag_re.captures(trimmed) {
+            let body = caps.get(2).map(|m| m.as_str().trim()).unwrap_or("");
+            if body.is_empty() {
                 continue;
             }
 
-            let rest = caps.get(2).map(|m| m.as_str()).unwrap_or("");
+            // Category tag: #@gui Category Name
+            if !body.contains(':') {
+                current_category = body.to_string();
+                current_subcategory = None;
+                continue;
+            }
 
-            // Parameter line for current filter
-            if rest.starts_with(':') {
-                if let Some(ref mut filter) = current_filter {
-                    if let Some(p_caps) = param_re.captures(rest) {
-                        let pname = p_caps.get(1).map(|m| m.as_str()).unwrap_or("").trim();
-                        let pval = p_caps.get(2).map(|m| m.as_str()).unwrap_or("").trim();
-
-                        let parsed_params = parse_param_definition(pname, pval);
-                        for mut p in parsed_params {
-                            p.id = filter.parameters.len();
-                            if let GmicParamType::Note { ref text } = p.param_type {
-                                if filter.description.is_empty() {
-                                    filter.description = strip_html(text);
-                                }
-                            }
-                            filter.parameters.push(p);
+            if body.starts_with(':') {
+                let sub = body.trim_start_matches(':').trim();
+                if sub.contains('=') {
+                    if let Some(ref mut filter) = current_filter {
+                        if let Some(param) = parse_parameter_line(sub, filter.parameters.len()) {
+                            filter.parameters.extend(param);
                         }
                     }
+                } else if !sub.is_empty() {
+                    current_subcategory = Some(sub.to_string());
                 }
                 continue;
             }
 
-            // Category or Subcategory header like: <b>Patterns</b> or _<b>Deformations</b>
-            if rest.contains("<b>") || rest.contains("<i>") {
-                let clean = rest
-                    .replace("<b>", "")
-                    .replace("</b>", "")
-                    .replace("<i>", "")
-                    .replace("</i>", "")
-                    .trim_matches('_')
-                    .trim()
-                    .to_string();
+            let parts: Vec<&str> = body.splitn(2, ':').collect();
+            let name_part = parts[0].trim();
 
-                if !clean.is_empty() && !clean.contains('=') && !clean.contains('{') && !clean.contains('(') {
-                    current_category = clean;
-                    current_subcategory = None;
-                }
+            if name_part.is_empty() {
                 continue;
             }
 
-            // Filter definition line: Filter Name : command, preview_command
-            if let Some((name_part, cmd_part)) = rest.split_once(':') {
-                let name = name_part.trim();
-                if name.is_empty() || name.starts_with('_') {
-                    continue;
+            if parts.len() == 2 && !name_part.starts_with('_') {
+                if let Some(f) = current_filter.take() {
+                    parsed_filters.push(f);
                 }
 
-                // If we had a previous filter, push it
-                if let Some(prev) = current_filter.take() {
-                    if !prev.command.is_empty() && prev.command != "_none_" {
-                        parsed_filters.push(prev);
-                    }
-                }
+                let cmds = parts[1].trim();
+                let cmd_parts: Vec<&str> = cmds.split(',').collect();
+                let command = cmd_parts.first().unwrap_or(&"").trim().to_string();
+                let preview_command = cmd_parts.get(1).unwrap_or(&"").trim().to_string();
 
-                let cmds: Vec<&str> = cmd_part.split(',').map(|s| s.trim()).collect();
-                let command = cmds.first().copied().unwrap_or("").to_string();
-                let preview = cmds.get(1).copied().unwrap_or(&command).to_string();
-
-                if command.is_empty() || command == "_none_" {
-                    continue;
-                }
-
-                let id = format!("{}_{}", sanitize_id(&current_category), sanitize_id(name));
+                let id = format!(
+                    "{}_{}",
+                    current_category.to_lowercase().replace(' ', "_"),
+                    name_part.to_lowercase().replace(' ', "_").replace('/', "_")
+                );
 
                 current_filter = Some(GmicFilter {
                     id,
-                    name: name.to_string(),
+                    name: name_part.to_string(),
                     category: current_category.clone(),
                     subcategory: current_subcategory.clone(),
-                    command,
-                    preview_command: preview,
-                    description: String::new(),
-                    author: String::new(),
+                    command: if command.is_empty() { "fx_unknown".to_string() } else { command },
+                    preview_command,
+                    description: format!("G'MIC filter: {}", name_part),
+                    author: "G'MIC Team".to_string(),
                     parameters: Vec::new(),
                 });
+                continue;
+            }
+
+            if let Some(ref mut filter) = current_filter {
+                if let Some(param) = parse_parameter_line(body, filter.parameters.len()) {
+                    filter.parameters.extend(param);
+                }
             }
         }
     }
 
-    if let Some(last) = current_filter.take() {
-        if !last.command.is_empty() && last.command != "_none_" {
-            parsed_filters.push(last);
-        }
+    if let Some(f) = current_filter.take() {
+        parsed_filters.push(f);
     }
 
-    // Let update374.gmic be the primary authority
-    let mut final_filters = Vec::new();
-    let mut seen_commands = std::collections::HashSet::new();
-
-    for f in parsed_filters {
-        if !seen_commands.contains(&f.command) {
-            seen_commands.insert(f.command.clone());
-            final_filters.push(f);
-        }
-    }
-
-    // Append any builtin fallbacks that aren't already present
-    for f in get_builtin_filters().filters {
-        if !seen_commands.contains(&f.command) {
-            seen_commands.insert(f.command.clone());
-            final_filters.push(f);
-        }
-    }
-
-    let mut cat_set = std::collections::BTreeSet::new();
-    for f in &final_filters {
-        cat_set.insert(f.category.clone());
-    }
+    let mut categories: Vec<String> = parsed_filters
+        .iter()
+        .map(|f| f.category.clone())
+        .collect();
+    categories.sort();
+    categories.dedup();
 
     Ok(FilterDatabase {
-        filters: final_filters,
-        categories: cat_set.into_iter().collect(),
+        filters: parsed_filters,
+        categories,
     })
 }
 
-fn sanitize_id(s: &str) -> String {
-    s.chars()
-        .map(|c| if c.is_alphanumeric() { c.to_ascii_lowercase() } else { '_' })
-        .collect()
-}
+fn parse_parameter_line(line: &str, start_id: usize) -> Option<Vec<GmicParameter>> {
+    let (name_part, rest) = line.split_once('=')?;
+    let param_name = name_part.trim();
 
-fn strip_html(input: &str) -> String {
-    let re = Regex::new(r"<[^>]+>").unwrap();
-    re.replace_all(input, "").trim().to_string()
-}
+    let clean_name = if param_name.starts_with('_') {
+        ""
+    } else {
+        param_name
+    }.to_string();
 
-fn parse_color_tuple(args: &str) -> (i64, i64, i64, Option<i64>) {
-    let clean = args.trim().trim_matches('"').trim_matches('\'');
-    if clean.starts_with('#') {
-        let hex = clean.trim_start_matches('#');
-        if hex.len() >= 6 {
-            let r = i64::from_str_radix(&hex[0..2], 16).unwrap_or(255);
-            let g = i64::from_str_radix(&hex[2..4], 16).unwrap_or(255);
-            let b = i64::from_str_radix(&hex[4..6], 16).unwrap_or(255);
-            let a = if hex.len() >= 8 {
-                i64::from_str_radix(&hex[6..8], 16).ok()
-            } else {
-                None
-            };
-            return (r, g, b, a);
-        }
+    let rest = rest.trim();
+    let type_end = rest.find('(')?;
+    let type_name = rest[..type_end].trim().trim_start_matches(|c| c == '~' || c == '_').to_lowercase();
+    let args_str = rest[type_end + 1..].trim_end_matches(')').trim();
+
+    let mut params = parse_typed_parameter(&type_name, args_str, clean_name);
+    for (idx, p) in params.iter_mut().enumerate() {
+        p.id = start_id + idx;
     }
-    let parts = parse_csv_args(clean);
-    let r = parts.first().and_then(|s| s.parse::<i64>().ok()).unwrap_or(255);
-    let g = parts.get(1).and_then(|s| s.parse::<i64>().ok()).unwrap_or(255);
-    let b = parts.get(2).and_then(|s| s.parse::<i64>().ok()).unwrap_or(255);
-    let a = parts.get(3).and_then(|s| s.parse::<i64>().ok());
-    (r, g, b, a)
+    Some(params)
 }
 
-fn parse_param_definition(name: &str, val: &str) -> Vec<GmicParameter> {
-    let clean_name = name
-        .trim_start_matches(|c: char| c.is_ascii_digit() || c == '.' || c == ' ' || c == ':')
-        .trim()
-        .to_string();
-
-    let open_idx = match val.find(|c| c == '(' || c == '{') {
-        Some(idx) => idx,
-        None => return Vec::new(),
-    };
-    let close_idx = match val.rfind(|c| c == ')' || c == '}') {
-        Some(idx) => idx,
-        None => return Vec::new(),
-    };
-    if close_idx <= open_idx {
-        return Vec::new();
-    }
-
-    let ptype_raw = &val[..open_idx];
-    let ptype = ptype_raw
-        .trim()
-        .trim_matches(|c| c == '_' || c == '~' || c == '=' || c == ' ')
-        .to_ascii_lowercase();
-    let args = val[open_idx + 1..close_idx].trim();
-
-    match ptype.as_str() {
+fn parse_typed_parameter(type_name: &str, args: &str, clean_name: String) -> Vec<GmicParameter> {
+    match type_name {
         "float" => {
-            let parts = parse_csv_args(args);
+            let parts: Vec<&str> = args.split(',').map(|s| s.trim()).collect();
             let default = parts.first().and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
-            let min = parts.get(1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(default - 100.0);
-            let max = parts.get(2).and_then(|s| s.parse::<f64>().ok()).unwrap_or(default + 100.0);
+            let min = parts.get(1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(-1000.0);
+            let max = parts.get(2).and_then(|s| s.parse::<f64>().ok()).unwrap_or(1000.0);
+
             vec![GmicParameter {
                 id: 0,
-                name: if clean_name.is_empty() { "Amount".into() } else { clean_name },
+                name: if clean_name.is_empty() { "Float Parameter".into() } else { clean_name },
                 param_type: GmicParamType::Float { default, min, max },
             }]
         }
         "int" => {
-            let parts = parse_csv_args(args);
+            let parts: Vec<&str> = args.split(',').map(|s| s.trim()).collect();
             let default = parts.first().and_then(|s| s.parse::<i64>().ok()).unwrap_or(0);
-            let min = parts.get(1).and_then(|s| s.parse::<i64>().ok()).unwrap_or(default - 100);
-            let max = parts.get(2).and_then(|s| s.parse::<i64>().ok()).unwrap_or(default + 100);
+            let min = parts.get(1).and_then(|s| s.parse::<i64>().ok()).unwrap_or(-1000);
+            let max = parts.get(2).and_then(|s| s.parse::<i64>().ok()).unwrap_or(1000);
+
             vec![GmicParameter {
                 id: 0,
-                name: if clean_name.is_empty() { "Value".into() } else { clean_name },
+                name: if clean_name.is_empty() { "Integer Parameter".into() } else { clean_name },
                 param_type: GmicParamType::Int { default, min, max },
             }]
         }
         "bool" => {
-            let default = args.parse::<i32>().unwrap_or(0) != 0 || args.eq_ignore_ascii_case("true");
+            let default_val = args.trim() == "1" || args.trim().eq_ignore_ascii_case("true");
             vec![GmicParameter {
                 id: 0,
                 name: if clean_name.is_empty() { "Enable".into() } else { clean_name },
-                param_type: GmicParamType::Bool { default },
+                param_type: GmicParamType::Bool { default: default_val },
             }]
         }
         "choice" => {
             let parts = parse_csv_args(args);
-            let mut opts = Vec::new();
-            let mut default = 0;
-            for (idx, p) in parts.iter().enumerate() {
-                let opt_str = p.trim().trim_matches('"').trim_matches('\'').to_string();
-                if idx == 0 {
-                    if let Ok(d) = opt_str.parse::<usize>() {
-                        default = d;
-                        continue;
-                    }
-                }
-                opts.push(opt_str);
-            }
+            let default_idx = parts.first().and_then(|s| s.parse::<usize>().ok()).unwrap_or(0);
+            let options: Vec<String> = parts.into_iter().skip(1).collect();
+
             vec![GmicParameter {
                 id: 0,
-                name: if clean_name.is_empty() { "Option".into() } else { clean_name },
-                param_type: GmicParamType::Choice { default, options: opts },
+                name: if clean_name.is_empty() { "Selection".into() } else { clean_name },
+                param_type: GmicParamType::Choice {
+                    default: default_idx,
+                    options,
+                },
             }]
-        }
-        "point" => {
-            let parts = parse_csv_args(args);
-            let x_def = parts.first().and_then(|s| s.parse::<f64>().ok()).unwrap_or(50.0);
-            let y_def = parts.get(1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(50.0);
-            let base_name = if clean_name.is_empty() { "Point".to_string() } else { clean_name };
-            vec![
-                GmicParameter {
-                    id: 0,
-                    name: format!("{base_name} X"),
-                    param_type: GmicParamType::Float { default: x_def, min: -100.0, max: 200.0 },
-                },
-                GmicParameter {
-                    id: 0,
-                    name: format!("{base_name} Y"),
-                    param_type: GmicParamType::Float { default: y_def, min: -100.0, max: 200.0 },
-                },
-            ]
         }
         "color" => {
             let (r, g, b, a_opt) = parse_color_tuple(args);
@@ -472,7 +377,19 @@ fn parse_csv_args(input: &str) -> Vec<String> {
     res
 }
 
-/// Builds G'MIC CLI argument string for a filter given the parameter values map
+fn parse_color_tuple(args: &str) -> (i64, i64, i64, Option<i64>) {
+    let parts: Vec<i64> = args
+        .split(',')
+        .filter_map(|s| s.trim().parse::<i64>().ok())
+        .collect();
+
+    let r = *parts.first().unwrap_or(&255);
+    let g = *parts.get(1).unwrap_or(&255);
+    let b = *parts.get(2).unwrap_or(&255);
+    let a = parts.get(3).copied();
+    (r, g, b, a)
+}
+
 pub fn build_gmic_args(filter: &GmicFilter, values: &HashMap<usize, f64>) -> String {
     let mut arg_tokens = Vec::new();
 
@@ -512,15 +429,20 @@ pub fn build_gmic_args(filter: &GmicFilter, values: &HashMap<usize, f64>) -> Str
                 arg_tokens.push(val.to_string());
             }
             GmicParamType::Color { default_hex } => {
-                let (r, g, b, _) = parse_color_tuple(default_hex);
-                arg_tokens.push(format!("{r},{g},{b}"));
+                let val = values
+                    .get(&param.id)
+                    .map(|v| v.round() as i64)
+                    .unwrap_or_else(|| {
+                        let clean = default_hex.trim_start_matches('#');
+                        i64::from_str_radix(clean, 16).unwrap_or(0)
+                    });
+                arg_tokens.push(val.to_string());
             }
             GmicParamType::Text { default } => {
                 arg_tokens.push(format!("\"{}\"", default));
             }
             GmicParamType::Button { .. } => {
-                let val = values.get(&param.id).map(|v| v.round() as i64).unwrap_or(0);
-                arg_tokens.push(val.to_string());
+                arg_tokens.push("0".into());
             }
         }
     }
@@ -559,7 +481,7 @@ pub fn get_gmic_bin_path() -> PathBuf {
     if let Ok(cwd) = std::env::current_dir() {
         let candidates = [
             cwd.join("bin/gmic"),
-            cwd.join("assets/bin/gmic"),
+            cwd.join("packaging/AppDir/usr/bin/gmic"),
         ];
         for cand in &candidates {
             if cand.exists() {
@@ -569,6 +491,75 @@ pub fn get_gmic_bin_path() -> PathBuf {
     }
 
     PathBuf::from("gmic")
+}
+
+/// Executes G'MIC directly on in-memory PNG bytes via stdin/stdout pipe with zero disk I/O.
+pub fn execute_gmic_on_bytes(
+    input_bytes: &[u8],
+    filter: &GmicFilter,
+    values: &HashMap<usize, f64>,
+) -> Result<Vec<u8>, String> {
+    let gmic_cmd = build_gmic_args(filter, values);
+    let cmd_parts: Vec<&str> = gmic_cmd.split_whitespace().collect();
+    if cmd_parts.is_empty() {
+        return Err("Empty G'MIC command".to_string());
+    }
+
+    let mut args: Vec<String> = vec![
+        "-v".into(),
+        "-".into(),
+        "-input".into(),
+        "png:-".into(),
+    ];
+
+    for p in cmd_parts {
+        args.push(p.to_string());
+    }
+
+    args.push("-keep[0]".into());
+    args.push("-to_rgb".into());
+    args.push("-cut".into());
+    args.push("0,255".into());
+    args.push("-output".into());
+    args.push("png:-".into());
+
+    let gmic_bin = get_gmic_bin_path();
+    let mut child = Command::new(&gmic_bin)
+        .args(&args)
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("Failed to spawn gmic CLI ({}): {e}", gmic_bin.display()))?;
+
+    let mut child_stdin = child.stdin.take().ok_or("Failed to open child stdin")?;
+    let input_vec = input_bytes.to_vec();
+    let writer_handle = std::thread::spawn(move || {
+        use std::io::Write;
+        let _ = child_stdin.write_all(&input_vec);
+        drop(child_stdin);
+    });
+
+    let mut out_bytes = Vec::new();
+    if let Some(mut stdout) = child.stdout.take() {
+        use std::io::Read;
+        let _ = stdout.read_to_end(&mut out_bytes);
+    }
+
+    let mut err_str = String::new();
+    if let Some(mut stderr) = child.stderr.take() {
+        use std::io::Read;
+        let _ = stderr.read_to_string(&mut err_str);
+    }
+
+    let status = child.wait().map_err(|e| format!("Failed to wait on gmic CLI: {e}"))?;
+    let _ = writer_handle.join();
+
+    if status.success() && out_bytes.len() > 8 && out_bytes.starts_with(&[137, 80, 78, 71, 13, 10, 26, 10]) {
+        Ok(out_bytes)
+    } else {
+        Err(format!("gmic failed: {err_str}"))
+    }
 }
 
 pub fn execute_gmic_on_image(
@@ -639,55 +630,94 @@ pub fn get_builtin_filters() -> FilterDatabase {
     });
     halftone_params.push(GmicParameter {
         id: 3,
-        name: "Smoothness".into(),
-        param_type: GmicParamType::Float { default: 0.0, min: 0.0, max: 20.0 },
-    });
-    halftone_params.push(GmicParameter {
-        id: 4,
-        name: "Number of Tones".into(),
-        param_type: GmicParamType::Int { default: 5, min: 2, max: 20 },
-    });
-    halftone_params.push(GmicParameter {
-        id: 5,
-        name: "Size for Dark Tones".into(),
-        param_type: GmicParamType::Float { default: 8.0, min: 1.0, max: 50.0 },
-    });
-    halftone_params.push(GmicParameter {
-        id: 6,
-        name: "Size for Bright Tones".into(),
-        param_type: GmicParamType::Float { default: 8.0, min: 1.0, max: 50.0 },
-    });
-    halftone_params.push(GmicParameter {
-        id: 7,
-        name: "Shape".into(),
+        name: "Pattern".into(),
         param_type: GmicParamType::Choice {
             default: 0,
-            options: vec!["Circle (Inv.)".into(), "Circle".into(), "Diamond".into(), "Square".into(), "Line".into()],
+            options: vec!["Dots".into(), "Lines".into(), "Crosses".into()],
         },
-    });
-    halftone_params.push(GmicParameter {
-        id: 8,
-        name: "Dot Smoothness".into(),
-        param_type: GmicParamType::Float { default: 0.1, min: 0.0, max: 1.0 },
     });
 
     filters.push(GmicFilter {
-        id: "patterns_halftone".into(),
+        id: "artistic_halftone".into(),
         name: "Halftone".into(),
-        category: "Patterns".into(),
+        category: "Artistic".into(),
         subcategory: None,
         command: "fx_halftone".into(),
         preview_command: "fx_halftone_preview".into(),
-        description: "Simulates a printing halftone pattern (dots) with customizable dot size and tones.".into(),
-        author: "David Tschumperlé".into(),
+        description: "Applies a halftone dots pattern to the image".into(),
+        author: "David Tschumperle".into(),
         parameters: halftone_params,
     });
 
-    let categories = filters.iter().map(|f| f.category.clone()).collect::<std::collections::BTreeSet<_>>().into_iter().collect();
+    // Warhol
+    let mut warhol_params = Vec::new();
+    warhol_params.push(GmicParameter {
+        id: 0,
+        name: "Grid X".into(),
+        param_type: GmicParamType::Int { default: 2, min: 1, max: 8 },
+    });
+    warhol_params.push(GmicParameter {
+        id: 1,
+        name: "Grid Y".into(),
+        param_type: GmicParamType::Int { default: 2, min: 1, max: 8 },
+    });
+    warhol_params.push(GmicParameter {
+        id: 2,
+        name: "Smoothness".into(),
+        param_type: GmicParamType::Float { default: 2.0, min: 0.0, max: 10.0 },
+    });
+    warhol_params.push(GmicParameter {
+        id: 3,
+        name: "Color Variations".into(),
+        param_type: GmicParamType::Float { default: 20.0, min: 0.0, max: 100.0 },
+    });
 
-    FilterDatabase { filters, categories }
+    filters.push(GmicFilter {
+        id: "artistic_warhol".into(),
+        name: "Warhol".into(),
+        category: "Artistic".into(),
+        subcategory: None,
+        command: "warhol".into(),
+        preview_command: "warhol".into(),
+        description: "Creates Andy Warhol style multi-colored tiles".into(),
+        author: "David Tschumperle".into(),
+        parameters: warhol_params,
+    });
+
+    // Vignette
+    let mut vignette_params = Vec::new();
+    vignette_params.push(GmicParameter {
+        id: 0,
+        name: "Strength".into(),
+        param_type: GmicParamType::Float { default: 50.0, min: 0.0, max: 100.0 },
+    });
+    vignette_params.push(GmicParameter {
+        id: 1,
+        name: "Radius".into(),
+        param_type: GmicParamType::Float { default: 70.0, min: 0.0, max: 100.0 },
+    });
+
+    filters.push(GmicFilter {
+        id: "light_vignette".into(),
+        name: "Vignette".into(),
+        category: "Lights & Shadows".into(),
+        subcategory: None,
+        command: "vignette".into(),
+        preview_command: "vignette".into(),
+        description: "Darkens the edges of the image".into(),
+        author: "David Tschumperle".into(),
+        parameters: vignette_params,
+    });
+
+    let mut categories: Vec<String> = filters.iter().map(|f| f.category.clone()).collect();
+    categories.sort();
+    categories.dedup();
+
+    FilterDatabase {
+        filters,
+        categories,
+    }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -711,5 +741,19 @@ mod tests {
         assert!(!db.filters.is_empty(), "FilterDatabase should have loaded filters");
         assert!(db.filters.len() > 50, "Expected hundreds of filters, got {}", db.filters.len());
         assert!(!db.categories.is_empty(), "Categories should not be empty");
+    }
+
+    #[test]
+    fn test_execute_gmic_on_bytes() {
+        let db = FilterDatabase::load_default();
+        let filter = db.find_filter("warhol").expect("Warhol filter should exist");
+
+        let icon_path = PathBuf::from("assets/icon/app_icon.png");
+        assert!(icon_path.exists(), "app_icon.png should exist");
+        let input_bytes = std::fs::read(&icon_path).expect("should read icon bytes");
+        let res = execute_gmic_on_bytes(&input_bytes, filter, &HashMap::new());
+        assert!(res.is_ok(), "execute_gmic_on_bytes should succeed: {:?}", res.err());
+        let out_bytes = res.unwrap();
+        assert!(out_bytes.starts_with(&[137, 80, 78, 71, 13, 10, 26, 10]), "Should return valid PNG bytes");
     }
 }
