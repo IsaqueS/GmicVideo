@@ -411,40 +411,7 @@ property string selectedFormat: "h264"
                         }
                     }
 
-                    Kirigami.Separator { Layout.fillWidth: true }
 
-                    // Post-render action (Shutdown computer or do nothing)
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: Kirigami.Units.mediumSpacing
-
-                        Kirigami.Icon {
-                            source: "system-shutdown"
-                            implicitWidth: 18
-                            implicitHeight: 18
-                        }
-
-                        Label {
-                            text: i18n.t("When Rendering Completes:")
-                            font.bold: true
-                        }
-
-                        ComboBox {
-                            id: postRenderActionCombo
-                            model: [
-                                { key: "none", label: i18n.t("Do nothing") },
-                                { key: "shutdown", label: i18n.t("Shutdown computer") }
-                            ]
-                            textRole: "label"
-                            currentIndex: Backend.postRenderAction === "shutdown" ? 1 : 0
-                            onActivated: {
-                                var chosen = model[currentIndex].key;
-                                Backend.setPostRenderAction(chosen);
-                            }
-                        }
-
-                        Item { Layout.fillWidth: true }
-                    }
 
                     Kirigami.Separator { Layout.fillWidth: true }
 
@@ -499,11 +466,45 @@ property string selectedFormat: "h264"
 
                 RowLayout {
                     Layout.fillWidth: true
+                    spacing: Kirigami.Units.mediumSpacing
+
                     Kirigami.Heading {
                         text: i18n.t("Render Queue (%1 items)").replace("%1", renderWindow.queueItems.length)
                         level: 4
                     }
+
                     Item { Layout.fillWidth: true }
+
+                    // Post-render action selector (Shutdown computer or do nothing)
+                    RowLayout {
+                        spacing: 6
+
+                        Kirigami.Icon {
+                            source: "system-shutdown"
+                            implicitWidth: 16
+                            implicitHeight: 16
+                        }
+
+                        Label {
+                            text: i18n.t("When Rendering Completes:")
+                            font.pixelSize: 11
+                            opacity: 0.85
+                        }
+
+                        ComboBox {
+                            id: queuePostRenderActionCombo
+                            model: [
+                                { key: "none", label: i18n.t("Do nothing") },
+                                { key: "shutdown", label: i18n.t("Shutdown computer") }
+                            ]
+                            textRole: "label"
+                            currentIndex: Backend.postRenderAction === "shutdown" ? 1 : 0
+                            onActivated: {
+                                var chosen = model[currentIndex].key;
+                                Backend.setPostRenderAction(chosen);
+                            }
+                        }
+                    }
 
                     Button {
                         text: i18n.t("Clear Finished")

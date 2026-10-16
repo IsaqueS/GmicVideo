@@ -85,7 +85,19 @@ class RustBackendBridge(QObject):
                     if self._had_active_jobs and not active_jobs:
                         self._had_active_jobs = False
                         if self._post_render_action == "shutdown":
-                            self._trigger_shutdown()
+                            # Safety check: if 100% of renders failed (or no job succeeded), do NOT shutdown!
+                            completed_count = sum(1 for item in items if item.get("status") == "completed")
+                            failed_count = sum(1 for item in items if item.get("status") == "failed")
+                            canceled_count = sum(1 for item in items if item.get("status") == "canceled")
+                            total_finished = completed_count + failed_count + canceled_count
+                            
+                            if total_finished > 0 and completed_count == 0:
+                                print(f"[System] Shutdown ABORTED: 100% of render tasks failed or were canceled ({failed_count} failed, {canceled_count} canceled, 0 succeeded).", flush=True)
+                            elif completed_count > 0:
+                                print(f"[System] All rendering tasks completed successfully ({completed_count} succeeded, {failed_count} failed). Proceeding with shutdown...", flush=True)
+                                self._trigger_shutdown()
+                            else:
+                                print("[System] Shutdown skipped: no successful render jobs found in queue.", flush=True)
                     elif active_jobs:
                         self._had_active_jobs = True
 
