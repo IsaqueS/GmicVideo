@@ -28,6 +28,7 @@ fi
 echo "[2/6] Preparing AppDir structure..."
 rm -rf "$APPDIR"
 mkdir -p "$APPDIR/usr/bin"
+mkdir -p "$APPDIR/usr/lib/gmic"
 mkdir -p "$APPDIR/usr/share/gmicvideo"
 mkdir -p "$APPDIR/usr/share/applications"
 mkdir -p "$APPDIR/usr/share/icons/hicolor/256x256/apps"
@@ -37,6 +38,18 @@ cp "$BIN_SRC" "$APPDIR/usr/bin/GmicVideo"
 cp -r "$ROOT_DIR/src_gui" "$APPDIR/usr/share/gmicvideo/"
 cp -r "$ROOT_DIR/ui" "$APPDIR/usr/share/gmicvideo/"
 cp -r "$ROOT_DIR/assets" "$APPDIR/usr/share/gmicvideo/"
+
+# Copy embedded G'MIC 4.0.6 binary and runtime libraries
+if [ -d "$ROOT_DIR/bin" ]; then
+    cp -r "$ROOT_DIR/bin/"* "$APPDIR/usr/bin/"
+fi
+if [ -d "$ROOT_DIR/lib/gmic" ]; then
+    cp -r "$ROOT_DIR/lib/gmic/"* "$APPDIR/usr/lib/gmic/"
+fi
+if [ -d "$ROOT_DIR/Tests/valid_effects" ]; then
+    mkdir -p "$APPDIR/usr/share/gmicvideo/Tests"
+    cp -r "$ROOT_DIR/Tests/valid_effects" "$APPDIR/usr/share/gmicvideo/Tests/"
+fi
 
 # Copy icon
 ICON_SRC="$ROOT_DIR/assets/icon/app_icon.png"
@@ -72,6 +85,8 @@ set -e
 HERE="$(dirname "$(readlink -f "$0")")"
 export APPDIR="$HERE"
 export PATH="$HERE/usr/bin:$PATH"
+export LD_LIBRARY_PATH="$HERE/usr/lib/gmic:${LD_LIBRARY_PATH:-}"
+export GMIC_BIN="$HERE/usr/bin/gmic"
 export GMIC_VIDEO_BACKEND_BIN="$HERE/usr/bin/GmicVideo"
 export GMIC_VIDEO_GUI_SCRIPT="$HERE/usr/share/gmicvideo/src_gui/gmicvideo_gui.py"
 

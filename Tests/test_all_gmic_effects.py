@@ -28,6 +28,11 @@ LOG_FILE = TESTS_DIR / "gmic_test_results.log"
 VALID_JSON = TESTS_DIR / "valid_effects.json"
 FAILED_JSON = TESTS_DIR / "failed_effects.json"
 BACKEND_BIN = PROJECT_DIR / "target" / "release" / "GmicVideo"
+GMIC_BIN = PROJECT_DIR / "bin" / "gmic"
+if not GMIC_BIN.exists():
+    GMIC_BIN = "gmic"
+else:
+    GMIC_BIN = str(GMIC_BIN)
 
 
 def log_message(msg: str, log_fp=None):
@@ -117,7 +122,7 @@ def build_filter_cli_args(filter_info: dict) -> list[str]:
     return tokens
 
 
-def test_single_filter(filter_info: dict, input_image: Path, valid_out_dir: Path, timeout_sec: int = 6) -> dict:
+def test_single_filter(filter_info: dict, input_image: Path, valid_out_dir: Path, timeout_sec: int = 6, skip_existing: bool = False) -> dict:
     filter_id = filter_info["id"]
     filter_name = filter_info["name"]
     command = filter_info["command"]
@@ -132,6 +137,29 @@ def test_single_filter(filter_info: dict, input_image: Path, valid_out_dir: Path
     temp_out = valid_out_dir / f"tmp_{filter_id}.png"
     final_out = valid_out_dir / f"{filter_id}.png"
 
+    if skip_existing and final_out.exists() and final_out.stat().st_size > 0:
+        try:
+            with Image.open(final_out) as im:
+                stat = ImageStat.Stat(im)
+                means = stat.mean
+                mean_brightness = sum(means[:3]) / min(len(means), 3) if means else 0.0
+                max_channel_val = extract_max_val(im.getextrema())
+                if max_channel_val > 0 and mean_brightness >= 1.0:
+                    return {
+                        "id": filter_id,
+                        "name": filter_name,
+                        "category": category,
+                        "status": "valid",
+                        "output_path": str(final_out),
+                        "elapsed": 0.0,
+                        "mean": mean_brightness,
+                        "max": max_channel_val,
+                        "command": " ".join(full_gmic_cmd),
+                        "cached": True
+                    }
+        except Exception:
+            pass
+
     # Remove previous output if exists
     for p in (temp_out, final_out):
         if p.exists():
@@ -141,7 +169,7 @@ def test_single_filter(filter_info: dict, input_image: Path, valid_out_dir: Path
                 pass
 
     gmic_args = [
-        "gmic",
+        GMIC_BIN,
         "-input", str(input_image),
         *full_gmic_cmd,
         "-keep[0]",
@@ -246,6 +274,7 @@ def main():
     parser.add_argument("--limit", type=int, default=None, help="Limit number of filters to test")
     parser.add_argument("--workers", type=int, default=14, help="Number of concurrent workers")
     parser.add_argument("--timeout", type=int, default=5, help="Timeout in seconds per filter")
+    parser.add_argument("--skip-existing", action="store_true", help="Skip filters that already have valid thumbnails")
     args = parser.parse_args()
 
     if not TEST_IMAGE.exists():
@@ -284,7 +313,7 @@ def main():
 
     with ProcessPoolExecutor(max_workers=args.workers) as executor:
         future_map = {
-            executor.submit(test_single_filter, f, TEST_IMAGE, VALID_DIR, args.timeout): f
+            executor.submit(test_single_filter, f, TEST_IMAGE, VALID_DIR, args.timeout, args.skip_existing): f
             for f in filters
         }
 

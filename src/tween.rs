@@ -452,12 +452,15 @@ mod tests {
     #[test]
     fn test_tween_evaluation() {
         let tween = ParameterTween {
+            mode: AnimationMode::Curve,
             enabled: true,
             start_value: 10.0,
             end_value: 50.0,
             ease_type: EaseType::Linear,
             bezier_points: None,
             curve_points: None,
+            random_min: None,
+            random_max: None,
         };
         assert_eq!(tween.evaluate(0.0), 10.0);
         assert_eq!(tween.evaluate(0.5), 30.0);

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+SELF_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
+LIB_DIR="$SELF_DIR/../lib/gmic"
+export LD_LIBRARY_PATH="$LIB_DIR:${LD_LIBRARY_PATH:-}"
+exec "$SELF_DIR/gmic.bin" "$@"

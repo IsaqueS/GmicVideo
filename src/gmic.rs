@@ -46,20 +46,46 @@ pub struct FilterDatabase {
 
 impl FilterDatabase {
     pub fn load_default() -> Self {
-        // Try reading ~/.config/gmic/update*.gmic first
+        let mut candidates = Vec::new();
+
+        // 1. Embedded definition files in project or executable directory
+        if let Ok(cwd) = std::env::current_dir() {
+            candidates.push(cwd.join("assets/gmic/update406.gmic"));
+            candidates.push(cwd.join("assets/gmic/update.gmic"));
+        }
+        if let Ok(exe) = std::env::current_exe() {
+            if let Some(exe_dir) = exe.parent() {
+                candidates.push(exe_dir.join("assets/gmic/update406.gmic"));
+                candidates.push(exe_dir.join("../assets/gmic/update406.gmic"));
+                candidates.push(exe_dir.join("../share/gmic/update406.gmic"));
+            }
+        }
+
+        // 2. User config directory ~/.config/gmic/update*.gmic (sorted descending)
         if let Some(home) = dirs_home() {
             let gmic_dir = home.join(".config/gmic");
             if let Ok(entries) = std::fs::read_dir(&gmic_dir) {
-                for entry in entries.flatten() {
-                    let path = entry.path();
-                    if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-                        if name.starts_with("update") && name.ends_with(".gmic") {
-                            if let Ok(db) = parse_gmic_definitions(&path) {
-                                if !db.filters.is_empty() {
-                                    return db;
-                                }
-                            }
+                let mut user_files: Vec<PathBuf> = entries
+                    .flatten()
+                    .map(|e| e.path())
+                    .filter(|p| {
+                        if let Some(name) = p.file_name().and_then(|n| n.to_str()) {
+                            name.starts_with("update") && name.ends_with(".gmic")
+                        } else {
+                            false
                         }
+                    })
+                    .collect();
+                user_files.sort_by(|a, b| b.cmp(a));
+                candidates.extend(user_files);
+            }
+        }
+
+        for path in candidates {
+            if path.exists() {
+                if let Ok(db) = parse_gmic_definitions(&path) {
+                    if !db.filters.is_empty() {
+                        return db;
                     }
                 }
             }
@@ -506,6 +532,45 @@ pub fn build_gmic_args(filter: &GmicFilter, values: &HashMap<usize, f64>) -> Str
     }
 }
 
+pub fn get_gmic_bin_path() -> PathBuf {
+    if let Ok(val) = std::env::var("GMIC_BIN") {
+        let p = PathBuf::from(val);
+        if p.exists() {
+            return p;
+        }
+    }
+
+    if let Ok(exe_path) = std::env::current_exe() {
+        if let Some(exe_dir) = exe_path.parent() {
+            let candidates = [
+                exe_dir.join("bin/gmic"),
+                exe_dir.join("gmic"),
+                exe_dir.join("../bin/gmic"),
+                exe_dir.join("../usr/bin/gmic"),
+            ];
+            for cand in &candidates {
+                if cand.exists() {
+                    return cand.to_path_buf();
+                }
+            }
+        }
+    }
+
+    if let Ok(cwd) = std::env::current_dir() {
+        let candidates = [
+            cwd.join("bin/gmic"),
+            cwd.join("assets/bin/gmic"),
+        ];
+        for cand in &candidates {
+            if cand.exists() {
+                return cand.to_path_buf();
+            }
+        }
+    }
+
+    PathBuf::from("gmic")
+}
+
 pub fn execute_gmic_on_image(
     input_image: &Path,
     filter: &GmicFilter,
@@ -538,10 +603,11 @@ pub fn execute_gmic_on_image(
     args.push("-output".into());
     args.push(output_image.to_string_lossy().to_string());
 
-    let output = Command::new("gmic")
+    let gmic_bin = get_gmic_bin_path();
+    let output = Command::new(&gmic_bin)
         .args(&args)
         .output()
-        .map_err(|e| format!("Failed to spawn gmic CLI: {e}"))?;
+        .map_err(|e| format!("Failed to spawn gmic CLI ({}): {e}", gmic_bin.display()))?;
 
     if output.status.success() && output_image.exists() {
         Ok(())
@@ -620,4 +686,30 @@ pub fn get_builtin_filters() -> FilterDatabase {
     let categories = filters.iter().map(|f| f.category.clone()).collect::<std::collections::BTreeSet<_>>().into_iter().collect();
 
     FilterDatabase { filters, categories }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_embedded_gmic_binary_version() {
+        let bin = get_gmic_bin_path();
+        let output = Command::new(&bin)
+            .arg("-version")
+            .output()
+            .expect("gmic binary should be callable");
+        assert!(output.status.success(), "gmic -version should succeed");
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(stdout.contains("4.0.6") || stdout.contains("Version"), "Expected G'MIC version output, got: {}", stdout);
+    }
+
+    #[test]
+    fn test_filter_database_load_default() {
+        let db = FilterDatabase::load_default();
+        assert!(!db.filters.is_empty(), "FilterDatabase should have loaded filters");
+        assert!(db.filters.len() > 50, "Expected hundreds of filters, got {}", db.filters.len());
+        assert!(!db.categories.is_empty(), "Categories should not be empty");
+    }
 }
