@@ -27,14 +27,41 @@ Window {
     property real cutStartTime: 0.0
     property real cutEndTime: videoInfo ? videoInfo.duration_secs : 0.0
 
+property string selectedFormat: "h264"
+    readonly property var formatModels: [
+        { key: "h264", label: "H.264 (MP4)", ext: "mp4" },
+        { key: "h265", label: "H.265 / HEVC (MP4)", ext: "mp4" },
+        { key: "vp9", label: "VP9 (WebM)", ext: "webm" },
+        { key: "av1", label: "AV1 (MP4)", ext: "mp4" },
+        { key: "lossless", label: "Lossless RGB (MP4)", ext: "mp4" }
+    ]
+
+    function currentFormatExt() {
+        for (var i = 0; i < formatModels.length; i++) {
+            if (formatModels[i].key === selectedFormat) return formatModels[i].ext;
+        }
+        return "mp4";
+    }
+
+    onSelectedFormatChanged: {
+        var newExt = currentFormatExt();
+        if (chosenOutputPath !== "") {
+            chosenOutputPath = chosenOutputPath.replace(/\.[^/.]+$/, "." + newExt);
+            destPathField.text = chosenOutputPath;
+        } else {
+            destPathField.text = defaultOutputPath;
+        }
+    }
+
     property string defaultOutputPath: {
         var vname = videoInfo ? videoInfo.filename.replace(/\.[^/.]+$/, "") : "video";
         var fname = selectedFilter ? selectedFilter.id : "effect";
+        var ext = currentFormatExt();
         if (videoInfo && videoInfo.path && videoInfo.path.indexOf("/") !== -1) {
             var dir = videoInfo.path.substring(0, videoInfo.path.lastIndexOf("/"));
-            return dir + "/" + vname + "_" + fname + ".mp4";
+            return dir + "/" + vname + "_" + fname + "." + ext;
         }
-        return vname + "_" + fname + ".mp4";
+        return vname + "_" + fname + "." + ext;
     }
 
     property string chosenOutputPath: ""
@@ -205,11 +232,27 @@ Window {
                                 onTextEdited: renderWindow.chosenOutputPath = text
                             }
 
+                            ComboBox {
+                                id: formatCombo
+                                model: renderWindow.formatModels
+                                textRole: "label"
+                                currentIndex: {
+                                    for (var i = 0; i < model.length; i++) {
+                                        if (model[i].key === renderWindow.selectedFormat) return i;
+                                    }
+                                    return 0;
+                                }
+                                onActivated: {
+                                    var chosen = model[currentIndex];
+                                    renderWindow.selectedFormat = chosen.key;
+                                }
+                            }
+
                             Button {
                                 text: "Browse..."
                                 icon.name: "document-save"
                                 onClicked: {
-                                    var res = Backend.chooseOutputFile(renderWindow.defaultOutputPath, "mp4");
+                                    var res = Backend.chooseOutputFile(renderWindow.defaultOutputPath, renderWindow.currentFormatExt());
                                     if (res) {
                                         renderWindow.chosenOutputPath = res;
                                         destPathField.text = res;
@@ -348,7 +391,7 @@ Window {
                                 var jobId = Backend.queueRender(
                                     videoInfo.path,
                                     outPath,
-                                    "h264",
+                                    renderWindow.selectedFormat,
                                     renderWindow.qualityLevel,
                                     renderWindow.speedLevel,
                                     selectedFilter.id,
@@ -491,7 +534,7 @@ Window {
                                             Layout.fillWidth: true
                                         }
                                         Label {
-                                            text: "Effect: " + modelData.filter_name + " | Preset: " + modelData.speed_preset
+                                            text: "Effect: " + modelData.filter_name + (modelData.format ? (" | " + modelData.format.toUpperCase()) : "") + " | Preset: " + modelData.speed_preset
                                             font.pixelSize: 11
                                             opacity: 0.7
                                         }

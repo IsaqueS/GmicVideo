@@ -302,11 +302,18 @@ pub fn encode_video(
         args.push("aac".into());
     }
 
+    if has_audio {
+        args.push("-shortest".into());
+    }
+
     let clean_preset = if speed_preset.is_empty() { "medium" } else { speed_preset };
+    let pad_filter = "pad=ceil(iw/2)*2:ceil(ih/2)*2";
 
     match format {
         ExportFormat::H264 => {
             args.extend([
+                "-vf".into(),
+                pad_filter.into(),
                 "-c:v".into(),
                 "libx264".into(),
                 "-pix_fmt".into(),
@@ -319,6 +326,8 @@ pub fn encode_video(
         }
         ExportFormat::H265 => {
             args.extend([
+                "-vf".into(),
+                pad_filter.into(),
                 "-c:v".into(),
                 "libx265".into(),
                 "-pix_fmt".into(),
@@ -338,6 +347,8 @@ pub fn encode_video(
                 _ => "0",
             };
             args.extend([
+                "-vf".into(),
+                pad_filter.into(),
                 "-c:v".into(),
                 "libvpx-vp9".into(),
                 "-pix_fmt".into(),
@@ -359,6 +370,8 @@ pub fn encode_video(
                 _ => "4",
             };
             args.extend([
+                "-vf".into(),
+                pad_filter.into(),
                 "-c:v".into(),
                 "libsvtav1".into(),
                 "-pix_fmt".into(),
