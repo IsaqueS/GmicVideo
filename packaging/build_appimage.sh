@@ -26,7 +26,7 @@ fi
 
 # Run thumbnail test
 echo "[1.5/6] Verifying thumbnails and i18n tests..."
-python3 "$ROOT_DIR/Tests/test_visual_search_thumbnails.py"
+python3 "$ROOT_DIR/Tests/test_visual_search_thumbnails.py" && python3 "$ROOT_DIR/Tests/test_halftone_effect.py"
 
 # 2. Prepare AppDir structure
 echo "[2/6] Preparing AppDir structure..."

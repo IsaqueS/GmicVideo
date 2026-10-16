@@ -58,6 +58,7 @@ impl FilterDatabase {
                 candidates.push(exe_dir.join("assets/gmic/update406.gmic"));
                 candidates.push(exe_dir.join("../assets/gmic/update406.gmic"));
                 candidates.push(exe_dir.join("../share/gmic/update406.gmic"));
+                candidates.push(exe_dir.join("../share/gmicvideo/assets/gmic/update406.gmic"));
             }
         }
 
@@ -94,8 +95,6 @@ impl FilterDatabase {
         // Fallback to built-in presets
         get_builtin_filters()
     }
-
-
 
     pub fn find_filter(&self, name_or_cmd: &str) -> Option<&GmicFilter> {
         let clean = sanitize_id(name_or_cmd);
@@ -250,9 +249,30 @@ fn parse_parameter_line(line: &str, start_id: usize) -> Option<Vec<GmicParameter
     }.to_string();
 
     let rest = rest.trim();
-    let type_end = rest.find('(')?;
-    let type_name = rest[..type_end].trim().trim_start_matches(|c| c == '~' || c == '_').to_lowercase();
-    let args_str = rest[type_end + 1..].trim_end_matches(')').trim();
+    // Support G'MIC parameter delimiters: `(...)`, `{...}`, and `[...]`
+    let type_end = rest.find(|c| c == '(' || c == '{' || c == '[')?;
+    let open_char = rest.as_bytes()[type_end] as char;
+    let close_char = match open_char {
+        '(' => ')',
+        '{' => '}',
+        '[' => ']',
+        _ => ')',
+    };
+
+    let type_name = rest[..type_end]
+        .trim()
+        .trim_start_matches(|c| c == '~' || c == '_')
+        .to_lowercase();
+
+    let after_open = &rest[type_end + 1..];
+    // Find matching closing delimiter (accounting for trailing visibility suffixes like `)_0` or `}_1+`)
+    let args_str = if let Some(close_idx) = after_open.rfind(close_char) {
+        after_open[..close_idx].trim()
+    } else if let Some(close_idx) = after_open.rfind(|c| c == ')' || c == '}' || c == ']') {
+        after_open[..close_idx].trim()
+    } else {
+        after_open.trim()
+    };
 
     let mut params = parse_typed_parameter(&type_name, args_str, clean_name);
     for (idx, p) in params.iter_mut().enumerate() {
@@ -263,8 +283,8 @@ fn parse_parameter_line(line: &str, start_id: usize) -> Option<Vec<GmicParameter
 
 fn parse_typed_parameter(type_name: &str, args: &str, clean_name: String) -> Vec<GmicParameter> {
     match type_name {
-        "float" => {
-            let parts: Vec<&str> = args.split(',').map(|s| s.trim()).collect();
+        "float" | "f" => {
+            let parts: Vec<&str> = args.split(',').map(|s| s.trim().trim_end_matches('%')).collect();
             let default = parts.first().and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
             let min = parts.get(1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(-1000.0);
             let max = parts.get(2).and_then(|s| s.parse::<f64>().ok()).unwrap_or(1000.0);
@@ -276,7 +296,7 @@ fn parse_typed_parameter(type_name: &str, args: &str, clean_name: String) -> Vec
             }]
         }
         "int" => {
-            let parts: Vec<&str> = args.split(',').map(|s| s.trim()).collect();
+            let parts: Vec<&str> = args.split(',').map(|s| s.trim().trim_end_matches('%')).collect();
             let default = parts.first().and_then(|s| s.parse::<i64>().ok()).unwrap_or(0);
             let min = parts.get(1).and_then(|s| s.parse::<i64>().ok()).unwrap_or(-1000);
             let max = parts.get(2).and_then(|s| s.parse::<i64>().ok()).unwrap_or(1000);
@@ -288,7 +308,11 @@ fn parse_typed_parameter(type_name: &str, args: &str, clean_name: String) -> Vec
             }]
         }
         "bool" => {
-            let default_val = args.trim() == "1" || args.trim().eq_ignore_ascii_case("true");
+            let trimmed = args.trim();
+            let default_val = trimmed == "1"
+                || trimmed.eq_ignore_ascii_case("true")
+                || trimmed.starts_with("1,")
+                || trimmed.starts_with("true,");
             vec![GmicParameter {
                 id: 0,
                 name: if clean_name.is_empty() { "Enable".into() } else { clean_name },
@@ -297,17 +321,58 @@ fn parse_typed_parameter(type_name: &str, args: &str, clean_name: String) -> Vec
         }
         "choice" => {
             let parts = parse_csv_args(args);
-            let default_idx = parts.first().and_then(|s| s.parse::<usize>().ok()).unwrap_or(0);
-            let options: Vec<String> = parts.into_iter().skip(1).collect();
+            // In G'MIC, choice can be either:
+            // 1) choice(default_index, "Opt0", "Opt1", ...)
+            // 2) choice("Opt0", "Opt1", ...) -> where default_index is implicitly 0!
+            let first_is_index = parts
+                .first()
+                .map(|s| !s.starts_with('"') && !s.starts_with('\'') && s.parse::<usize>().is_ok())
+                .unwrap_or(false);
+
+            let (default_idx, raw_options): (usize, Vec<String>) = if first_is_index {
+                let idx = parts.first().and_then(|s| s.parse::<usize>().ok()).unwrap_or(0);
+                let opts = parts
+                    .into_iter()
+                    .skip(1)
+                    .map(|s| s.trim_matches('"').trim_matches('\'').to_string())
+                    .collect();
+                (idx, opts)
+            } else {
+                let opts = parts
+                    .into_iter()
+                    .map(|s| s.trim_matches('"').trim_matches('\'').to_string())
+                    .collect();
+                (0, opts)
+            };
 
             vec![GmicParameter {
                 id: 0,
                 name: if clean_name.is_empty() { "Selection".into() } else { clean_name },
                 param_type: GmicParamType::Choice {
                     default: default_idx,
-                    options,
+                    options: raw_options,
                 },
             }]
+        }
+        "point" => {
+            // In G'MIC, point(x, y, ...) passes 2 arguments (X and Y percentages, 0..100) to the command
+            let parts: Vec<&str> = args.split(',').map(|s| s.trim().trim_end_matches('%')).collect();
+            let def_x = parts.first().and_then(|s| s.parse::<f64>().ok()).unwrap_or(50.0);
+            let def_y = parts.get(1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(50.0);
+            let base_name = if clean_name.is_empty() { "Point".to_string() } else { clean_name };
+
+            vec![
+                GmicParameter {
+                    id: 0,
+                    name: format!("{base_name} X (%)"),
+                    param_type: GmicParamType::Float { default: def_x, min: 0.0, max: 100.0 },
+                },
+                GmicParameter {
+                    id: 0,
+                    name: format!("{base_name} Y (%)"),
+                    param_type: GmicParamType::Float { default: def_y, min: 0.0, max: 100.0 },
+                },
+            ]
         }
         "color" => {
             let (r, g, b, a_opt) = parse_color_tuple(args);
@@ -339,12 +404,20 @@ fn parse_typed_parameter(type_name: &str, args: &str, clean_name: String) -> Vec
             params
         }
         "value" => {
-            let default_num = args.parse::<f64>().unwrap_or(0.0);
-            vec![GmicParameter {
-                id: 0,
-                name: if clean_name.is_empty() { "Value".into() } else { clean_name },
-                param_type: GmicParamType::Float { default: default_num, min: -1000.0, max: 1000.0 },
-            }]
+            let clean_val = args.trim().trim_matches('"').trim_matches('\'');
+            if let Ok(default_num) = clean_val.parse::<f64>() {
+                vec![GmicParameter {
+                    id: 0,
+                    name: if clean_name.is_empty() { "Value".into() } else { clean_name },
+                    param_type: GmicParamType::Float { default: default_num, min: -1000.0, max: 1000.0 },
+                }]
+            } else {
+                vec![GmicParameter {
+                    id: 0,
+                    name: if clean_name.is_empty() { "Value".into() } else { clean_name },
+                    param_type: GmicParamType::Text { default: clean_val.to_string() },
+                }]
+            }
         }
         "button" => {
             vec![GmicParameter {
@@ -354,10 +427,21 @@ fn parse_typed_parameter(type_name: &str, args: &str, clean_name: String) -> Vec
             }]
         }
         "text" | "file" | "filein" | "fileout" | "folder" => {
+            // Handle multiline text syntax: text(1, "default") or text(0, "default") vs text("default")
+            let parts = parse_csv_args(args);
+            let default_str = if parts.len() >= 2
+                && (parts[0] == "0" || parts[0] == "1")
+                && !parts[0].starts_with('"')
+            {
+                parts[1..].join(",").trim_matches('"').trim_matches('\'').to_string()
+            } else {
+                args.trim_matches('"').trim_matches('\'').to_string()
+            };
+
             vec![GmicParameter {
                 id: 0,
                 name: if clean_name.is_empty() { "Text".into() } else { clean_name },
-                param_type: GmicParamType::Text { default: args.trim_matches('"').trim_matches('\'').to_string() },
+                param_type: GmicParamType::Text { default: default_str },
             }]
         }
         "separator" | "link" => {
@@ -535,6 +619,12 @@ pub fn execute_gmic_on_bytes(
         "-".into(),
         "-input".into(),
         "png:-".into(),
+        "if".into(),
+        "iM>255".into(),
+        "div".into(),
+        "257".into(),
+        "round".into(),
+        "fi".into(),
     ];
 
     for p in cmd_parts {
@@ -545,6 +635,7 @@ pub fn execute_gmic_on_bytes(
     args.push("-to_rgb".into());
     args.push("-cut".into());
     args.push("0,255".into());
+    args.push("-round".into());
     args.push("-output".into());
     args.push("png:-".into());
 
@@ -606,6 +697,12 @@ pub fn execute_gmic_on_image(
     let mut args: Vec<String> = vec![
         "-input".into(),
         input_image.to_string_lossy().to_string(),
+        "if".into(),
+        "iM>255".into(),
+        "div".into(),
+        "257".into(),
+        "round".into(),
+        "fi".into(),
     ];
 
     for p in cmd_parts {
@@ -616,6 +713,7 @@ pub fn execute_gmic_on_image(
     args.push("-to_rgb".into());
     args.push("-cut".into());
     args.push("0,255".into());
+    args.push("-round".into());
     args.push("-output".into());
     args.push(output_image.to_string_lossy().to_string());
 
@@ -655,21 +753,53 @@ pub fn get_builtin_filters() -> FilterDatabase {
     });
     halftone_params.push(GmicParameter {
         id: 3,
-        name: "Pattern".into(),
+        name: "Smoothness".into(),
+        param_type: GmicParamType::Float { default: 0.0, min: 0.0, max: 10.0 },
+    });
+    halftone_params.push(GmicParameter {
+        id: 4,
+        name: "Number of Tones".into(),
+        param_type: GmicParamType::Int { default: 5, min: 2, max: 32 },
+    });
+    halftone_params.push(GmicParameter {
+        id: 5,
+        name: "Size for Dark Tones".into(),
+        param_type: GmicParamType::Int { default: 8, min: 2, max: 256 },
+    });
+    halftone_params.push(GmicParameter {
+        id: 6,
+        name: "Size for Bright Tones".into(),
+        param_type: GmicParamType::Int { default: 8, min: 2, max: 256 },
+    });
+    halftone_params.push(GmicParameter {
+        id: 7,
+        name: "Shape".into(),
         param_type: GmicParamType::Choice {
-            default: 0,
-            options: vec!["Dots".into(), "Lines".into(), "Crosses".into()],
+            default: 5,
+            options: vec![
+                "Square".into(),
+                "Diamond".into(),
+                "Circle".into(),
+                "Square (Inv.)".into(),
+                "Diamond (Inv.)".into(),
+                "Circle (Inv.)".into(),
+            ],
         },
+    });
+    halftone_params.push(GmicParameter {
+        id: 8,
+        name: "Smoothness".into(),
+        param_type: GmicParamType::Float { default: 0.1, min: 0.0, max: 32.0 },
     });
 
     filters.push(GmicFilter {
-        id: "artistic_halftone".into(),
+        id: "patterns_halftone".into(),
         name: "Halftone".into(),
-        category: "Artistic".into(),
+        category: "Patterns".into(),
         subcategory: None,
         command: "fx_halftone".into(),
-        preview_command: "fx_halftone_preview".into(),
-        description: "Applies a halftone dots pattern to the image".into(),
+        preview_command: "fx_halftone".into(),
+        description: "Simulates a printing halftone pattern (dots).".into(),
         author: "David Tschumperle".into(),
         parameters: halftone_params,
     });
@@ -793,5 +923,47 @@ mod tests {
         assert!(res.is_ok(), "execute_gmic_on_bytes should succeed: {:?}", res.err());
         let out_bytes = res.unwrap();
         assert!(out_bytes.starts_with(&[137, 80, 78, 71, 13, 10, 26, 10]), "Should return valid PNG bytes");
+    }
+
+    #[test]
+    fn test_halftone_effects_execution() {
+        let db = FilterDatabase::load_default();
+        let icon_path = PathBuf::from("assets/icon/app_icon.png");
+        let input_bytes = std::fs::read(&icon_path).expect("should read icon bytes");
+
+        // 1. Test standard Halftone (fx_halftone)
+        let halftone = db.find_filter("Halftone").expect("Halftone filter should exist");
+        assert_eq!(halftone.command, "fx_halftone");
+        let args_str = build_gmic_args(halftone, &HashMap::new());
+        assert_eq!(args_str, "fx_halftone 0,0,0,0,5,8,8,5,0.1000");
+
+        let res = execute_gmic_on_bytes(&input_bytes, halftone, &HashMap::new());
+        assert!(
+            res.is_ok(),
+            "Halftone (fx_halftone) execution failed: {:?}",
+            res.err()
+        );
+        let out_bytes = res.unwrap();
+        assert!(out_bytes.starts_with(&[137, 80, 78, 71, 13, 10, 26, 10]));
+
+        // 2. Test Halftone [Generic] (fx_generic_halftone)
+        if let Some(generic_ht) = db.find_filter("Halftone [Generic]") {
+            let res_gen = execute_gmic_on_bytes(&input_bytes, generic_ht, &HashMap::new());
+            assert!(
+                res_gen.is_ok(),
+                "Halftone [Generic] execution failed: {:?}",
+                res_gen.err()
+            );
+        }
+
+        // 3. Test Halftone Shapes (iain_halftone_shapes)
+        if let Some(shapes_ht) = db.find_filter("Halftone Shapes") {
+            let res_shapes = execute_gmic_on_bytes(&input_bytes, shapes_ht, &HashMap::new());
+            assert!(
+                res_shapes.is_ok(),
+                "Halftone Shapes execution failed: {:?}",
+                res_shapes.err()
+            );
+        }
     }
 }

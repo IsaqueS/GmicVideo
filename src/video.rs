@@ -152,24 +152,34 @@ pub fn extract_preview_frame(video_path: &Path, time_secs: f64, out_path: &Path)
         let _ = std::fs::create_dir_all(parent);
     }
 
+    let mut args: Vec<String> = vec![
+        "-y".into(),
+        "-nostats".into(),
+        "-loglevel".into(),
+        "error".into(),
+    ];
+
+    if time_secs > 0.001 {
+        args.push("-ss".into());
+        args.push(format!("{:.3}", time_secs));
+    }
+
+    args.extend([
+        "-i".into(),
+        video_path.to_str().ok_or("Invalid video path")?.to_string(),
+        "-vframes".into(),
+        "1".into(),
+        "-vf".into(),
+        "scale='min(960,iw)':-2".into(),
+        "-pix_fmt".into(),
+        "rgb24".into(),
+        "-q:v".into(),
+        "2".into(),
+        out_path.to_str().ok_or("Invalid output path")?.to_string(),
+    ]);
+
     let output = Command::new("ffmpeg")
-        .args([
-            "-y",
-            "-nostats",
-            "-loglevel",
-            "error",
-            "-ss",
-            &format!("{:.3}", time_secs.max(0.0)),
-            "-i",
-            video_path.to_str().ok_or("Invalid video path")?,
-            "-vframes",
-            "1",
-            "-vf",
-            "scale='min(960,iw)':-2",
-            "-q:v",
-            "2",
-            out_path.to_str().ok_or("Invalid output path")?,
-        ])
+        .args(&args)
         .output()
         .map_err(|e| format!("Failed to spawn ffmpeg for preview: {e}"))?;
 
@@ -220,6 +230,8 @@ pub fn extract_all_frames(
     args.push(video_path.to_str().ok_or("Invalid video path")?.to_string());
     args.push("-vsync".into());
     args.push("0".into());
+    args.push("-pix_fmt".into());
+    args.push("rgb24".into());
     args.push(pattern.to_str().ok_or("Invalid pattern path")?.to_string());
 
     let output = Command::new("ffmpeg")
@@ -340,6 +352,8 @@ pub fn spawn_video_decoder(
     args.push(video_path.to_str().ok_or("Invalid video path")?.to_string());
     args.push("-vsync".into());
     args.push("0".into());
+    args.push("-pix_fmt".into());
+    args.push("rgb24".into());
     args.push("-f".into());
     args.push("image2pipe".into());
     args.push("-vcodec".into());

@@ -124029,7 +124029,7 @@ e[^-1] "Apply halftone dithering to image$?, with $1 levels, dark size $3, brigh
 foreach {
 s c
 foreach {
-(0,255) a y quantize $1,0 rows 0,{h-2}
+(0,255) a y quantize $1,0,1 rows 0,{h-2}
 repeat $1 {
 s:=round(($2*$<+$3*$>)/($1-1))
 $s,$s =. 1,50%,50% distance. 1,{$4%3} +shift. {round(w/2)},{round(h/2)},0,0,2 min[-2,-1]
