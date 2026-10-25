@@ -251,6 +251,65 @@ class TestHalftoneEffect(unittest.TestCase):
             self.assertLess(abs(g_avg - raw_g_avg), 35.0, f"G average {g_avg} diverged from raw {raw_g_avg}")
             self.assertLess(abs(b_avg - raw_b_avg), 35.0, f"B average {b_avg} diverged from raw {raw_b_avg}")
 
+    def test_06_render_progresses_past_92_to_completion(self):
+        """Verify that rendering does not get stuck at 92% and cleanly completes to 100%."""
+        with tempfile.TemporaryDirectory(prefix="gmic_render_92_") as tmpdir:
+            in_video = os.path.join(tmpdir, "in_30f.mp4")
+            out_video = os.path.join(tmpdir, "out_30f.mp4")
+
+            # Create a 25-frame test video with synthetic audio to test full muxing pipeline
+            cmd = [
+                "ffmpeg", "-y", "-loop", "1", "-i", self.test_image,
+                "-f", "lavfi", "-i", "anullsrc=r=44100:cl=stereo",
+                "-vf", "scale=160:120", "-r", "15", "-frames:v", "25", "-t", "1.66",
+                "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", in_video
+            ]
+            subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            self.assertTrue(os.path.isfile(in_video))
+
+            job_id = self.bridge.queueRender(
+                in_video,
+                out_video,
+                "h264",
+                5,
+                10,
+                "patterns_halftone",
+                "Halftone",
+                "{}",
+                "{}",
+                0.0,
+                -1.0,
+            )
+            self.assertTrue(job_id, "queueRender failed to return a job_id")
+
+            recorded_percents = []
+            deadline = time.time() + 45.0
+            final_item = None
+
+            while time.time() < deadline:
+                q_res = self.bridge._send_request("get_render_queue")
+                items = q_res.get("data", [])
+                item = next((it for it in items if it.get("id") == job_id), None)
+                if item:
+                    pct = item.get("progress", {}).get("percent", 0.0)
+                    recorded_percents.append(pct)
+                    status = item.get("status")
+                    if status in ("completed", "failed", "canceled"):
+                        final_item = item
+                        break
+                time.sleep(0.15)
+
+            self.assertIsNotNone(final_item, "Render timed out - stuck in progress!")
+            self.assertEqual(
+                final_item.get("status"),
+                "completed",
+                f"Render failed: {final_item.get('error')}"
+            )
+            # Verify progress reached 100% and did not get stuck at 92%
+            self.assertEqual(final_item.get("progress", {}).get("percent"), 100.0)
+            self.assertTrue(os.path.isfile(out_video))
+            self.assertGreater(os.path.getsize(out_video), 1000)
+
 
 if __name__ == "__main__":
     unittest.main()

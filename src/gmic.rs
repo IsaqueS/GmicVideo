@@ -128,6 +128,48 @@ fn dirs_home() -> Option<PathBuf> {
     std::env::var_os("HOME").map(PathBuf::from)
 }
 
+pub fn is_non_effect(category: &str, name: &str, command: &str) -> bool {
+    let cat_low = category.trim().to_lowercase();
+    let name_low = name.trim().to_lowercase();
+    let cmd_low = command.trim().to_lowercase();
+
+    if cat_low == "about" || cat_low == "sobre" || cat_low == "information" || cat_low == "informações" {
+        return true;
+    }
+
+    if cmd_low == "_none_"
+        || cmd_low == "none"
+        || cmd_low.is_empty()
+        || cmd_low == "fx_unknown"
+        || cmd_low == "gui_download_all_data"
+        || cmd_low == "gui_layer_info"
+    {
+        return true;
+    }
+
+    if name_low == "about"
+        || name_low.starts_with("about ")
+        || name_low == "sobre"
+        || name_low.starts_with("sobre ")
+    {
+        return true;
+    }
+
+    if name_low == "privacy notice"
+        || name_low == "release notes"
+        || name_low == "send feedback"
+        || name_low == "tribute to sébastien"
+        || name_low == "tribute to sebastien"
+        || name_low == "what's new?"
+        || name_low == "whats new?"
+        || name_low == "download external data"
+    {
+        return true;
+    }
+
+    false
+}
+
 pub fn parse_gmic_definitions(path: &Path) -> Result<FilterDatabase, String> {
     let content = std::fs::read_to_string(path)
         .map_err(|e| format!("Failed to read {}: {e}", path.display()))?;
@@ -184,7 +226,9 @@ pub fn parse_gmic_definitions(path: &Path) -> Result<FilterDatabase, String> {
 
             if parts.len() == 2 && !name_part.starts_with('_') {
                 if let Some(f) = current_filter.take() {
-                    parsed_filters.push(f);
+                    if !is_non_effect(&f.category, &f.name, &f.command) {
+                        parsed_filters.push(f);
+                    }
                 }
 
                 let cmds = parts[1].trim();
@@ -193,6 +237,11 @@ pub fn parse_gmic_definitions(path: &Path) -> Result<FilterDatabase, String> {
                 let preview_command = cmd_parts.get(1).unwrap_or(&"").trim().to_string();
 
                 let clean_name = strip_html(name_part);
+                if is_non_effect(&current_category, &clean_name, &command) {
+                    current_filter = None;
+                    continue;
+                }
+
                 let id = format!(
                     "{}_{}",
                     sanitize_id(&current_category),
@@ -222,12 +271,15 @@ pub fn parse_gmic_definitions(path: &Path) -> Result<FilterDatabase, String> {
     }
 
     if let Some(f) = current_filter.take() {
-        parsed_filters.push(f);
+        if !is_non_effect(&f.category, &f.name, &f.command) {
+            parsed_filters.push(f);
+        }
     }
 
     let mut categories: Vec<String> = parsed_filters
         .iter()
         .map(|f| f.category.clone())
+        .filter(|c| !c.trim().eq_ignore_ascii_case("about") && !c.trim().eq_ignore_ascii_case("sobre"))
         .collect();
     categories.sort();
     categories.dedup();

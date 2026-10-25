@@ -516,19 +516,12 @@ pub fn spawn_video_streaming_encoder(
         }
     }
 
-    args.extend([
-        "-progress".into(),
-        "pipe:1".into(),
-        "-stats_period".into(),
-        "0.2".into(),
-    ]);
-
     args.push(out_path.to_string_lossy().to_string());
 
     Command::new("ffmpeg")
         .args(&args)
         .stdin(std::process::Stdio::piped())
-        .stdout(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::piped())
         .spawn()
         .map_err(|e| format!("Failed to spawn ffmpeg encoder: {e}"))

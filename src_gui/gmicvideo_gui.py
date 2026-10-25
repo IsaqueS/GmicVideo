@@ -209,6 +209,26 @@ class RustBackendBridge(QObject):
                     print(f"[Thumbnails] Loaded {loaded_count} effect thumbnails from {tests_dir}", flush=True)
                 except Exception as e:
                     print(f"[Warning] Failed scanning preview images: {e}", file=sys.stderr)
+            if "filters" in data:
+                def is_non_effect_item(f):
+                    cat = f.get("category", "").strip().lower()
+                    name = f.get("name", "").strip().lower()
+                    cmd = f.get("command", "").strip().lower()
+                    if cat in ("about", "sobre", "information", "informações"):
+                        return True
+                    if cmd in ("_none_", "none", "", "fx_unknown", "gui_download_all_data", "gui_layer_info"):
+                        return True
+                    if name == "about" or name.startswith("about ") or name == "sobre" or name.startswith("sobre "):
+                        return True
+                    if name in ("privacy notice", "release notes", "send feedback", "tribute to sébastien", "tribute to sebastien", "what's new?", "whats new?", "download external data"):
+                        return True
+                    return False
+
+                data["filters"] = [f for f in data["filters"] if not is_non_effect_item(f)]
+                if "categories" in data:
+                    active_cats = {f.get("category") for f in data["filters"]}
+                    data["categories"] = [c for c in data["categories"] if c in active_cats and c.lower() not in ("about", "sobre")]
+
             return json.dumps(data)
         return "{}"
 

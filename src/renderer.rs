@@ -197,8 +197,17 @@ impl BatchRenderer {
             .stdin
             .take()
             .ok_or("Failed to open encoder stdin")?;
-        let mut encoder_stderr = encoder_child.stderr.take();
+        let mut decoder_stderr = decoder_child.stderr.take();
+        let decoder_err_handle = std::thread::spawn(move || {
+            let mut err_str = String::new();
+            if let Some(ref mut r) = decoder_stderr {
+                use std::io::Read;
+                let _ = r.read_to_string(&mut err_str);
+            }
+            err_str
+        });
 
+        let mut encoder_stderr = encoder_child.stderr.take();
         let encoder_err_handle = std::thread::spawn(move || {
             let mut err_str = String::new();
             if let Some(ref mut r) = encoder_stderr {
@@ -388,10 +397,14 @@ impl BatchRenderer {
             }
         }
 
+        // 10. Frame processing complete: stop watcher thread and close encoder stdin
+        watcher_cancel.store(true, Ordering::Relaxed);
+        let _ = watcher_handle.join();
+
         // Close encoder stdin so ffmpeg knows all video frames were received
         drop(encoder_stdin);
 
-        // 10. Clean up child processes if canceled or errored
+        // Clean up child processes if canceled or errored
         if cancel_flag.load(Ordering::Relaxed) {
             let _ = decoder_child.kill();
             let _ = encoder_child.kill();
@@ -402,6 +415,7 @@ impl BatchRenderer {
             let _ = h.join();
         }
         let _ = decoder_child.wait();
+        let _ = decoder_err_handle.join();
 
         // 11. Finalize encoder
         let final_count = completed_counter.load(Ordering::Relaxed);
@@ -411,7 +425,7 @@ impl BatchRenderer {
             stage: RenderStage::Encoding,
             total_frames: final_count,
             completed_frames: final_count,
-            percent: 94.0,
+            percent: 95.0,
             fps: 0.0,
             elapsed_secs: start_time.elapsed().as_secs_f64(),
             eta_secs: 0.0,
@@ -422,9 +436,6 @@ impl BatchRenderer {
             .wait()
             .map_err(|e| format!("Failed to wait on ffmpeg encoder: {e}"))?;
         let stderr_msg = encoder_err_handle.join().unwrap_or_default();
-
-        watcher_cancel.store(true, Ordering::Relaxed);
-        let _ = watcher_handle.join();
 
         if cancel_flag.load(Ordering::SeqCst) {
             if let Some(err) = pipeline_error.lock().unwrap().take() {

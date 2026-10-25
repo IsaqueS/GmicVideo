@@ -159,5 +159,34 @@ class TestVisualSearchThumbnailsAndI18n(unittest.TestCase):
             self.assertGreater(len(i18n.TRANSLATIONS[lang]), 20, f"Language '{lang}' has insufficient translations.")
 
 
+    def test_08_no_non_effects_in_filter_database(self):
+        """Verify that non-effect entries (About G'MIC, Privacy Notice, Release Notes, etc.) are excluded."""
+        bridge = RustBackendBridge(self.backend_bin)
+        data = json.loads(bridge.getEffects())
+        filters = data.get("filters", [])
+        categories = [c.lower() for c in data.get("categories", [])]
+
+        self.assertNotIn("about", categories, "Category 'About' must not be in categories.")
+        self.assertNotIn("sobre", categories, "Category 'Sobre' must not be in categories.")
+
+        excluded_names = {
+            "about g'mic", "about gmic", "download external data", "privacy notice",
+            "release notes", "send feedback", "tribute to sébastien", "tribute to sebastien",
+            "what's new?", "whats new?", "gmicky - roddy", "layer info", "histogram analysis"
+        }
+
+        for f in filters:
+            name = f.get("name", "").lower()
+            cmd = f.get("command", "").lower()
+            cat = f.get("category", "").lower()
+
+            self.assertNotEqual(cmd, "_none_", f"Filter '{name}' has command _none_ and must not exist.")
+            self.assertNotEqual(cmd, "none", f"Filter '{name}' has command none and must not exist.")
+            self.assertNotEqual(cmd, "gui_download_all_data", "Download External Data must not exist in filters.")
+            self.assertNotEqual(cat, "about", f"Filter '{name}' is under 'About' category and must not exist.")
+            self.assertNotIn(name, excluded_names, f"Non-effect '{name}' must not exist in filters.")
+            self.assertFalse(name == "about" or name.startswith("about "), f"About filter '{name}' must not exist.")
+
+
 if __name__ == "__main__":
     unittest.main()
