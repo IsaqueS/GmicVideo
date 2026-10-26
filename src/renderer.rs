@@ -1,15 +1,31 @@
-use crate::gmic::{execute_gmic_on_bytes, FilterDatabase};
+//! Final video render: decode → G'MIC (parallel workers) → encode, all streamed through pipes.
+//!
+//! Cancellation/error handling: a watchdog thread kills every child process (ffmpeg decoder,
+//! encoder and the G'MIC workers) as soon as the job is canceled or fails. That unblocks any
+//! thread stuck in a pipe read/write, and all channel operations use timeouts, so `run()`
+//! always returns.
+
+use crate::effect::{EffectSettings, PreparedEffect, Timeline};
+use crate::frame::Frame;
+use crate::gmic::FilterDatabase;
+use crate::gmic_worker::{GmicWorker, WorkerKillHandle};
+use crate::gpu::processor::GpuProcessor;
+use crate::playback::FrameProcessor;
 use crate::tween::ParameterTween;
-use crate::video::{
-    probe_video, read_png_frame, spawn_video_decoder, spawn_video_streaming_encoder, ExportFormat,
-};
+use crate::video::{probe_video, spawn_decoder, spawn_encoder, DecoderOptions, EncoderOptions, ExportFormat};
+use crossbeam_channel::{bounded, RecvTimeoutError, SendTimeoutError};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::io::{BufReader, Write};
+use std::io::{BufReader, Read, Write};
 use std::path::PathBuf;
+use std::process::Child;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::sync::{mpsc, Arc, Mutex};
-use std::time::Instant;
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
+
+const POLL: Duration = Duration::from_millis(50);
+/// GPU processors used by a render (frames overlap CPU prep/readback with GPU work).
+const GPU_RENDER_PROCESSORS: usize = 2;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -88,374 +104,409 @@ pub struct RenderJobRequest {
     pub filter_id: String,
     #[serde(default)]
     pub filter_name: String,
+    #[serde(default)]
     pub base_values: HashMap<usize, f64>,
+    #[serde(default)]
     pub tweens: HashMap<usize, ParameterTween>,
+    #[serde(default)]
+    pub text_values: HashMap<usize, String>,
     #[serde(default)]
     pub cut_start_secs: Option<f64>,
     #[serde(default)]
     pub cut_end_secs: Option<f64>,
 }
 
-pub struct BatchRenderer {
-    pub cancel_flag: Arc<AtomicBool>,
-}
-
-impl Default for BatchRenderer {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl BatchRenderer {
-    pub fn new() -> Self {
-        Self {
-            cancel_flag: Arc::new(AtomicBool::new(false)),
+impl RenderJobRequest {
+    pub fn effect_settings(&self) -> EffectSettings {
+        EffectSettings {
+            filter_id: self.filter_id.clone(),
+            base_values: self.base_values.clone(),
+            tweens: self.tweens.clone(),
+            text_values: self.text_values.clone(),
         }
     }
+}
 
-    pub fn cancel(&self) {
-        self.cancel_flag.store(true, Ordering::SeqCst);
+/// Picks how many G'MIC worker processes to run and how many threads each may use.
+/// Many single-threaded workers give the best throughput, but big frames need a lot of
+/// memory per worker, so high resolutions use fewer workers with more threads each.
+pub fn worker_layout(width: u32, height: u32) -> (usize, usize) {
+    let cores = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4).clamp(1, 64);
+    let pixels = width as usize * height as usize;
+    let max_workers = if pixels > 4_000_000 {
+        4
+    } else if pixels > 2_200_000 {
+        8
+    } else {
+        16
+    };
+    let workers = cores.clamp(1, max_workers);
+    let threads = (cores / workers).max(1);
+    (workers, threads)
+}
+
+/// Kills all child processes of a job once; shared by the watchdog and the main thread.
+#[derive(Default)]
+struct ProcessKiller {
+    children: Mutex<Vec<Arc<Mutex<Child>>>>,
+    workers: Mutex<Vec<WorkerKillHandle>>,
+}
+
+impl ProcessKiller {
+    fn kill_all(&self) {
+        for c in self.children.lock().unwrap().iter() {
+            let _ = c.lock().unwrap().kill();
+        }
+        for w in self.workers.lock().unwrap().iter() {
+            w.kill();
+        }
     }
+}
 
-    /// Renders video frames on-the-fly and streams directly into FFmpeg encoder via pipes.
-    /// Uses 0 bytes of disk space for intermediate frames, avoiding disk quota errors.
+pub struct BatchRenderer;
+
+impl BatchRenderer {
+    /// Renders the whole job. Returns the output path, or an error message
+    /// (`"Render canceled by user"` when `cancel` was set).
     pub fn run<F>(
-        &self,
         request: RenderJobRequest,
         filter_db: &FilterDatabase,
+        cancel: Arc<AtomicBool>,
         on_progress: F,
     ) -> Result<PathBuf, String>
     where
         F: Fn(RenderProgress) + Send + Sync + 'static,
     {
-        self.cancel_flag.store(false, Ordering::SeqCst);
         let start_time = Instant::now();
         let on_progress = Arc::new(on_progress);
 
-        // 1. Find filter
-        let filter = filter_db
-            .find_filter(&request.filter_id)
-            .ok_or_else(|| format!("Filter not found: {}", request.filter_id))?
-            .clone();
-
-        // 2. Probe video
-        let video_info = probe_video(&request.video_path)?;
-
-        let effective_duration = match (request.cut_start_secs, request.cut_end_secs) {
-            (Some(s), Some(e)) if e > s => e - s,
-            (Some(s), None) => (video_info.duration_secs - s).max(0.0),
-            (None, Some(e)) => e.min(video_info.duration_secs),
-            _ => video_info.duration_secs,
-        };
-        let estimated_frames = ((effective_duration * video_info.fps).round() as usize).max(1);
+        let effect = Arc::new(PreparedEffect::new(filter_db, request.effect_settings())?);
+        let info = probe_video(&request.video_path)?;
+        let timeline = Timeline::new(info.duration_secs, info.fps, request.cut_start_secs, request.cut_end_secs);
+        let total_frames = timeline.total_frames();
+        let (w, h) = (info.width, info.height);
 
         on_progress(RenderProgress {
-            stage: RenderStage::ProcessingFrames,
-            total_frames: estimated_frames,
-            completed_frames: 0,
-            percent: 2.0,
-            fps: 0.0,
-            elapsed_secs: 0.0,
-            eta_secs: 0.0,
-            message: "Streaming frames directly to ffmpeg (0 disk space)...".to_string(),
+            stage: RenderStage::Extracting,
+            total_frames,
+            percent: 1.0,
+            message: "Starting G'MIC workers...".to_string(),
+            ..Default::default()
         });
 
-        // 3. Setup multi-threaded pipeline channels
-        let num_workers = std::thread::available_parallelism()
-            .map(|n| n.get())
-            .unwrap_or(4)
-            .clamp(2, 16);
-        let queue_bound = (num_workers * 2).clamp(8, 32);
-
-        let cancel_flag = self.cancel_flag.clone();
-        let pipeline_error = Arc::new(Mutex::new(Option::<String>::None));
-
-        // 4. Spawn decoder subprocess
-        let mut decoder_child = spawn_video_decoder(
-            &request.video_path,
-            request.cut_start_secs,
-            request.cut_end_secs,
-        )?;
-        let decoder_stdout = decoder_child
-            .stdout
-            .take()
-            .ok_or("Failed to open decoder stdout")?;
-
-        // 5. Spawn streaming encoder subprocess
-        let mut encoder_child = spawn_video_streaming_encoder(
-            &request.video_path,
-            &request.output_path,
-            request.format,
-            video_info.fps,
-            request.crf,
-            video_info.has_audio,
-            &request.speed_preset,
-            request.cut_start_secs,
-            request.cut_end_secs,
-        )?;
-        let mut encoder_stdin = encoder_child
-            .stdin
-            .take()
-            .ok_or("Failed to open encoder stdin")?;
-        let mut decoder_stderr = decoder_child.stderr.take();
-        let decoder_err_handle = std::thread::spawn(move || {
-            let mut err_str = String::new();
-            if let Some(ref mut r) = decoder_stderr {
-                use std::io::Read;
-                let _ = r.read_to_string(&mut err_str);
+        // 1. Frame processors: the GPU version of the effect when available, otherwise G'MIC
+        //    workers (started first so a broken G'MIC install fails fast).
+        let killer = Arc::new(ProcessKiller::default());
+        let mut workers: Vec<Box<dyn FrameProcessor>> = Vec::new();
+        if GpuProcessor::would_handle(&effect) {
+            let cores = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4);
+            for _ in 0..GPU_RENDER_PROCESSORS {
+                let Some(gpu) = GpuProcessor::for_effect(&effect) else { break };
+                // Animated arguments may leave the GPU-supported range: keep a CPU worker ready.
+                let gpu = if effect.is_animated() {
+                    let worker = GmicWorker::spawn((cores / GPU_RENDER_PROCESSORS).max(1))?;
+                    killer.workers.lock().unwrap().push(worker.kill_handle());
+                    gpu.with_fallback(worker)
+                } else {
+                    gpu.fallback_threads(cores / GPU_RENDER_PROCESSORS)
+                };
+                workers.push(Box::new(gpu));
             }
-            err_str
-        });
-
-        let mut encoder_stderr = encoder_child.stderr.take();
-        let encoder_err_handle = std::thread::spawn(move || {
-            let mut err_str = String::new();
-            if let Some(ref mut r) = encoder_stderr {
-                use std::io::Read;
-                let _ = r.read_to_string(&mut err_str);
+        }
+        if workers.is_empty() {
+            let (num_workers, threads_per_worker) = worker_layout(w, h);
+            for _ in 0..num_workers {
+                let worker = GmicWorker::spawn(threads_per_worker)?;
+                killer.workers.lock().unwrap().push(worker.kill_handle());
+                workers.push(Box::new(worker));
             }
-            err_str
-        });
+        }
+        let num_workers = workers.len();
 
-        // 6. Decoder thread: reads PNG frames from decoder stdout into work_tx
-        let (work_tx, work_rx) = mpsc::sync_channel::<(usize, Vec<u8>)>(queue_bound);
-        let dec_cancel = cancel_flag.clone();
-        let dec_err = pipeline_error.clone();
+        // 2. FFmpeg decoder and encoder.
+        let fps = info.fps_fraction();
+        let mut decoder = spawn_decoder(&DecoderOptions {
+            path: &request.video_path,
+            start_secs: Some(timeline.start_secs),
+            end_secs: Some(timeline.end_secs),
+            fps: fps.clone(),
+            width: w,
+            height: h,
+            source_width: w,
+            source_height: h,
+        })?;
+        let decoder_stdout = decoder.stdout.take().ok_or("Failed to open decoder stdout")?;
+        let decoder_stderr = decoder.stderr.take();
 
-        let decoder_thread = std::thread::spawn(move || {
-            let mut reader = BufReader::with_capacity(512 * 1024, decoder_stdout);
-            let mut idx = 0;
-            loop {
-                if dec_cancel.load(Ordering::Relaxed) {
-                    break;
+        let mut encoder = match spawn_encoder(&EncoderOptions {
+            original_video: &request.video_path,
+            out_path: &request.output_path,
+            format: request.format,
+            width: w,
+            height: h,
+            fps,
+            crf: request.crf,
+            has_audio: info.has_audio,
+            speed_preset: &request.speed_preset,
+            cut_start_secs: Some(timeline.start_secs).filter(|s| *s > 0.0),
+            cut_end_secs: Some(timeline.end_secs).filter(|e| *e < info.duration_secs - 0.0005),
+        }) {
+            Ok(e) => e,
+            Err(e) => {
+                let _ = decoder.kill();
+                let _ = decoder.wait();
+                return Err(e);
+            }
+        };
+        let encoder_stdin = encoder.stdin.take().ok_or("Failed to open encoder stdin")?;
+        let encoder_stderr = encoder.stderr.take();
+
+        let decoder = Arc::new(Mutex::new(decoder));
+        let encoder = Arc::new(Mutex::new(encoder));
+        killer.children.lock().unwrap().push(decoder.clone());
+        killer.children.lock().unwrap().push(encoder.clone());
+
+        let decoder_err_handle = spawn_stderr_reader(decoder_stderr);
+        let encoder_err_handle = spawn_stderr_reader(encoder_stderr);
+
+        // `stop` = cancel requested OR an error happened somewhere in the pipeline.
+        let stop = Arc::new(AtomicBool::new(false));
+        let pipeline_error: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(None));
+        let set_error = {
+            let pipeline_error = pipeline_error.clone();
+            let stop = stop.clone();
+            move |msg: String| {
+                let mut guard = pipeline_error.lock().unwrap();
+                if guard.is_none() {
+                    *guard = Some(msg);
                 }
-                match read_png_frame(&mut reader) {
-                    Ok(Some(frame_bytes)) => {
-                        if work_tx.send((idx, frame_bytes)).is_err() {
+                stop.store(true, Ordering::SeqCst);
+            }
+        };
+
+        // 3. Watchdog: turns cancel/stop into killed processes.
+        let finished = Arc::new(AtomicBool::new(false));
+        let watchdog = {
+            let (cancel, stop, finished, killer) = (cancel.clone(), stop.clone(), finished.clone(), killer.clone());
+            std::thread::spawn(move || {
+                while !finished.load(Ordering::SeqCst) {
+                    if cancel.load(Ordering::SeqCst) {
+                        stop.store(true, Ordering::SeqCst);
+                    }
+                    if stop.load(Ordering::SeqCst) {
+                        killer.kill_all();
+                        break;
+                    }
+                    std::thread::sleep(POLL);
+                }
+            })
+        };
+
+        // 4. Decoder thread → work queue.
+        let queue_bound = (num_workers * 2).clamp(4, 32);
+        let (work_tx, work_rx) = bounded::<(usize, Frame)>(queue_bound);
+        let decoder_thread = {
+            let stop = stop.clone();
+            let set_error = set_error.clone();
+            std::thread::spawn(move || {
+                let mut reader = BufReader::with_capacity(1 << 22, decoder_stdout);
+                let mut idx = 0usize;
+                while !stop.load(Ordering::SeqCst) {
+                    match Frame::read_gbrp(&mut reader, w, h) {
+                        Ok(Some(frame)) => {
+                            let mut item = (idx, frame);
+                            loop {
+                                match work_tx.send_timeout(item, POLL) {
+                                    Ok(()) => break,
+                                    Err(SendTimeoutError::Timeout(back)) => {
+                                        if stop.load(Ordering::SeqCst) {
+                                            return idx;
+                                        }
+                                        item = back;
+                                    }
+                                    Err(SendTimeoutError::Disconnected(_)) => return idx,
+                                }
+                            }
+                            idx += 1;
+                        }
+                        Ok(None) => break,
+                        Err(e) => {
+                            if !stop.load(Ordering::SeqCst) {
+                                set_error(format!("Video decoding failed: {e}"));
+                            }
                             break;
                         }
-                        idx += 1;
-                    }
-                    Ok(None) => break,
-                    Err(e) => {
-                        let mut err_guard = dec_err.lock().unwrap();
-                        if err_guard.is_none() {
-                            *err_guard = Some(format!("Decoder error: {e}"));
-                        }
-                        dec_cancel.store(true, Ordering::Relaxed);
-                        break;
                     }
                 }
-            }
-            drop(work_tx);
-        });
+                idx
+            })
+        };
 
-        // 7. Worker pool: processes G'MIC filters in parallel with tweened params
-        let (res_tx, res_rx) = mpsc::sync_channel::<(usize, Result<Vec<u8>, String>)>(queue_bound);
-        let work_rx = Arc::new(Mutex::new(work_rx));
-        let filter_arc = Arc::new(filter);
-        let base_values = Arc::new(request.base_values.clone());
-        let tweens = Arc::new(request.tweens.clone());
+        // 5. Worker threads: work queue → G'MIC → result queue.
+        let (res_tx, res_rx) = bounded::<(usize, Result<Frame, String>)>(queue_bound);
         let mut worker_handles = Vec::with_capacity(num_workers);
-
-        for _ in 0..num_workers {
-            let rx = work_rx.clone();
-            let tx = res_tx.clone();
-            let cancel = cancel_flag.clone();
-            let filter_c = filter_arc.clone();
-            let base_vals = base_values.clone();
-            let tweens_c = tweens.clone();
-
-            let handle = std::thread::spawn(move || {
+        for mut worker in workers {
+            let (rx, tx, stop, effect) = (work_rx.clone(), res_tx.clone(), stop.clone(), effect.clone());
+            worker_handles.push(std::thread::spawn(move || {
                 loop {
-                    if cancel.load(Ordering::Relaxed) {
+                    if stop.load(Ordering::SeqCst) {
                         break;
                     }
-                    let work_item = {
-                        let rx_guard = rx.lock().unwrap();
-                        rx_guard.recv()
-                    };
-                    let (idx, in_bytes) = match work_item {
+                    let (idx, frame) = match rx.recv_timeout(POLL) {
                         Ok(item) => item,
-                        Err(_) => break,
+                        Err(RecvTimeoutError::Timeout) => continue,
+                        Err(RecvTimeoutError::Disconnected) => break,
                     };
-
-                    let t = if estimated_frames > 1 {
-                        (idx as f64 / (estimated_frames - 1) as f64).clamp(0.0, 1.0)
-                    } else {
-                        0.0
-                    };
-
-                    let mut frame_values: HashMap<usize, f64> = (*base_vals).clone();
-                    for (param_id, tween) in tweens_c.iter() {
-                        let is_active = match tween.mode {
-                            crate::tween::AnimationMode::Disabled => tween.enabled,
-                            _ => true,
-                        };
-                        if is_active {
-                            let (pmin, pmax) = filter_c
-                                .parameters
-                                .iter()
-                                .find(|p| p.id == *param_id)
-                                .map(|p| match p.param_type {
-                                    crate::gmic::GmicParamType::Float { min, max, .. } => (min, max),
-                                    crate::gmic::GmicParamType::Int { min, max, .. } => {
-                                        (min as f64, max as f64)
-                                    }
-                                    _ => (-1e9, 1e9),
-                                })
-                                .unwrap_or((-1e9, 1e9));
-
-                            let evaluated_val = tween.evaluate_at(t, idx, pmin, pmax);
-                            frame_values.insert(*param_id, evaluated_val);
+                    let result = worker
+                        .process(&frame, &effect, &timeline, idx)
+                        .map_err(|e| format!("Frame {}: {e}", idx + 1));
+                    let mut item = (idx, result);
+                    loop {
+                        match tx.send_timeout(item, POLL) {
+                            Ok(()) => break,
+                            Err(SendTimeoutError::Timeout(back)) => {
+                                if stop.load(Ordering::SeqCst) {
+                                    return;
+                                }
+                                item = back;
+                            }
+                            Err(SendTimeoutError::Disconnected(_)) => return,
                         }
                     }
-
-                    let render_res = execute_gmic_on_bytes(&in_bytes, &filter_c, &frame_values);
-                    if tx.send((idx, render_res)).is_err() {
-                        break;
-                    }
                 }
-            });
-            worker_handles.push(handle);
+            }));
         }
+        drop(work_rx);
         drop(res_tx);
 
-        // 8. Real-time progress watcher thread
-        let completed_counter = Arc::new(AtomicUsize::new(0));
-        let progress_completed = completed_counter.clone();
-        let watcher_cancel = Arc::new(AtomicBool::new(false));
-        let watcher_cancel_clone = watcher_cancel.clone();
-        let watcher_cb = on_progress.clone();
+        // 6. Progress reporter.
+        let completed = Arc::new(AtomicUsize::new(0));
+        let reporter = {
+            let (completed, finished, cb) = (completed.clone(), finished.clone(), on_progress.clone());
+            std::thread::spawn(move || {
+                while !finished.load(Ordering::SeqCst) {
+                    let done = completed.load(Ordering::Relaxed);
+                    let elapsed = start_time.elapsed().as_secs_f64();
+                    let fps = if elapsed > 0.0 { done as f64 / elapsed } else { 0.0 };
+                    let total = total_frames.max(done);
+                    let eta = if fps > 0.05 { total.saturating_sub(done) as f64 / fps } else { 0.0 };
+                    cb(RenderProgress {
+                        stage: RenderStage::ProcessingFrames,
+                        total_frames: total,
+                        completed_frames: done,
+                        percent: (2.0 + done as f64 / total.max(1) as f64 * 93.0).min(95.0),
+                        fps,
+                        elapsed_secs: elapsed,
+                        eta_secs: eta,
+                        message: format!("Rendered {done} / {total} frames ({fps:.1} fps)"),
+                    });
+                    std::thread::sleep(Duration::from_millis(250));
+                }
+            })
+        };
 
-        let watcher_handle = std::thread::spawn(move || {
-            while !watcher_cancel_clone.load(Ordering::Relaxed) {
-                let done = progress_completed.load(Ordering::Relaxed);
-                let elapsed = start_time.elapsed().as_secs_f64();
-                let fps = if elapsed > 0.0 { done as f64 / elapsed } else { 0.0 };
-                let total = estimated_frames.max(done);
-                let remaining = total.saturating_sub(done);
-                let eta = if fps > 0.05 { remaining as f64 / fps } else { 0.0 };
-                let percent = if total > 0 {
-                    ((done as f64 / total as f64) * 92.0).min(92.0)
-                } else {
-                    0.0
-                };
-
-                let prog = RenderProgress {
-                    stage: RenderStage::ProcessingFrames,
-                    total_frames: total,
-                    completed_frames: done,
-                    percent,
-                    fps,
-                    elapsed_secs: elapsed,
-                    eta_secs: eta,
-                    message: format!("Rendered {} / {} frames ({:.1} fps)", done, total, fps),
-                };
-
-                watcher_cb(prog);
-                std::thread::sleep(std::time::Duration::from_millis(200));
-            }
-        });
-
-        // 9. Sequencer: writes processed frames sequentially (0, 1, 2, ...) to ffmpeg encoder stdin
-        let mut pending: HashMap<usize, Vec<u8>> = HashMap::new();
-        let mut next_expected = 0;
-        
-
-        while let Ok((idx, frame_res)) = res_rx.recv() {
-            if cancel_flag.load(Ordering::Relaxed) {
+        // 7. Sequencer (this thread): write frames to the encoder in order.
+        let mut encoder_stdin = std::io::BufWriter::with_capacity(1 << 22, encoder_stdin);
+        let mut pending: HashMap<usize, Frame> = HashMap::new();
+        let mut next_expected = 0usize;
+        loop {
+            if stop.load(Ordering::SeqCst) {
                 break;
             }
-            match frame_res {
-                Ok(out_bytes) => {
-                    pending.insert(idx, out_bytes);
-                    while let Some(bytes) = pending.remove(&next_expected) {
-                        if let Err(e) = encoder_stdin.write_all(&bytes) {
-                            let mut err_guard = pipeline_error.lock().unwrap();
-                            if err_guard.is_none() {
-                                *err_guard = Some(format!("Failed to write to ffmpeg encoder: {e}"));
+            match res_rx.recv_timeout(POLL) {
+                Ok((idx, Ok(frame))) => {
+                    pending.insert(idx, frame);
+                    while let Some(frame) = pending.remove(&next_expected) {
+                        if let Err(e) = frame.write_gbrp(&mut encoder_stdin) {
+                            if !stop.load(Ordering::SeqCst) {
+                                set_error(format!("Failed to write to ffmpeg encoder: {e}"));
                             }
-                            cancel_flag.store(true, Ordering::Relaxed);
                             break;
                         }
                         next_expected += 1;
-                        completed_counter.fetch_add(1, Ordering::Relaxed);
-                    }
-                    if cancel_flag.load(Ordering::Relaxed) {
-                        break;
+                        completed.fetch_add(1, Ordering::Relaxed);
                     }
                 }
-                Err(e) => {
-                    let mut err_guard = pipeline_error.lock().unwrap();
-                    if err_guard.is_none() {
-                        *err_guard = Some(e);
+                Ok((_, Err(e))) => {
+                    if !stop.load(Ordering::SeqCst) {
+                        set_error(e);
                     }
-                    cancel_flag.store(true, Ordering::Relaxed);
                     break;
                 }
+                Err(RecvTimeoutError::Timeout) => continue,
+                Err(RecvTimeoutError::Disconnected) => break, // all workers done
             }
         }
+        drop(res_rx);
 
-        // 10. Frame processing complete: stop watcher thread and close encoder stdin
-        watcher_cancel.store(true, Ordering::Relaxed);
-        let _ = watcher_handle.join();
-
-        // Close encoder stdin so ffmpeg knows all video frames were received
-        drop(encoder_stdin);
-
-        // Clean up child processes if canceled or errored
-        if cancel_flag.load(Ordering::Relaxed) {
-            let _ = decoder_child.kill();
-            let _ = encoder_child.kill();
-        }
-
-        let _ = decoder_thread.join();
+        // 8. Shut down threads. Everything polls `stop` or sees closed channels, so these joins return.
+        let decoded = decoder_thread.join().unwrap_or(0);
         for h in worker_handles {
             let _ = h.join();
         }
-        let _ = decoder_child.wait();
-        let _ = decoder_err_handle.join();
+        // Poll instead of a blocking wait so the watchdog can still lock and kill it.
+        let _ = wait_child(&decoder);
+        let decoder_stderr_text = decoder_err_handle.join().unwrap_or_default();
 
-        // 11. Finalize encoder
-        let final_count = completed_counter.load(Ordering::Relaxed);
-        let format_name = request.format.display_name().to_string();
+        let stopped = stop.load(Ordering::SeqCst);
+        if !stopped && next_expected < decoded {
+            // A frame went missing without an error (should not happen); report rather than hang.
+            set_error(format!("Only {next_expected} of {decoded} frames were processed"));
+        }
+        if !stopped && decoded == 0 {
+            set_error(format!(
+                "No frames could be decoded from the video. {}",
+                crate::gmic_worker::clean_stderr(&decoder_stderr_text)
+            ));
+        }
 
-        on_progress(RenderProgress {
-            stage: RenderStage::Encoding,
-            total_frames: final_count,
-            completed_frames: final_count,
-            percent: 95.0,
-            fps: 0.0,
-            elapsed_secs: start_time.elapsed().as_secs_f64(),
-            eta_secs: 0.0,
-            message: format!("Finalizing {} video & audio multiplexing...", format_name),
-        });
+        let final_count = completed.load(Ordering::Relaxed);
+        if !stop.load(Ordering::SeqCst) {
+            on_progress(RenderProgress {
+                stage: RenderStage::Encoding,
+                total_frames: final_count,
+                completed_frames: final_count,
+                percent: 96.0,
+                elapsed_secs: start_time.elapsed().as_secs_f64(),
+                message: format!("Finalizing {} video & audio...", request.format.display_name()),
+                ..Default::default()
+            });
+        }
 
-        let enc_status = encoder_child
-            .wait()
-            .map_err(|e| format!("Failed to wait on ffmpeg encoder: {e}"))?;
-        let stderr_msg = encoder_err_handle.join().unwrap_or_default();
-
-        if cancel_flag.load(Ordering::SeqCst) {
-            if let Some(err) = pipeline_error.lock().unwrap().take() {
-                return Err(err);
+        // Closing stdin tells ffmpeg the video is complete (it is killed instead if we stopped).
+        let flush_result = encoder_stdin.flush();
+        drop(encoder_stdin);
+        if let Err(e) = flush_result {
+            if !stop.load(Ordering::SeqCst) {
+                set_error(format!("Failed to write to ffmpeg encoder: {e}"));
             }
+        }
+        let enc_status = wait_child(&encoder);
+        let encoder_stderr_text = encoder_err_handle.join().unwrap_or_default();
+
+        finished.store(true, Ordering::SeqCst);
+        let _ = watchdog.join();
+        let _ = reporter.join();
+
+        if let Some(err) = pipeline_error.lock().unwrap().take() {
+            remove_partial_output(&request.output_path);
+            return Err(err);
+        }
+        if cancel.load(Ordering::SeqCst) {
+            remove_partial_output(&request.output_path);
             return Err("Render canceled by user".to_string());
         }
-
-        if !enc_status.success() || !request.output_path.exists() {
-            return Err(format!("ffmpeg encoding failed: {stderr_msg}"));
+        let encoded_ok = enc_status.map(|s| s.success()).unwrap_or(false);
+        if !encoded_ok || !request.output_path.exists() {
+            remove_partial_output(&request.output_path);
+            return Err(format!(
+                "ffmpeg encoding failed: {}",
+                crate::gmic_worker::clean_stderr(&encoder_stderr_text)
+            ));
         }
 
-        // 12. Completed!
         let total_time = start_time.elapsed().as_secs_f64();
-        let fps = if total_time > 0.0 {
-            final_count as f64 / total_time
-        } else {
-            0.0
-        };
-
+        let fps = if total_time > 0.0 { final_count as f64 / total_time } else { 0.0 };
         on_progress(RenderProgress {
             stage: RenderStage::Completed,
             total_frames: final_count,
@@ -464,9 +515,176 @@ impl BatchRenderer {
             fps,
             elapsed_secs: total_time,
             eta_secs: 0.0,
-            message: format!("Render completed in {:.1}s ({:.1} fps)!", total_time, fps),
+            message: format!("Render completed in {total_time:.1}s ({fps:.1} fps)!"),
         });
 
         Ok(request.output_path)
+    }
+}
+
+fn spawn_stderr_reader<R: Read + Send + 'static>(stream: Option<R>) -> std::thread::JoinHandle<String> {
+    std::thread::spawn(move || {
+        let mut text = String::new();
+        if let Some(mut r) = stream {
+            let _ = r.read_to_string(&mut text);
+        }
+        text
+    })
+}
+
+fn wait_child(child: &Arc<Mutex<Child>>) -> Option<std::process::ExitStatus> {
+    loop {
+        {
+            let mut c = child.lock().unwrap();
+            match c.try_wait() {
+                Ok(Some(status)) => return Some(status),
+                Ok(None) => {}
+                Err(_) => return None,
+            }
+        }
+        std::thread::sleep(Duration::from_millis(20));
+    }
+}
+
+fn remove_partial_output(path: &std::path::Path) {
+    let _ = std::fs::remove_file(path);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::process::Command;
+
+    fn make_clip(dir: &std::path::Path, secs: u32) -> Option<PathBuf> {
+        let src = dir.join("clip.mp4");
+        let ok = Command::new("ffmpeg")
+            .args(["-v", "error", "-y", "-f", "lavfi", "-i"])
+            .arg(format!("testsrc2=s=96x64:r=12:d={secs}"))
+            .args(["-f", "lavfi", "-i"])
+            .arg(format!("sine=d={secs}"))
+            .args(["-shortest", "-pix_fmt", "yuv420p"])
+            .arg(&src)
+            .status()
+            .map(|s| s.success())
+            .unwrap_or(false);
+        ok.then_some(src)
+    }
+
+    fn job(src: &std::path::Path, out: &std::path::Path, filter_id: &str) -> RenderJobRequest {
+        RenderJobRequest {
+            id: "t".into(),
+            name: "t".into(),
+            video_path: src.to_path_buf(),
+            output_path: out.to_path_buf(),
+            format: ExportFormat::H264,
+            crf: 30,
+            speed_preset: "ultrafast".into(),
+            filter_id: filter_id.into(),
+            filter_name: String::new(),
+            base_values: HashMap::new(),
+            tweens: HashMap::new(),
+            text_values: HashMap::new(),
+            cut_start_secs: None,
+            cut_end_secs: None,
+        }
+    }
+
+    /// Runs `f` on a thread and fails the test if it does not finish in `secs` (detects hangs).
+    fn with_timeout<T: Send + 'static>(secs: u64, f: impl FnOnce() -> T + Send + 'static) -> T {
+        let (tx, rx) = std::sync::mpsc::channel();
+        std::thread::spawn(move || {
+            let _ = tx.send(f());
+        });
+        rx.recv_timeout(Duration::from_secs(secs)).expect("render hung")
+    }
+
+    #[test]
+    fn render_succeeds_with_cut() {
+        let dir = tempfile::tempdir().unwrap();
+        let Some(src) = make_clip(dir.path(), 2) else { return };
+        let out = dir.path().join("out.mp4");
+        let mut req = job(&src, &out, "Vignette");
+        req.cut_start_secs = Some(0.5);
+        req.cut_end_secs = Some(1.5);
+        let db = FilterDatabase::load_default();
+        let res = with_timeout(120, move || BatchRenderer::run(req, &db, Arc::new(AtomicBool::new(false)), |_| {}));
+        let path = res.expect("render should succeed");
+        let info = probe_video(&path).unwrap();
+        assert_eq!((info.width, info.height), (96, 64));
+        assert!((info.duration_secs - 1.0).abs() < 0.25, "duration {}", info.duration_secs);
+    }
+
+    #[test]
+    fn gpu_render_matches_cpu_render() {
+        if !crate::gpu::GpuContext::is_available() {
+            eprintln!("no GPU; skipping");
+            return;
+        }
+        let dir = tempfile::tempdir().unwrap();
+        let Some(src) = make_clip(dir.path(), 1) else { return };
+        let db = Arc::new(FilterDatabase::load_default());
+        let render = |name: &str| {
+            let out = dir.path().join(name);
+            let req = job(&src, &out, "Vignette");
+            let db = db.clone();
+            with_timeout(120, move || BatchRenderer::run(req, &db, Arc::new(AtomicBool::new(false)), |_| {}))
+                .expect("render should succeed")
+        };
+        let gpu = render("gpu.mp4");
+        // The same filter forced through G'MIC: a copy of the filter under a name without a GPU version.
+        let cpu = {
+            let mut db2 = FilterDatabase::load_default();
+            let mut f = db2.find_filter("Vignette").unwrap().clone();
+            f.id = "vignette_cpu_test".into();
+            f.name = "Vignette CPU test".into();
+            f.command = format!("{} ", f.command); // not matched by the GPU registry
+            db2.filters.insert(0, f);
+            let out = dir.path().join("cpu.mp4");
+            let req = job(&src, &out, "vignette_cpu_test");
+            with_timeout(120, move || BatchRenderer::run(req, &db2, Arc::new(AtomicBool::new(false)), |_| {}))
+                .expect("cpu render should succeed")
+        };
+        let a = crate::video::extract_frame(&probe_video(&gpu).unwrap(), 0.5, 96, 64).unwrap();
+        let b = crate::video::extract_frame(&probe_video(&cpu).unwrap(), 0.5, 96, 64).unwrap();
+        let p = a.psnr(&b);
+        assert!(p > 30.0, "GPU vs CPU render PSNR {p:.1} dB");
+    }
+
+    #[test]
+    fn failing_effect_returns_error_instead_of_hanging() {
+        let dir = tempfile::tempdir().unwrap();
+        let Some(src) = make_clip(dir.path(), 3) else { return };
+        let out = dir.path().join("out.mp4");
+        let db = {
+            let mut db = FilterDatabase::load_default();
+            let mut broken = db.find_filter("Vignette").unwrap().clone();
+            broken.id = "broken_test_filter".into();
+            broken.name = "Broken".into();
+            broken.command = "this_command_does_not_exist".into();
+            db.filters.insert(0, broken);
+            db
+        };
+        let req = job(&src, &out, "broken_test_filter");
+        let res = with_timeout(60, move || BatchRenderer::run(req, &db, Arc::new(AtomicBool::new(false)), |_| {}));
+        let err = res.unwrap_err();
+        assert!(err.contains("this_command_does_not_exist"), "{err}");
+        assert!(!out.exists(), "partial output must be removed");
+    }
+
+    #[test]
+    fn cancel_returns_quickly() {
+        let dir = tempfile::tempdir().unwrap();
+        let Some(src) = make_clip(dir.path(), 20) else { return };
+        let out = dir.path().join("out.mp4");
+        let req = job(&src, &out, "Halftone");
+        let db = FilterDatabase::load_default();
+        let cancel = Arc::new(AtomicBool::new(false));
+        let c2 = cancel.clone();
+        std::thread::spawn(move || {
+            std::thread::sleep(Duration::from_millis(1500));
+            c2.store(true, Ordering::SeqCst);
+        });
+        let res = with_timeout(30, move || BatchRenderer::run(req, &db, cancel, |_| {}));
+        assert_eq!(res.unwrap_err(), "Render canceled by user");
     }
 }

@@ -50,13 +50,10 @@ fi
 if [ -d "$ROOT_DIR/lib/gmic" ]; then
     cp -r "$ROOT_DIR/lib/gmic/"* "$APPDIR/usr/lib/gmic/"
 fi
-if [ -d "$ROOT_DIR/Tests/valid_effects" ]; then
-    mkdir -p "$APPDIR/usr/share/gmicvideo/Tests"
-    cp -r "$ROOT_DIR/Tests/valid_effects" "$APPDIR/usr/share/gmicvideo/Tests/"
-fi
-if [ -f "$ROOT_DIR/Tests/valid_effects.json" ]; then
-    mkdir -p "$APPDIR/usr/share/gmicvideo/Tests"
-    cp "$ROOT_DIR/Tests/valid_effects.json" "$APPDIR/usr/share/gmicvideo/Tests/"
+# Effect thumbnails live in assets/thumbnails (copied with assets/ above); generate them with
+#   ./target/release/GmicVideo --generate-thumbnails
+if [ ! -d "$ROOT_DIR/assets/thumbnails" ]; then
+    echo "Warning: assets/thumbnails missing - visual search will be empty" >&2
 fi
 
 # Copy icon

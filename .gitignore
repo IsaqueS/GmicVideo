@@ -3,3 +3,6 @@
 packaging/AppDir/
 packaging/tools/
 temp/
+__pycache__/
+*.pyc
+Tests/*.log

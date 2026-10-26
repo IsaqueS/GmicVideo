@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import QtMultimedia
 import org.kde.kirigami as Kirigami
 
 Kirigami.ApplicationWindow {
@@ -21,8 +22,11 @@ Kirigami.ApplicationWindow {
     property var selectedFilter: null
     property var paramValues: ({})
     property var paramTweens: ({})
-    property string previewRawPath: ""
-    property string previewEffectPath: ""
+    property var paramTexts: ({})
+    // Preview resolution per effect id: 0 = Auto, otherwise a fraction of the source size
+    property var previewScaleByFilter: ({})
+    property real defaultPreviewScale: 0
+    property string previewInfoText: ""
     property real currentScrubTime: 0.0
     property real cutStartTime: 0.0
     property real cutEndTime: 0.0
@@ -101,6 +105,7 @@ Kirigami.ApplicationWindow {
         selectedFilter = filter;
         var newValues = {};
         var newTweens = {};
+        var newTexts = {};
         if (filter && filter.parameters) {
             for (var i = 0; i < filter.parameters.length; i++) {
                 var p = filter.parameters[i];
@@ -113,6 +118,11 @@ Kirigami.ApplicationWindow {
                     defVal = pdata.default;
                 } else if (ptype === "bool") {
                     defVal = pdata.default ? 1.0 : 0.0;
+                } else if (ptype === "text") {
+                    newTexts[p.id] = pdata.default || "";
+                    continue;
+                } else if (ptype !== "float" && ptype !== "int") {
+                    continue;
                 }
                 newValues[p.id] = defVal;
 
@@ -128,7 +138,26 @@ Kirigami.ApplicationWindow {
         }
         paramValues = newValues;
         paramTweens = newTweens;
+        paramTexts = newTexts;
         requestPreviewUpdate();
+    }
+
+    function currentPreviewScale() {
+        if (selectedFilter && previewScaleByFilter[selectedFilter.id] !== undefined)
+            return previewScaleByFilter[selectedFilter.id];
+        return defaultPreviewScale;
+    }
+
+    function setPreviewScale(scale) {
+        if (!selectedFilter) return;
+        var m = Object.assign({}, previewScaleByFilter);
+        m[selectedFilter.id] = scale;
+        previewScaleByFilter = m;
+        requestPreviewUpdate();
+    }
+
+    function isCutActive() {
+        return videoInfo && (cutStartTime > 0.05 || cutEndTime < videoInfo.duration_secs - 0.05);
     }
 
     function loadVideo(filePath) {
@@ -136,45 +165,106 @@ Kirigami.ApplicationWindow {
         var infoJson = Backend.probeVideo(filePath);
         var info = JSON.parse(infoJson);
         if (info.error) {
-            showPassiveNotification("Failed to open video: " + info.error, "short");
+            showPassiveNotification(i18n.t("Failed to open video: %1").replace("%1", info.error), "long");
             return;
         }
         videoInfo = info;
         currentScrubTime = 0.0;
         cutStartTime = 0.0;
         cutEndTime = info.duration_secs;
+        isPreviewLoading = true;
+        Playback.open(info.path);
         requestPreviewUpdate();
     }
 
+    // Sends the current effect settings to the playback engine. While paused the engine
+    // renders the current frame; while playing the change applies to the next frames.
     function requestPreviewUpdate() {
-        if (!videoInfo || !selectedFilter) return;
+        if (!videoInfo) return;
         previewTimer.restart();
     }
 
+    function seekTo(secs) {
+        if (!videoInfo) return;
+        currentScrubTime = secs;
+        if (!Playback.playing) isPreviewLoading = true;
+        Playback.seek(secs);
+    }
+
+    function playbackConfig() {
+        return {
+            effect: selectedFilter ? {
+                filter_id: selectedFilter.id,
+                base_values: paramValues,
+                tweens: paramTweens,
+                text_values: paramTexts
+            } : null,
+            cut_start_secs: isCutActive() ? cutStartTime : null,
+            cut_end_secs: isCutActive() ? cutEndTime : null,
+            scale: currentPreviewScale(),
+            show_original: splitPreview
+        };
+    }
+
+    function updateStatusText() {
+        var st = {};
+        try { st = JSON.parse(Playback.statusJson); } catch (e) {}
+        if (!st.width) { previewInfoText = ""; return; }
+        var mode = st.mode === "gpu" ? i18n.t("GPU (Vulkan)") : (st.mode === "original" ? i18n.t("Original video") : i18n.t("CPU (G'MIC)"));
+        var res = st.width + "×" + st.height + " (" + Math.round((st.scale || 1) * 100) + "%" + (currentPreviewScale() === 0 ? " " + i18n.t("Auto") : "") + ")";
+        var extra = "";
+        if (Playback.playing && st.fps !== undefined && st.fps !== null) {
+            extra = i18n.t("%1 fps · %2 dropped").replace("%1", st.fps.toFixed(1)).replace("%2", st.dropped || 0);
+        } else if (st.elapsed_ms !== undefined && st.elapsed_ms !== null) {
+            extra = i18n.t("%1 ms").replace("%1", st.elapsed_ms);
+        }
+        previewInfoText = mode + " · " + res + (extra ? " · " + extra : "");
+    }
+
+    onSplitPreviewChanged: requestPreviewUpdate()
+
     Timer {
         id: previewTimer
-        interval: 150
+        interval: 60
         repeat: false
         onTriggered: {
-            if (!videoInfo || !selectedFilter) return;
-            appWindow.isPreviewLoading = true;
-            Backend.renderPreview(
-                videoInfo.path,
-                appWindow.currentScrubTime,
-                videoInfo.duration_secs,
-                selectedFilter.id,
-                JSON.stringify(appWindow.paramValues),
-                JSON.stringify(appWindow.paramTweens)
-            );
+            if (!videoInfo) return;
+            if (!Playback.playing) appWindow.isPreviewLoading = true;
+            Playback.configure(JSON.stringify(appWindow.playbackConfig()));
+        }
+    }
+
+    Shortcut {
+        sequence: "Space"
+        enabled: videoInfo !== null
+        onActivated: Playback.togglePlay()
+    }
+
+    Connections {
+        target: Playback
+        function onStillReady(infoJson) {
+            appWindow.isPreviewLoading = false;
+        }
+        function onStatusChanged() {
+            appWindow.updateStatusText();
+        }
+        function onPlayingChanged() {
+            appWindow.isPreviewLoading = false;
+            appWindow.updateStatusText();
+        }
+        function onPositionChanged() {
+            if (Playback.playing) appWindow.currentScrubTime = Playback.position;
+        }
+        function onErrorOccurred(message) {
+            appWindow.isPreviewLoading = false;
+            showPassiveNotification(i18n.t("Preview failed: %1").replace("%1", message), "long");
         }
     }
 
     Connections {
         target: Backend
-        function onPreviewReady(rawPath, effectPath, timeSecs) {
-            appWindow.previewRawPath = "file://" + rawPath;
-            appWindow.previewEffectPath = "file://" + effectPath;
-            appWindow.isPreviewLoading = false;
+        function onRenderFailed(message) {
+            showPassiveNotification(i18n.t("Render failed: %1").replace("%1", message), "long");
         }
         function onQueueUpdated(jsonStr) {
             try {
@@ -243,6 +333,7 @@ Kirigami.ApplicationWindow {
         selectedFilter: appWindow.selectedFilter
         paramValues: appWindow.paramValues
         paramTweens: appWindow.paramTweens
+        paramTexts: appWindow.paramTexts
         queueItems: appWindow.renderQueue
         cutStartTime: appWindow.cutStartTime
         cutEndTime: appWindow.cutEndTime
@@ -343,13 +434,6 @@ Kirigami.ApplicationWindow {
                         onTriggered: {
                             var f = Backend.chooseVideoFile();
                             if (f) loadVideo(f);
-                        }
-                    },
-                    Kirigami.Action {
-                        text: i18n.t("Load Sample: Original.mp4")
-                        icon.name: "media-playback-start"
-                        onTriggered: {
-                            loadVideo("/home/isaques/Code/Projetos/Python/ultrawarp-batch/Exemplos de Videos/Original.mp4");
                         }
                     }
                 ]
@@ -485,11 +569,33 @@ Kirigami.ApplicationWindow {
 
                             contentItem: ColumnLayout {
                                 spacing: 2
-                                Label {
-                                    text: i18n.t(modelData.name)
-                                    font.bold: highlighted
-                                    elide: Text.ElideRight
+                                RowLayout {
                                     Layout.fillWidth: true
+                                    spacing: 6
+                                    Label {
+                                        text: i18n.t(modelData.name)
+                                        font.bold: highlighted
+                                        elide: Text.ElideRight
+                                        Layout.fillWidth: true
+                                    }
+                                    Rectangle {
+                                        visible: modelData.gpu === true
+                                        color: "#27ae60"
+                                        radius: 3
+                                        implicitWidth: gpuBadge.implicitWidth + 8
+                                        implicitHeight: gpuBadge.implicitHeight + 2
+                                        Label {
+                                            id: gpuBadge
+                                            anchors.centerIn: parent
+                                            text: i18n.t("GPU")
+                                            color: "white"
+                                            font.bold: true
+                                            font.pixelSize: 9
+                                        }
+                                        ToolTip.visible: gpuBadgeArea.containsMouse
+                                        ToolTip.text: i18n.t("Runs in real time on the graphics card (Vulkan)")
+                                        MouseArea { id: gpuBadgeArea; anchors.fill: parent; hoverEnabled: true; acceptedButtons: Qt.NoButton }
+                                    }
                                 }
                                 Label {
                                     text: (modelData.category ? i18n.t(modelData.category) : "") + " • " + modelData.command
@@ -549,7 +655,8 @@ Kirigami.ApplicationWindow {
                                     selectedFilter.name,
                                     JSON.stringify(appWindow.paramValues),
                                     JSON.stringify(appWindow.paramTweens),
-                                    sName
+                                    sName,
+                                    JSON.stringify(appWindow.paramTexts)
                                 );
                                 if (savedPath) {
                                     showPassiveNotification(i18n.t("Saved preset to: %1").replace("%1", savedPath), "short");
@@ -582,17 +689,22 @@ Kirigami.ApplicationWindow {
                                         showPassiveNotification(i18n.t("Preset requires filter '%1' which is not found!").replace("%1", fId), "long");
                                         return;
                                     }
-                                    selectedFilter = targetFilter;
-                                    var parsedValues = {};
+                                    selectFilter(targetFilter);
+                                    var parsedValues = Object.assign({}, paramValues);
                                     for (var k in res.base_values) {
                                         parsedValues[parseInt(k)] = res.base_values[k];
                                     }
-                                    var parsedTweens = {};
+                                    var parsedTweens = Object.assign({}, paramTweens);
                                     for (var tk in res.tweens) {
                                         parsedTweens[parseInt(tk)] = res.tweens[tk];
                                     }
+                                    var parsedTexts = Object.assign({}, paramTexts);
+                                    for (var xk in (res.text_values || {})) {
+                                        parsedTexts[parseInt(xk)] = String(res.text_values[xk]);
+                                    }
                                     paramValues = parsedValues;
                                     paramTweens = parsedTweens;
+                                    paramTexts = parsedTexts;
                                     requestPreviewUpdate();
                                     showPassiveNotification(i18n.t("Loaded preset: %1").replace("%1", (res.filter_name || fId)), "short");
                                 } catch (e) {
@@ -610,10 +722,33 @@ Kirigami.ApplicationWindow {
                         }
 
                         Item { Layout.fillWidth: true }
+
+                        Label {
+                            text: i18n.t("Preview Resolution:")
+                            opacity: 0.8
+                        }
+
+                        ComboBox {
+                            id: previewScaleCombo
+                            enabled: selectedFilter !== null
+                            readonly property var scales: [0, 0.25, 0.5, 0.75, 1.0]
+                            model: [i18n.t("Auto"), "25%", "50%", "75%", i18n.t("Full")]
+                            currentIndex: {
+                                var sc = appWindow.currentPreviewScale();
+                                for (var i = 0; i < scales.length; i++) {
+                                    if (Math.abs(scales[i] - sc) < 0.001) return i;
+                                }
+                                return 0;
+                            }
+                            onActivated: appWindow.setPreviewScale(scales[currentIndex])
+                            ToolTip.visible: hovered
+                            ToolTip.delay: 600
+                            ToolTip.text: i18n.t("Lower resolutions make previews and playback faster. The final render always uses full resolution. Sizes in pixels (dot size, blur radius) look relatively larger at low resolution; choose Full for the exact result.")
+                        }
                     }
 
                     Label {
-                        text: selectedFilter && selectedFilter.description ? selectedFilter.description : i18n.t("Customize effect parameters and tween values over the video duration.")
+                        text: selectedFilter ? i18n.t("G'MIC filter: %1").replace("%1", i18n.t(selectedFilter.name)) + (selectedFilter.category ? " · " + i18n.t(selectedFilter.category) : "") : i18n.t("Customize effect parameters and tween values over the video duration.")
                         wrapMode: Text.WordWrap
                         Layout.fillWidth: true
                         opacity: 0.7
@@ -652,7 +787,7 @@ Kirigami.ApplicationWindow {
                                     property var curTween: appWindow.paramTweens[p.id] || {}
                                     property string animMode: curTween.mode ? curTween.mode : (curTween.enabled ? "curve" : "disabled")
 
-                                    visible: ptype !== "separator" && ptype !== "note"
+                                    visible: ptype !== "separator" && ptype !== "note" && ptype !== "button"
 
                                     // Parameter Header Row
                                     RowLayout {
@@ -660,7 +795,7 @@ Kirigami.ApplicationWindow {
                                         spacing: Kirigami.Units.smallSpacing
 
                                         Label {
-                                            text: p.name
+                                            text: i18n.t(p.name)
                                             font.bold: true
                                             Layout.fillWidth: true
                                             elide: Text.ElideRight
@@ -796,6 +931,22 @@ Kirigami.ApplicationWindow {
                                             }
                                         }
 
+                                        // Text control
+                                        TextField {
+                                            visible: ptype === "text"
+                                            Layout.fillWidth: true
+                                            text: appWindow.paramTexts[p.id] !== undefined ? appWindow.paramTexts[p.id] : (pdata.default || "")
+                                            placeholderText: i18n.t("Text value")
+                                            selectByMouse: true
+                                            onEditingFinished: {
+                                                if (appWindow.paramTexts[p.id] === text) return;
+                                                var txts = Object.assign({}, appWindow.paramTexts);
+                                                txts[p.id] = text;
+                                                appWindow.paramTexts = txts;
+                                                requestPreviewUpdate();
+                                            }
+                                        }
+
                                         // Bool control
                                         Switch {
                                             visible: ptype === "bool"
@@ -916,7 +1067,14 @@ Kirigami.ApplicationWindow {
                         Label {
                             text: i18n.t("Preview")
                             font.bold: true
+                        }
+
+                        Label {
+                            text: appWindow.previewInfoText
+                            opacity: 0.6
+                            font.pointSize: Kirigami.Theme.smallFont.pointSize
                             Layout.fillWidth: true
+                            elide: Text.ElideRight
                         }
 
                         Button {
@@ -929,6 +1087,7 @@ Kirigami.ApplicationWindow {
 
                         Button {
                             icon.name: "view-refresh"
+                            ToolTip.visible: hovered
                             ToolTip.text: i18n.t("Refresh Preview")
                             onClicked: requestPreviewUpdate()
                         }
@@ -942,26 +1101,16 @@ Kirigami.ApplicationWindow {
                         radius: 4
                         clip: true
 
-                        // Full effect preview
-                        Image {
-                            anchors.fill: parent
-                            visible: !appWindow.splitPreview
-                            source: appWindow.previewEffectPath
-                            fillMode: Image.PreserveAspectFit
-                            cache: false
-                        }
-
-                        // Split view preview (Side-by-side)
+                        // Live video from the playback engine (original | effect in split view)
                         Row {
                             anchors.fill: parent
-                            visible: appWindow.splitPreview
 
-                            Image {
-                                width: parent.width / 2
+                            VideoOutput {
+                                id: originalVideo
+                                visible: appWindow.splitPreview
+                                width: appWindow.splitPreview ? (parent.width - 2) / 2 : 0
                                 height: parent.height
-                                source: appWindow.previewRawPath
-                                fillMode: Image.PreserveAspectFit
-                                cache: false
+                                fillMode: VideoOutput.PreserveAspectFit
                                 Label {
                                     anchors.bottom: parent.bottom
                                     anchors.left: parent.left
@@ -974,18 +1123,19 @@ Kirigami.ApplicationWindow {
                             }
 
                             Rectangle {
-                                width: 2
+                                visible: appWindow.splitPreview
+                                width: appWindow.splitPreview ? 2 : 0
                                 height: parent.height
                                 color: Kirigami.Theme.highlightColor
                             }
 
-                            Image {
-                                width: parent.width / 2 - 2
+                            VideoOutput {
+                                id: effectVideo
+                                width: appWindow.splitPreview ? (parent.width - 2) / 2 : parent.width
                                 height: parent.height
-                                source: appWindow.previewEffectPath
-                                fillMode: Image.PreserveAspectFit
-                                cache: false
+                                fillMode: VideoOutput.PreserveAspectFit
                                 Label {
+                                    visible: appWindow.splitPreview
                                     anchors.bottom: parent.bottom
                                     anchors.right: parent.right
                                     anchors.margins: 8
@@ -995,6 +1145,16 @@ Kirigami.ApplicationWindow {
                                     background: Rectangle { color: "#80000000"; radius: 3 }
                                 }
                             }
+
+                            Component.onCompleted: {
+                                Playback.setEffectSink(effectVideo.videoSink);
+                                Playback.setOriginalSink(originalVideo.videoSink);
+                            }
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent
+                            onDoubleClicked: Playback.togglePlay()
                         }
 
                         // Loading spinner
@@ -1013,14 +1173,11 @@ Kirigami.ApplicationWindow {
                             Layout.fillWidth: true
                             ToolButton {
                                 id: playBtn
-                                icon.name: scrubTimer.running ? "media-playback-pause" : "media-playback-start"
-                                onClicked: {
-                                    if (scrubTimer.running) {
-                                        scrubTimer.stop();
-                                    } else {
-                                        scrubTimer.start();
-                                    }
-                                }
+                                enabled: videoInfo !== null
+                                icon.name: Playback.playing ? "media-playback-pause" : "media-playback-start"
+                                ToolTip.visible: hovered
+                                ToolTip.text: Playback.playing ? i18n.t("Pause (Space)") : i18n.t("Play (Space)")
+                                onClicked: Playback.togglePlay()
                             }
 
                             Slider {
@@ -1029,26 +1186,25 @@ Kirigami.ApplicationWindow {
                                 from: 0.0
                                 to: videoInfo ? videoInfo.duration_secs : 1.0
                                 value: appWindow.currentScrubTime
-                                onMoved: {
-                                    appWindow.currentScrubTime = value;
-                                    requestPreviewUpdate();
-                                }
+                                onMoved: appWindow.seekTo(value)
                             }
-                        }
 
-                        Timer {
-                            id: scrubTimer
-                            interval: 500
-                            repeat: true
-                            onTriggered: {
-                                if (!videoInfo) return;
-                                var step = 1.0;
-                                var nextT = appWindow.currentScrubTime + step;
-                                if (nextT > videoInfo.duration_secs) {
-                                    nextT = 0.0;
-                                }
-                                appWindow.currentScrubTime = nextT;
-                                requestPreviewUpdate();
+                            ToolButton {
+                                icon.name: Playback.muted ? "audio-volume-muted" : "audio-volume-high"
+                                checkable: true
+                                checked: Playback.muted
+                                ToolTip.visible: hovered
+                                ToolTip.text: Playback.muted ? i18n.t("Unmute") : i18n.t("Mute")
+                                onClicked: Playback.muted = !Playback.muted
+                            }
+
+                            ToolButton {
+                                icon.name: "media-playlist-repeat"
+                                checkable: true
+                                checked: Playback.looping
+                                ToolTip.visible: hovered
+                                ToolTip.text: i18n.t("Loop Playback")
+                                onClicked: Playback.setLooping(!Playback.looping)
                             }
                         }
 
@@ -1117,6 +1273,7 @@ Kirigami.ApplicationWindow {
                                         appWindow.cutEndTime = videoInfo.duration_secs;
                                         cutRangeSlider.first.value = 0.0;
                                         cutRangeSlider.second.value = videoInfo.duration_secs;
+                                        requestPreviewUpdate();
                                     }
                                 }
                             }
@@ -1132,18 +1289,14 @@ Kirigami.ApplicationWindow {
 
                                 first.onMoved: {
                                     appWindow.cutStartTime = first.value;
-                                    if (appWindow.currentScrubTime < first.value) {
-                                        appWindow.currentScrubTime = first.value;
-                                        requestPreviewUpdate();
-                                    }
+                                    requestPreviewUpdate();
+                                    if (appWindow.currentScrubTime < first.value) appWindow.seekTo(first.value);
                                 }
 
                                 second.onMoved: {
                                     appWindow.cutEndTime = second.value;
-                                    if (appWindow.currentScrubTime > second.value) {
-                                        appWindow.currentScrubTime = second.value;
-                                        requestPreviewUpdate();
-                                    }
+                                    requestPreviewUpdate();
+                                    if (appWindow.currentScrubTime > second.value) appWindow.seekTo(second.value);
                                 }
                             }
 

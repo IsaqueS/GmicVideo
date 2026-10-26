@@ -218,7 +218,7 @@ Kirigami.OverlaySheet {
             Item { Layout.fillWidth: true }
 
             Button {
-                text: "Cancel"
+                text: i18n.t("Cancel")
                 onClicked: curveSheet.close()
             }
 

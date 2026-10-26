@@ -23,7 +23,27 @@ Window {
     property var selectedFilter: null
     property var paramValues: ({})
     property var paramTweens: ({})
+    property var paramTexts: ({})
     property var queueItems: []
+
+    function stageMessage(item) {
+        var st = item.progress ? item.progress.stage : "";
+        if (st === "extracting") return i18n.t("Starting render...");
+        if (st === "processing_frames") return i18n.t("Rendering frames...");
+        if (st === "encoding") return i18n.t("Finalizing video & audio...");
+        if (st === "completed") return i18n.t("Render completed: %1").replace("%1", item.output_path);
+        if (st === "canceled") return i18n.t("Render was canceled");
+        return item.progress ? item.progress.message : "";
+    }
+
+    function statusLabel(status) {
+        if (status === "queued") return i18n.t("Queued");
+        if (status === "rendering") return i18n.t("Rendering");
+        if (status === "completed") return i18n.t("Completed");
+        if (status === "failed") return i18n.t("Failed");
+        if (status === "canceled") return i18n.t("Canceled");
+        return status;
+    }
     property real cutStartTime: 0.0
     property real cutEndTime: videoInfo ? videoInfo.duration_secs : 0.0
 
@@ -180,7 +200,7 @@ property string selectedFormat: "h264"
                                     implicitHeight: 18
                                 }
                                 Label {
-                                    text: selectedFilter ? ("Effect: " + selectedFilter.name + " [" + selectedFilter.category + "]") : "No effect selected"
+                                    text: selectedFilter ? i18n.t("Effect: %1 [%2]").replace("%1", i18n.t(selectedFilter.name)).replace("%2", i18n.t(selectedFilter.category)) : i18n.t("No effect selected")
                                     opacity: 0.85
                                 }
                             }
@@ -199,9 +219,9 @@ property string selectedFormat: "h264"
                                         var isCut = (renderWindow.cutStartTime > 0.05 || (renderWindow.cutEndTime > 0.05 && renderWindow.cutEndTime < videoInfo.duration_secs - 0.05));
                                         if (isCut) {
                                             var dur = (renderWindow.cutEndTime - renderWindow.cutStartTime).toFixed(2);
-                                            return "Cut Range: " + renderWindow.cutStartTime.toFixed(2) + "s -> " + renderWindow.cutEndTime.toFixed(2) + "s (Duration: " + dur + "s)";
+                                            return i18n.t("Cut Range: %1s -> %2s (Duration: %3s)").replace("%1", renderWindow.cutStartTime.toFixed(2)).replace("%2", renderWindow.cutEndTime.toFixed(2)).replace("%3", dur);
                                         }
-                                        return "Cut Range: Entire Video (0.00s -> " + videoInfo.duration_secs.toFixed(2) + "s)";
+                                        return i18n.t("Cut Range: Entire Video (0.00s -> %1s)").replace("%1", videoInfo.duration_secs.toFixed(2));
                                     }
                                     opacity: 0.85
                                     color: (renderWindow.cutStartTime > 0.05 || (videoInfo && renderWindow.cutEndTime < videoInfo.duration_secs - 0.05)) ? Kirigami.Theme.highlightColor : Kirigami.Theme.textColor
@@ -308,19 +328,19 @@ property string selectedFormat: "h264"
                             RowLayout {
                                 Layout.fillWidth: true
                                 Label {
-                                    text: "Draft (Smaller file)"
+                                    text: i18n.t("Draft (Smaller file)")
                                     opacity: 0.6
                                     font.pixelSize: 11
                                 }
                                 Item { Layout.fillWidth: true }
                                 Label {
-                                    text: "Balanced"
+                                    text: i18n.t("Balanced")
                                     opacity: 0.6
                                     font.pixelSize: 11
                                 }
                                 Item { Layout.fillWidth: true }
                                 Label {
-                                    text: "Maximum Quality"
+                                    text: i18n.t("Maximum Quality")
                                     opacity: 0.6
                                     font.pixelSize: 11
                                 }
@@ -359,19 +379,19 @@ property string selectedFormat: "h264"
                             RowLayout {
                                 Layout.fillWidth: true
                                 Label {
-                                    text: "Max Compression"
+                                    text: i18n.t("Max Compression")
                                     opacity: 0.6
                                     font.pixelSize: 11
                                 }
                                 Item { Layout.fillWidth: true }
                                 Label {
-                                    text: "Balanced"
+                                    text: i18n.t("Balanced")
                                     opacity: 0.6
                                     font.pixelSize: 11
                                 }
                                 Item { Layout.fillWidth: true }
                                 Label {
-                                    text: "Ultrafast Encode"
+                                    text: i18n.t("Ultrafast Encode")
                                     opacity: 0.6
                                     font.pixelSize: 11
                                 }
@@ -435,19 +455,20 @@ property string selectedFormat: "h264"
                                 var cStart = isCut ? renderWindow.cutStartTime : 0.0;
                                 var cEnd = isCut ? renderWindow.cutEndTime : -1.0;
 
-                                var jobId = Backend.queueRender(
-                                    videoInfo.path,
-                                    outPath,
-                                    renderWindow.selectedFormat,
-                                    renderWindow.qualityLevel,
-                                    renderWindow.speedLevel,
-                                    selectedFilter.id,
-                                    selectedFilter.name,
-                                    JSON.stringify(renderWindow.paramValues),
-                                    JSON.stringify(renderWindow.paramTweens),
-                                    cStart,
-                                    cEnd
-                                );
+                                var jobId = Backend.queueRenderJob(JSON.stringify({
+                                    video_path: videoInfo.path,
+                                    output_path: outPath,
+                                    format: renderWindow.selectedFormat,
+                                    quality: renderWindow.qualityLevel,
+                                    speed: renderWindow.speedLevel,
+                                    filter_id: selectedFilter.id,
+                                    filter_name: selectedFilter.name,
+                                    base_values: renderWindow.paramValues,
+                                    tweens: renderWindow.paramTweens,
+                                    text_values: renderWindow.paramTexts,
+                                    cut_start: cStart,
+                                    cut_end: cEnd
+                                }));
 
                                 if (jobId) {
                                     renderTabs.currentIndex = 1;
@@ -609,13 +630,13 @@ property string selectedFormat: "h264"
                                         spacing: 2
                                         Layout.fillWidth: true
                                         Label {
-                                            text: modelData.name || "Render Task"
+                                            text: modelData.name || i18n.t("Render Task")
                                             font.bold: true
                                             elide: Text.ElideMiddle
                                             Layout.fillWidth: true
                                         }
                                         Label {
-                                            text: "Effect: " + modelData.filter_name + (modelData.format ? (" | " + modelData.format.toUpperCase()) : "") + " | Preset: " + modelData.speed_preset
+                                            text: i18n.t("Effect: %1 | %2 | Preset: %3").replace("%1", i18n.t(modelData.filter_name)).replace("%2", modelData.format || "").replace("%3", modelData.speed_preset)
                                             font.pixelSize: 11
                                             opacity: 0.7
                                         }
@@ -636,7 +657,7 @@ property string selectedFormat: "h264"
                                         Label {
                                             id: statusText
                                             anchors.centerIn: parent
-                                            text: modelData.status.toUpperCase()
+                                            text: renderWindow.statusLabel(modelData.status).toUpperCase()
                                             font.bold: true
                                             font.pixelSize: 10
                                             color: "white"
@@ -673,26 +694,26 @@ property string selectedFormat: "h264"
                                         }
                                         Item { Layout.fillWidth: true }
                                         Label {
-                                            text: modelData.progress ? (modelData.progress.completed_frames + " / " + modelData.progress.total_frames + " frames") : ""
+                                            text: modelData.progress ? i18n.t("%1 / %2 frames").replace("%1", modelData.progress.completed_frames).replace("%2", modelData.progress.total_frames) : ""
                                             font.pixelSize: 11
                                             opacity: 0.8
                                         }
                                         Item { Layout.fillWidth: true }
                                         Label {
-                                            text: modelData.progress ? ("Speed: " + modelData.progress.fps.toFixed(1) + " fps") : ""
+                                            text: modelData.progress ? i18n.t("Speed: %1 fps").replace("%1", modelData.progress.fps.toFixed(1)) : ""
                                             font.pixelSize: 11
                                             opacity: 0.8
                                         }
                                         Item { Layout.fillWidth: true }
                                         Label {
-                                            text: modelData.progress && modelData.progress.eta_secs > 0 ? ("ETA: " + modelData.progress.eta_secs.toFixed(0) + "s") : ""
+                                            text: modelData.progress && modelData.progress.eta_secs > 0 ? i18n.t("ETA: %1s").replace("%1", modelData.progress.eta_secs.toFixed(0)) : ""
                                             font.pixelSize: 11
                                             opacity: 0.8
                                         }
                                     }
 
                                     Label {
-                                        text: modelData.progress ? modelData.progress.message : ""
+                                        text: renderWindow.stageMessage(modelData)
                                         font.pixelSize: 11
                                         opacity: 0.85
                                         wrapMode: Text.WordWrap
@@ -707,7 +728,7 @@ property string selectedFormat: "h264"
                                     spacing: 8
 
                                     Label {
-                                        text: modelData.progress ? modelData.progress.message : "Finished"
+                                        text: renderWindow.stageMessage(modelData)
                                         font.pixelSize: 11
                                         opacity: 0.8
                                         Layout.fillWidth: true
@@ -731,7 +752,7 @@ property string selectedFormat: "h264"
                                 // Error message if failed
                                 Label {
                                     visible: modelData.status === "failed"
-                                    text: "Error: " + (modelData.error || (modelData.progress ? modelData.progress.message : "Unknown error"))
+                                    text: i18n.t("Error: %1").replace("%1", modelData.error || (modelData.progress ? modelData.progress.message : i18n.t("Unknown error")))
                                     color: "#e74c3c"
                                     font.pixelSize: 11
                                     wrapMode: Text.WordWrap

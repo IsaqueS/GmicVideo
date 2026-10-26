@@ -2,7 +2,6 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", content = "data", rename_all = "snake_case")]
@@ -46,43 +45,7 @@ pub struct FilterDatabase {
 
 impl FilterDatabase {
     pub fn load_default() -> Self {
-        let mut candidates = Vec::new();
-
-        // 1. Embedded definition files in project or executable directory
-        if let Ok(cwd) = std::env::current_dir() {
-            candidates.push(cwd.join("assets/gmic/update406.gmic"));
-            candidates.push(cwd.join("assets/gmic/update.gmic"));
-        }
-        if let Ok(exe) = std::env::current_exe() {
-            if let Some(exe_dir) = exe.parent() {
-                candidates.push(exe_dir.join("assets/gmic/update406.gmic"));
-                candidates.push(exe_dir.join("../assets/gmic/update406.gmic"));
-                candidates.push(exe_dir.join("../share/gmic/update406.gmic"));
-                candidates.push(exe_dir.join("../share/gmicvideo/assets/gmic/update406.gmic"));
-            }
-        }
-
-        // 2. User config directory ~/.config/gmic/update*.gmic (sorted descending)
-        if let Some(home) = dirs_home() {
-            let gmic_dir = home.join(".config/gmic");
-            if let Ok(entries) = std::fs::read_dir(&gmic_dir) {
-                let mut user_files: Vec<PathBuf> = entries
-                    .flatten()
-                    .map(|e| e.path())
-                    .filter(|p| {
-                        if let Some(name) = p.file_name().and_then(|n| n.to_str()) {
-                            name.starts_with("update") && name.ends_with(".gmic")
-                        } else {
-                            false
-                        }
-                    })
-                    .collect();
-                user_files.sort_by(|a, b| b.cmp(a));
-                candidates.extend(user_files);
-            }
-        }
-
-        for path in candidates {
+        for path in definition_file_candidates() {
             if path.exists() {
                 if let Ok(db) = parse_gmic_definitions(&path) {
                     if !db.filters.is_empty() {
@@ -107,6 +70,58 @@ impl FilterDatabase {
                 || f.id == clean
         })
     }
+}
+
+/// Possible locations of the G'MIC filter definition file (`update406.gmic`), best first.
+fn definition_file_candidates() -> Vec<PathBuf> {
+    let mut candidates = Vec::new();
+
+    if let Ok(custom) = std::env::var("GMIC_VIDEO_DEFINITIONS") {
+        candidates.push(PathBuf::from(custom));
+    }
+    // 1. Bundled definition files next to the executable (AppImage / install prefix)
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(exe_dir) = exe.parent() {
+            candidates.push(exe_dir.join("assets/gmic/update406.gmic"));
+            candidates.push(exe_dir.join("../share/gmicvideo/assets/gmic/update406.gmic"));
+            candidates.push(exe_dir.join("../share/gmic/update406.gmic"));
+            // target/{debug,release}/GmicVideo -> repo root
+            candidates.push(exe_dir.join("../../assets/gmic/update406.gmic"));
+        }
+    }
+    // 2. Project directory (cargo run / tests)
+    candidates.push(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("assets/gmic/update406.gmic"));
+    if let Ok(cwd) = std::env::current_dir() {
+        candidates.push(cwd.join("assets/gmic/update406.gmic"));
+    }
+
+    // 3. User config directory ~/.config/gmic/update*.gmic (newest first)
+    if let Some(home) = dirs_home() {
+        let gmic_dir = home.join(".config/gmic");
+        if let Ok(entries) = std::fs::read_dir(&gmic_dir) {
+            let mut user_files: Vec<PathBuf> = entries
+                .flatten()
+                .map(|e| e.path())
+                .filter(|p| {
+                    p.file_name()
+                        .and_then(|n| n.to_str())
+                        .map(|name| name.starts_with("update") && name.ends_with(".gmic"))
+                        .unwrap_or(false)
+                })
+                .collect();
+            user_files.sort_by(|a, b| b.cmp(a));
+            candidates.extend(user_files);
+        }
+    }
+    candidates
+}
+
+/// The filter definition file in use, so G'MIC workers can load the exact same filters.
+pub fn find_definitions_file() -> Option<PathBuf> {
+    static FOUND: std::sync::OnceLock<Option<PathBuf>> = std::sync::OnceLock::new();
+    FOUND
+        .get_or_init(|| definition_file_candidates().into_iter().find(|p| p.is_file()))
+        .clone()
 }
 
 pub fn strip_html(input: &str) -> String {
@@ -538,249 +553,164 @@ fn parse_csv_args(input: &str) -> Vec<String> {
     res
 }
 
+/// Parses a G'MIC `color(...)` default: `r,g,b[,a]`, `#rrggbb`, `#rrggbbaa`, `#rgb` or empty (black).
+/// Alpha is only present when the default specifies it (G'MIC then expects 4 arguments).
 fn parse_color_tuple(args: &str) -> (i64, i64, i64, Option<i64>) {
-    let parts: Vec<i64> = args
-        .split(',')
-        .filter_map(|s| s.trim().parse::<i64>().ok())
-        .collect();
+    let trimmed = args.trim().trim_matches('"');
+    if let Some(hex) = trimmed.strip_prefix('#') {
+        let hex = hex.trim();
+        let byte = |i: usize| i64::from_str_radix(hex.get(i..i + 2).unwrap_or("0"), 16).unwrap_or(0);
+        let nibble = |i: usize| i64::from_str_radix(hex.get(i..i + 1).unwrap_or("0"), 16).unwrap_or(0) * 17;
+        return match hex.len() {
+            8 => (byte(0), byte(2), byte(4), Some(byte(6))),
+            6 => (byte(0), byte(2), byte(4), None),
+            4 => (nibble(0), nibble(1), nibble(2), Some(nibble(3))),
+            3 => (nibble(0), nibble(1), nibble(2), None),
+            _ => (0, 0, 0, None),
+        };
+    }
 
-    let r = *parts.first().unwrap_or(&255);
-    let g = *parts.get(1).unwrap_or(&255);
-    let b = *parts.get(2).unwrap_or(&255);
-    let a = parts.get(3).copied();
-    (r, g, b, a)
+    let parts: Vec<i64> = trimmed
+        .split(',')
+        .filter_map(|s| s.trim().parse::<f64>().ok())
+        .map(|v| v.round() as i64)
+        .collect();
+    match parts.len() {
+        0 => (0, 0, 0, None),
+        1 => (parts[0], parts[0], parts[0], None),
+        2 => (parts[0], parts[1], 0, None),
+        3 => (parts[0], parts[1], parts[2], None),
+        _ => (parts[0], parts[1], parts[2], Some(parts[3])),
+    }
 }
 
-pub fn build_gmic_args(filter: &GmicFilter, values: &HashMap<usize, f64>) -> String {
-    let mut arg_tokens = Vec::new();
+/// One G'MIC argument value.
+#[derive(Debug, Clone, PartialEq)]
+pub enum ArgValue {
+    Num(f64),
+    Text(String),
+}
 
+/// The arguments G'MIC receives for `filter`, in order (separators and notes skipped).
+pub fn argument_list(filter: &GmicFilter, values: &HashMap<usize, f64>, texts: &HashMap<usize, String>) -> Vec<ArgValue> {
+    let mut args = Vec::new();
     for param in &filter.parameters {
-        match &param.param_type {
-            GmicParamType::Separator | GmicParamType::Note { .. } => {
-                // Non-argument parameters are skipped
-                continue;
-            }
-            GmicParamType::Float { default, .. } => {
-                let val = values.get(&param.id).copied().unwrap_or(*default);
-                if (val - val.round()).abs() < 1e-5 {
-                    arg_tokens.push(format!("{}", val.round() as i64));
-                } else {
-                    arg_tokens.push(format!("{:.4}", val));
-                }
-            }
-            GmicParamType::Int { default, .. } => {
-                let val = values
-                    .get(&param.id)
-                    .map(|v| v.round() as i64)
-                    .unwrap_or(*default);
-                arg_tokens.push(val.to_string());
-            }
-            GmicParamType::Choice { default, .. } => {
-                let val = values
-                    .get(&param.id)
-                    .map(|v| v.round() as usize)
-                    .unwrap_or(*default);
-                arg_tokens.push(val.to_string());
+        let v = values.get(&param.id).copied().filter(|v| v.is_finite());
+        let arg = match &param.param_type {
+            GmicParamType::Separator | GmicParamType::Note { .. } => continue,
+            GmicParamType::Float { default, .. } => ArgValue::Num(v.unwrap_or(*default)),
+            GmicParamType::Int { default, .. } => ArgValue::Num(v.map(|v| v.round()).unwrap_or(*default as f64)),
+            GmicParamType::Choice { default, options } => {
+                let max_idx = options.len().saturating_sub(1);
+                ArgValue::Num(v.map(|v| (v.round().max(0.0) as usize).min(max_idx)).unwrap_or(*default) as f64)
             }
             GmicParamType::Bool { default } => {
-                let val = values
-                    .get(&param.id)
-                    .map(|v| if *v >= 0.5 { 1 } else { 0 })
-                    .unwrap_or(if *default { 1 } else { 0 });
-                arg_tokens.push(val.to_string());
+                ArgValue::Num(v.map(|v| if v >= 0.5 { 1.0 } else { 0.0 }).unwrap_or(if *default { 1.0 } else { 0.0 }))
             }
-            GmicParamType::Color { default_hex } => {
-                let val = values
-                    .get(&param.id)
-                    .map(|v| v.round() as i64)
-                    .unwrap_or_else(|| {
-                        let clean = default_hex.trim_start_matches('#');
-                        i64::from_str_radix(clean, 16).unwrap_or(0)
-                    });
-                arg_tokens.push(val.to_string());
-            }
-            GmicParamType::Text { default } => {
-                arg_tokens.push(format!("\"{}\"", default));
-            }
-            GmicParamType::Button { .. } => {
-                arg_tokens.push("0".into());
-            }
-        }
+            GmicParamType::Color { default_hex } => ArgValue::Num(v.map(|v| v.round()).unwrap_or_else(|| {
+                i64::from_str_radix(default_hex.trim_start_matches('#'), 16).unwrap_or(0) as f64
+            })),
+            GmicParamType::Text { default } => ArgValue::Text(texts.get(&param.id).unwrap_or(default).clone()),
+            GmicParamType::Button { .. } => ArgValue::Num(0.0),
+        };
+        args.push(arg);
     }
-
-    if arg_tokens.is_empty() {
-        filter.command.clone()
-    } else {
-        format!("{} {}", filter.command, arg_tokens.join(","))
-    }
+    args
 }
 
-pub fn get_gmic_bin_path() -> PathBuf {
-    if let Ok(val) = std::env::var("GMIC_BIN") {
-        let p = PathBuf::from(val);
-        if p.exists() {
-            return p;
-        }
-    }
+/// Numeric arguments only (text arguments become NaN), as used by the GPU effects.
+pub fn argument_values(filter: &GmicFilter, values: &HashMap<usize, f64>) -> Vec<f64> {
+    argument_list(filter, values, &HashMap::new())
+        .into_iter()
+        .map(|a| match a {
+            ArgValue::Num(v) => v,
+            ArgValue::Text(_) => f64::NAN,
+        })
+        .collect()
+}
 
-    if let Ok(exe_path) = std::env::current_exe() {
-        if let Some(exe_dir) = exe_path.parent() {
-            let candidates = [
-                exe_dir.join("bin/gmic"),
-                exe_dir.join("gmic"),
-                exe_dir.join("../bin/gmic"),
-                exe_dir.join("../usr/bin/gmic"),
-            ];
-            for cand in &candidates {
-                if cand.exists() {
-                    return cand.to_path_buf();
+/// Builds the command line for `filter`, e.g. `fx_halftone 0,0,0,0,5,8,8,5,0.1000`.
+/// The arguments are a single comma-separated token; text values are quoted, so values
+/// containing spaces (like `" .oO0"`) stay intact.
+pub fn build_gmic_command(
+    filter: &GmicFilter,
+    values: &HashMap<usize, f64>,
+    texts: &HashMap<usize, String>,
+) -> String {
+    let tokens: Vec<String> = argument_list(filter, values, texts)
+        .into_iter()
+        .map(|a| match a {
+            ArgValue::Num(v) => {
+                if (v - v.round()).abs() < 1e-5 {
+                    format!("{}", v.round() as i64)
+                } else {
+                    format!("{v:.4}")
                 }
             }
+            ArgValue::Text(t) => quote_gmic_text(&t),
+        })
+        .collect();
+    if tokens.is_empty() {
+        filter.command.clone()
+    } else {
+        format!("{} {}", filter.command, tokens.join(","))
+    }
+}
+
+/// Same as `build_gmic_command` with default text values.
+#[allow(dead_code)]
+pub fn build_gmic_args(filter: &GmicFilter, values: &HashMap<usize, f64>) -> String {
+    build_gmic_command(filter, values, &HashMap::new())
+}
+
+/// Wraps a text value in double quotes for G'MIC. In G'MIC 4, double-quoted strings are
+/// literal (no `$`/`{}` substitution); only `"` and `\` need escaping, and newlines are
+/// written as `\n` because the command must stay on one line.
+pub fn quote_gmic_text(text: &str) -> String {
+    let mut out = String::with_capacity(text.len() + 2);
+    out.push('"');
+    for c in text.chars() {
+        match c {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\n' => out.push_str("\\n"),
+            '\r' => {}
+            _ => out.push(c),
         }
     }
+    out.push('"');
+    out
+}
 
-    if let Ok(cwd) = std::env::current_dir() {
-        let candidates = [
-            cwd.join("bin/gmic"),
-            cwd.join("packaging/AppDir/usr/bin/gmic"),
-        ];
-        for cand in &candidates {
-            if cand.exists() {
-                return cand.to_path_buf();
+/// Locates the bundled G'MIC 4.0.6 CLI (falls back to `gmic` on PATH).
+pub fn get_gmic_bin_path() -> PathBuf {
+    static FOUND: std::sync::OnceLock<PathBuf> = std::sync::OnceLock::new();
+    FOUND
+        .get_or_init(|| {
+            let mut candidates = Vec::new();
+            if let Ok(val) = std::env::var("GMIC_BIN") {
+                candidates.push(PathBuf::from(val));
             }
-        }
-    }
-
-    PathBuf::from("gmic")
-}
-
-/// Executes G'MIC directly on in-memory PNG bytes via stdin/stdout pipe with zero disk I/O.
-pub fn execute_gmic_on_bytes(
-    input_bytes: &[u8],
-    filter: &GmicFilter,
-    values: &HashMap<usize, f64>,
-) -> Result<Vec<u8>, String> {
-    let gmic_cmd = build_gmic_args(filter, values);
-    let cmd_parts: Vec<&str> = gmic_cmd.split_whitespace().collect();
-    if cmd_parts.is_empty() {
-        return Err("Empty G'MIC command".to_string());
-    }
-
-    let mut args: Vec<String> = vec![
-        "-v".into(),
-        "-".into(),
-        "-input".into(),
-        "png:-".into(),
-        "if".into(),
-        "iM>255".into(),
-        "div".into(),
-        "257".into(),
-        "round".into(),
-        "fi".into(),
-    ];
-
-    for p in cmd_parts {
-        args.push(p.to_string());
-    }
-
-    args.push("-keep[0]".into());
-    args.push("-to_rgb".into());
-    args.push("-cut".into());
-    args.push("0,255".into());
-    args.push("-round".into());
-    args.push("-output".into());
-    args.push("png:-".into());
-
-    let gmic_bin = get_gmic_bin_path();
-    let mut child = Command::new(&gmic_bin)
-        .args(&args)
-        .stdin(std::process::Stdio::piped())
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .spawn()
-        .map_err(|e| format!("Failed to spawn gmic CLI ({}): {e}", gmic_bin.display()))?;
-
-    let mut child_stdin = child.stdin.take().ok_or("Failed to open child stdin")?;
-    let input_vec = input_bytes.to_vec();
-    let writer_handle = std::thread::spawn(move || {
-        use std::io::Write;
-        let _ = child_stdin.write_all(&input_vec);
-        drop(child_stdin);
-    });
-
-    let mut out_bytes = Vec::new();
-    if let Some(mut stdout) = child.stdout.take() {
-        use std::io::Read;
-        let _ = stdout.read_to_end(&mut out_bytes);
-    }
-
-    let mut err_str = String::new();
-    if let Some(mut stderr) = child.stderr.take() {
-        use std::io::Read;
-        let _ = stderr.read_to_string(&mut err_str);
-    }
-
-    let status = child.wait().map_err(|e| format!("Failed to wait on gmic CLI: {e}"))?;
-    let _ = writer_handle.join();
-
-    if status.success() && out_bytes.len() > 8 && out_bytes.starts_with(&[137, 80, 78, 71, 13, 10, 26, 10]) {
-        Ok(out_bytes)
-    } else {
-        Err(format!("gmic failed: {err_str}"))
-    }
-}
-
-pub fn execute_gmic_on_image(
-    input_image: &Path,
-    filter: &GmicFilter,
-    values: &HashMap<usize, f64>,
-    output_image: &Path,
-) -> Result<(), String> {
-    if let Some(parent) = output_image.parent() {
-        let _ = std::fs::create_dir_all(parent);
-    }
-
-    let gmic_cmd = build_gmic_args(filter, values);
-    let cmd_parts: Vec<&str> = gmic_cmd.split_whitespace().collect();
-    if cmd_parts.is_empty() {
-        return Err("Empty G'MIC command".to_string());
-    }
-
-    let mut args: Vec<String> = vec![
-        "-input".into(),
-        input_image.to_string_lossy().to_string(),
-        "if".into(),
-        "iM>255".into(),
-        "div".into(),
-        "257".into(),
-        "round".into(),
-        "fi".into(),
-    ];
-
-    for p in cmd_parts {
-        args.push(p.to_string());
-    }
-
-    args.push("-keep[0]".into());
-    args.push("-to_rgb".into());
-    args.push("-cut".into());
-    args.push("0,255".into());
-    args.push("-round".into());
-    args.push("-output".into());
-    args.push(output_image.to_string_lossy().to_string());
-
-    let gmic_bin = get_gmic_bin_path();
-    let output = Command::new(&gmic_bin)
-        .args(&args)
-        .output()
-        .map_err(|e| format!("Failed to spawn gmic CLI ({}): {e}", gmic_bin.display()))?;
-
-    if output.status.success() && output_image.exists() {
-        Ok(())
-    } else {
-        let err = String::from_utf8_lossy(&output.stderr);
-        Err(format!("gmic failed: {err}"))
-    }
+            if let Ok(exe_path) = std::env::current_exe() {
+                if let Some(exe_dir) = exe_path.parent() {
+                    candidates.push(exe_dir.join("bin/gmic"));
+                    candidates.push(exe_dir.join("gmic"));
+                    candidates.push(exe_dir.join("../bin/gmic"));
+                    candidates.push(exe_dir.join("../usr/bin/gmic"));
+                    // target/{debug,release}/GmicVideo -> repo root
+                    candidates.push(exe_dir.join("../../bin/gmic"));
+                }
+            }
+            candidates.push(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("bin/gmic"));
+            if let Ok(cwd) = std::env::current_dir() {
+                candidates.push(cwd.join("bin/gmic"));
+            }
+            candidates
+                .into_iter()
+                .find(|p| p.is_file())
+                .unwrap_or_else(|| PathBuf::from("gmic"))
+        })
+        .clone()
 }
 
 pub fn get_builtin_filters() -> FilterDatabase {
@@ -929,6 +859,7 @@ pub fn get_builtin_filters() -> FilterDatabase {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::process::Command;
 
     #[test]
     fn test_embedded_gmic_binary_version() {
@@ -963,59 +894,109 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_execute_gmic_on_bytes() {
-        let db = FilterDatabase::load_default();
-        let filter = db.find_filter("warhol").expect("Warhol filter should exist");
-
-        let icon_path = PathBuf::from("assets/icon/app_icon.png");
-        assert!(icon_path.exists(), "app_icon.png should exist");
-        let input_bytes = std::fs::read(&icon_path).expect("should read icon bytes");
-        let res = execute_gmic_on_bytes(&input_bytes, filter, &HashMap::new());
-        assert!(res.is_ok(), "execute_gmic_on_bytes should succeed: {:?}", res.err());
-        let out_bytes = res.unwrap();
-        assert!(out_bytes.starts_with(&[137, 80, 78, 71, 13, 10, 26, 10]), "Should return valid PNG bytes");
+    fn test_frame() -> crate::frame::Frame {
+        let mut f = crate::frame::Frame::new(256, 192);
+        for (i, v) in f.data.iter_mut().enumerate() {
+            *v = ((i * 37) % 251) as u8;
+        }
+        f
     }
 
     #[test]
     fn test_halftone_effects_execution() {
         let db = FilterDatabase::load_default();
-        let icon_path = PathBuf::from("assets/icon/app_icon.png");
-        let input_bytes = std::fs::read(&icon_path).expect("should read icon bytes");
+        let mut worker = crate::gmic_worker::GmicWorker::spawn(4).expect("spawn worker");
+        let frame = test_frame();
 
-        // 1. Test standard Halftone (fx_halftone)
+        // 1. Standard Halftone (fx_halftone)
         let halftone = db.find_filter("Halftone").expect("Halftone filter should exist");
         assert_eq!(halftone.command, "fx_halftone");
-        let args_str = build_gmic_args(halftone, &HashMap::new());
-        assert_eq!(args_str, "fx_halftone 0,0,0,0,5,8,8,5,0.1000");
+        let cmd = build_gmic_args(halftone, &HashMap::new());
+        assert_eq!(cmd, "fx_halftone 0,0,0,0,5,8,8,5,0.1000");
+        worker.process(&frame, &cmd, 0).expect("Halftone (fx_halftone) execution failed");
 
-        let res = execute_gmic_on_bytes(&input_bytes, halftone, &HashMap::new());
-        assert!(
-            res.is_ok(),
-            "Halftone (fx_halftone) execution failed: {:?}",
-            res.err()
-        );
-        let out_bytes = res.unwrap();
-        assert!(out_bytes.starts_with(&[137, 80, 78, 71, 13, 10, 26, 10]));
-
-        // 2. Test Halftone [Generic] (fx_generic_halftone)
-        if let Some(generic_ht) = db.find_filter("Halftone [Generic]") {
-            let res_gen = execute_gmic_on_bytes(&input_bytes, generic_ht, &HashMap::new());
-            assert!(
-                res_gen.is_ok(),
-                "Halftone [Generic] execution failed: {:?}",
-                res_gen.err()
-            );
+        // 2. Halftone [Generic] and Halftone Shapes
+        for name in ["Halftone [Generic]", "Halftone Shapes"] {
+            if let Some(f) = db.find_filter(name) {
+                let cmd = build_gmic_args(f, &HashMap::new());
+                worker
+                    .process(&frame, &cmd, 0)
+                    .unwrap_or_else(|e| panic!("{name} execution failed: {e}"));
+            }
         }
+    }
 
-        // 3. Test Halftone Shapes (iain_halftone_shapes)
-        if let Some(shapes_ht) = db.find_filter("Halftone Shapes") {
-            let res_shapes = execute_gmic_on_bytes(&input_bytes, shapes_ht, &HashMap::new());
-            assert!(
-                res_shapes.is_ok(),
-                "Halftone Shapes execution failed: {:?}",
-                res_shapes.err()
-            );
+    #[test]
+    fn test_warhol_execution() {
+        let db = FilterDatabase::load_default();
+        let filter = db.find_filter("warhol").expect("Warhol filter should exist");
+        let mut worker = crate::gmic_worker::GmicWorker::spawn(4).expect("spawn worker");
+        let out = worker
+            .process(&test_frame(), &build_gmic_args(filter, &HashMap::new()), 0)
+            .expect("Warhol should run");
+        assert_eq!((out.width, out.height), (256, 192));
+    }
+
+    #[test]
+    fn test_text_parameters_keep_spaces() {
+        let db = FilterDatabase::load_default();
+        let mut worker = crate::gmic_worker::GmicWorker::spawn(4).expect("spawn worker");
+        let frame = test_frame();
+
+        for name in ["Ascii Art", "Polar Transform", "User-Defined"] {
+            let filter = db.find_filter(name).unwrap_or_else(|| panic!("{name} should exist"));
+            let cmd = build_gmic_args(filter, &HashMap::new());
+            assert!(cmd.contains(' '), "{name}: {cmd}");
+            assert_eq!(cmd.split_once(' ').unwrap().0, filter.command);
+            worker
+                .process(&frame, &cmd, 0)
+                .unwrap_or_else(|e| panic!("{name} failed with command `{cmd}`: {e}"));
         }
+    }
+
+    #[test]
+    fn test_text_values_override_defaults_and_are_escaped() {
+        let db = FilterDatabase::load_default();
+        let filter = db.find_filter("Ascii Art").expect("Ascii Art should exist");
+        let text_param = filter
+            .parameters
+            .iter()
+            .find(|p| matches!(p.param_type, GmicParamType::Text { .. }))
+            .expect("text parameter");
+        let mut texts = HashMap::new();
+        texts.insert(text_param.id, "a \"b\" c".to_string());
+        let cmd = build_gmic_command(filter, &HashMap::new(), &texts);
+        assert!(cmd.contains(r#""a \"b\" c""#), "{cmd}");
+        assert_eq!(quote_gmic_text("x\ny"), r#""x\ny""#);
+    }
+
+    #[test]
+    fn test_color_defaults() {
+        assert_eq!(parse_color_tuple("#000000ff"), (0, 0, 0, Some(255)));
+        assert_eq!(parse_color_tuple("#ff8000"), (255, 128, 0, None));
+        assert_eq!(parse_color_tuple("#fff"), (255, 255, 255, None));
+        assert_eq!(parse_color_tuple("10,20,30"), (10, 20, 30, None));
+        assert_eq!(parse_color_tuple("10,20,30,40"), (10, 20, 30, Some(40)));
+        assert_eq!(parse_color_tuple(""), (0, 0, 0, None));
+
+        // Vignette's color(#000000ff) must give black + alpha = 4 arguments.
+        let db = FilterDatabase::load_default();
+        let vignette = db.find_filter("Vignette").unwrap();
+        assert_eq!(build_gmic_args(vignette, &HashMap::new()), "fx_vignette 70,70,95,0,0,0,255");
+    }
+
+    #[test]
+    fn test_choice_values_are_clamped() {
+        let db = FilterDatabase::load_default();
+        let halftone = db.find_filter("Halftone").unwrap();
+        let shape = halftone
+            .parameters
+            .iter()
+            .find(|p| matches!(p.param_type, GmicParamType::Choice { .. }))
+            .unwrap();
+        let mut values = HashMap::new();
+        values.insert(shape.id, 99.0);
+        let cmd = build_gmic_args(halftone, &values);
+        assert!(!cmd.contains(",99,"), "{cmd}");
     }
 }

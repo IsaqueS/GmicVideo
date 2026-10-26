@@ -45,7 +45,7 @@ class TestVisualSearchThumbnailsAndI18n(unittest.TestCase):
         thumb_dir = RustBackendBridge.find_thumbnails_dir()
         self.assertIsNotNone(thumb_dir, "find_thumbnails_dir() must find a thumbnail directory.")
         self.assertTrue(os.path.isdir(thumb_dir), f"{thumb_dir} is not a directory.")
-        pngs = [f for f in os.listdir(thumb_dir) if f.endswith(".png")]
+        pngs = [f for f in os.listdir(thumb_dir) if f.lower().endswith((".png", ".jpg"))]
         self.assertGreater(len(pngs), 100, f"Expected >100 thumbnail PNGs, found {len(pngs)}.")
 
     def test_02_get_effects_loads_thumbnails_consistently(self):

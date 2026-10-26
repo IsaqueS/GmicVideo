@@ -1,0 +1,410 @@
+{
+  "threshold_db": 32.0,
+  "bakeable": [
+    {
+      "command": "fisheye",
+      "name": "Fish-Eye",
+      "psnr": 86.0,
+      "supersample": false
+    },
+    {
+      "command": "fx_circle_transform",
+      "name": "Circle Transform",
+      "psnr": 78.9,
+      "supersample": false
+    },
+    {
+      "command": "fx_distort_lens",
+      "name": "Distort Lens",
+      "psnr": 87.1,
+      "supersample": false
+    },
+    {
+      "command": "fx_equirectangular2nadirzenith",
+      "name": "Equirectangular to Nadir-Zenith",
+      "psnr": 99.0,
+      "supersample": false
+    },
+    {
+      "command": "fx_euclidean2polar",
+      "name": "Euclidean - Polar",
+      "psnr": 85.4,
+      "supersample": false
+    },
+    {
+      "command": "fx_flower",
+      "name": "Flower",
+      "psnr": 87.4,
+      "supersample": false
+    },
+    {
+      "command": "fx_gcd_adjust_aspect",
+      "name": "Aspect Adjustment",
+      "psnr": 41.2,
+      "supersample": false
+    },
+    {
+      "command": "fx_jr_klc",
+      "name": "Kaleidoscope Layer Cake",
+      "psnr": 44.4,
+      "supersample": false
+    },
+    {
+      "command": "fx_jr_spiral_transform",
+      "name": "Spiral Matrix Transformation",
+      "psnr": 99.0,
+      "supersample": false
+    },
+    {
+      "command": "fx_layer_cake_2",
+      "name": "Layer Cake 2",
+      "psnr": 32.5,
+      "supersample": false
+    },
+    {
+      "command": "fx_map_sphere",
+      "name": "Sphere",
+      "psnr": 49.1,
+      "supersample": true
+    },
+    {
+      "command": "fx_quadrangle",
+      "name": "Quadrangle",
+      "psnr": 41.4,
+      "supersample": false
+    },
+    {
+      "command": "fx_rays_from_image",
+      "name": "Rays from Image",
+      "psnr": 84.6,
+      "supersample": false
+    },
+    {
+      "command": "fx_rep_pxpush",
+      "name": "Pixel Push",
+      "psnr": 99.0,
+      "supersample": false
+    },
+    {
+      "command": "fx_rep_rbtt",
+      "name": "Rotate by Torus Map",
+      "psnr": 40.7,
+      "supersample": false
+    },
+    {
+      "command": "fx_rep_stitch",
+      "name": "Stitch Distort",
+      "psnr": 42.8,
+      "supersample": false
+    },
+    {
+      "command": "fx_spherize",
+      "name": "Spherize",
+      "psnr": 44.7,
+      "supersample": false
+    },
+    {
+      "command": "fx_square_circle",
+      "name": "Square to Circle",
+      "psnr": 86.9,
+      "supersample": false
+    },
+    {
+      "command": "fx_square_circle_alt",
+      "name": "Square to Circle [alt]",
+      "psnr": 83.6,
+      "supersample": false
+    },
+    {
+      "command": "fx_symmetrize",
+      "name": "Symmetrize",
+      "psnr": 99.0,
+      "supersample": false
+    },
+    {
+      "command": "fx_symmetrizoscope",
+      "name": "Kaleidoscope [Symmetry]",
+      "psnr": 47.5,
+      "supersample": false
+    },
+    {
+      "command": "fx_twirl",
+      "name": "Twirl",
+      "psnr": 32.7,
+      "supersample": true
+    },
+    {
+      "command": "fx_warp_perspective",
+      "name": "Perspective",
+      "psnr": 55.4,
+      "supersample": false
+    },
+    {
+      "command": "fx_zoom_v2",
+      "name": "Zoom",
+      "psnr": 99.0,
+      "supersample": false
+    },
+    {
+      "command": "gcd_ebwarp",
+      "name": "Inverse Bezier Warp",
+      "psnr": 99.0,
+      "supersample": false
+    },
+    {
+      "command": "gui_rep_polkal",
+      "name": "Kaleidoscope [Reptorian-Polar]",
+      "psnr": 38.0,
+      "supersample": true
+    },
+    {
+      "command": "gui_rep_pw",
+      "name": "Point Warp",
+      "psnr": 44.9,
+      "supersample": false
+    },
+    {
+      "command": "gui_rep_sd",
+      "name": "Spiral Distortion",
+      "psnr": 44.2,
+      "supersample": true
+    },
+    {
+      "command": "moon2panorama",
+      "name": "Moon2panorama",
+      "psnr": 88.5,
+      "supersample": false
+    },
+    {
+      "command": "rep_logpindis_gui",
+      "name": "Logarithmic Distortion",
+      "psnr": 99.0,
+      "supersample": false
+    },
+    {
+      "command": "rep_sinowaterdist_gui",
+      "name": "Sinusoidal Water Distortion",
+      "psnr": 99.0,
+      "supersample": false
+    },
+    {
+      "command": "rep_sqrlogpindis_gui",
+      "name": "Squareroot - Logarithmic Distortion",
+      "psnr": 99.0,
+      "supersample": false
+    },
+    {
+      "command": "ripple",
+      "name": "Ripple",
+      "psnr": 92.6,
+      "supersample": false
+    },
+    {
+      "command": "samj_Beigne",
+      "name": "Beigne Donut",
+      "psnr": 44.9,
+      "supersample": true
+    },
+    {
+      "command": "samj_Cercle_Polaire",
+      "name": "Cercle Polaire",
+      "psnr": 35.8,
+      "supersample": true
+    },
+    {
+      "command": "samj_Ecraser_Etirer",
+      "name": "Ecraser Etirer",
+      "psnr": 33.6,
+      "supersample": false
+    },
+    {
+      "command": "souphead_droste10",
+      "name": "Continuous Droste",
+      "psnr": 42.1,
+      "supersample": false
+    },
+    {
+      "command": "wave",
+      "name": "Wave",
+      "psnr": 85.8,
+      "supersample": false
+    }
+  ],
+  "rejected": [
+    {
+      "command": "fx_breaks",
+      "name": "Breaks",
+      "reason": "random (output depends on the seed)"
+    },
+    {
+      "command": "fx_custom_deformation",
+      "name": "Cartesian Transform",
+      "reason": "has text parameters"
+    },
+    {
+      "command": "fx_conformal_maps",
+      "name": "Conformal Maps",
+      "reason": "has text parameters"
+    },
+    {
+      "command": "fx_crease",
+      "name": "Crease",
+      "reason": "random (output depends on the seed)"
+    },
+    {
+      "command": "fx_distort_rbf",
+      "name": "Distort [RBF]",
+      "reason": "has text parameters"
+    },
+    {
+      "command": "fx_drop_water",
+      "name": "Drop Water",
+      "reason": "not a pure warp (13.2 dB, exact 13.2 dB)"
+    },
+    {
+      "command": "fx_glass_door",
+      "name": "Glass Door",
+      "reason": "random (output depends on the seed)"
+    },
+    {
+      "command": "fx_heightfield_warp",
+      "name": "Heightfield Warp",
+      "reason": "not a pure warp (13.9 dB, exact 12.1 dB)"
+    },
+    {
+      "command": "fx_rotoidoscope",
+      "name": "Kaleidoscope [Blended]",
+      "reason": "not a pure warp (9.8 dB, exact 8.6 dB)"
+    },
+    {
+      "command": "fx_kaleidoscope",
+      "name": "Kaleidoscope [Polar]",
+      "reason": "not a pure warp (24.1 dB, exact 20.5 dB)"
+    },
+    {
+      "command": "fx_morph_interactive",
+      "name": "Morph [Interactive]",
+      "reason": "interactive"
+    },
+    {
+      "command": "fx_page_curl",
+      "name": "Page Curl",
+      "reason": "not a pure warp (21.2 dB, exact 20.5 dB)"
+    },
+    {
+      "command": "fx_poincare_disk",
+      "name": "Poincaré Disk",
+      "reason": "not a pure warp (17.8 dB, exact 13.9 dB)"
+    },
+    {
+      "command": "fx_transform_polar",
+      "name": "Polar Transform",
+      "reason": "has text parameters"
+    },
+    {
+      "command": "raindrops",
+      "name": "Raindrops",
+      "reason": "random (output depends on the seed)"
+    },
+    {
+      "command": "deform",
+      "name": "Random",
+      "reason": "random (output depends on the seed)"
+    },
+    {
+      "command": "fx_reflect",
+      "name": "Reflection",
+      "reason": "not a pure warp (21.5 dB, exact 20.1 dB)"
+    },
+    {
+      "command": "fx_seamcarve",
+      "name": "Seamcarve",
+      "reason": "not a pure warp (13.4 dB, exact 11.9 dB)"
+    },
+    {
+      "command": "fx_project_stereographic",
+      "name": "Stereographic Projection",
+      "reason": "has text parameters"
+    },
+    {
+      "command": "fx_textured_glass",
+      "name": "Textured Glass",
+      "reason": "random (output depends on the seed)"
+    },
+    {
+      "command": "fx_warp_interactive",
+      "name": "Warp [Interactive]",
+      "reason": "interactive"
+    },
+    {
+      "command": "fx_warp_rbf",
+      "name": "Warp [RBF]",
+      "reason": "has text parameters"
+    },
+    {
+      "command": "water",
+      "name": "Water",
+      "reason": "random (output depends on the seed)"
+    },
+    {
+      "command": "fx_wind",
+      "name": "Wind",
+      "reason": "random (output depends on the seed)"
+    },
+    {
+      "command": "fx_auto_gnarl",
+      "name": "Auto-Gnarl",
+      "reason": "random (output depends on the seed)"
+    },
+    {
+      "command": "fx_buffer_error",
+      "name": "Buffer Error",
+      "reason": "not a pure warp (24.2 dB, exact 18.1 dB)"
+    },
+    {
+      "command": "fx_layer_cake",
+      "name": "Layer Cake",
+      "reason": "not a pure warp (28.7 dB, exact 23.0 dB)"
+    },
+    {
+      "command": "fx_powertwirl",
+      "name": "PowerTwirl",
+      "reason": "not a pure warp (31.0 dB, exact 25.0 dB)"
+    },
+    {
+      "command": "fx_jr_deform",
+      "name": "Random Deformations (JR's Mod)",
+      "reason": "random (output depends on the seed)"
+    },
+    {
+      "command": "fx_shifter",
+      "name": "Shifter",
+      "reason": "random (output depends on the seed)"
+    },
+    {
+      "command": "fx_ultrawarptwo",
+      "name": "UltraWarp 2",
+      "reason": "has a hand-written GPU version"
+    },
+    {
+      "command": "samj_Ecraser_Etirer_V2",
+      "name": "Ecraser Etirer V2",
+      "reason": "not a pure warp (29.5 dB, exact 24.9 dB)"
+    },
+    {
+      "command": "samj_Random_Small_Deformations",
+      "name": "Random Small Deformations",
+      "reason": "random (output depends on the seed)"
+    },
+    {
+      "command": "samj_Random_Small_Deformations_B",
+      "name": "Random Small Deformations B",
+      "reason": "random (output depends on the seed)"
+    },
+    {
+      "command": "samj_deformation_20230712",
+      "name": "Samj Deformation 20230712",
+      "reason": "not a pure warp (12.3 dB, exact 11.2 dB)"
+    }
+  ]
+}

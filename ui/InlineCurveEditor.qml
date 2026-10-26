@@ -353,7 +353,7 @@ ColumnLayout {
             anchors.bottom: parent.bottom
             anchors.right: parent.right
             anchors.margins: 4
-            text: "Time (0% ➔ 100%)"
+            text: i18n.t("Time (0% ➔ 100%)")
             font.pixelSize: 9
             opacity: 0.5
         }
