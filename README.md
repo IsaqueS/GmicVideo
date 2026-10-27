@@ -26,6 +26,30 @@ A high-performance, non-linear video effects editor powered by **Rust**, **G'MIC
 
 ## ✨ Features
 
+### ▶️ Real-Time Playback
+- Play the video with the effect applied, with audio (Space to play/pause, mute, loop).
+- Slow effects skip frames instead of lagging behind the audio.
+- **Preview Resolution** option on every effect (Auto, 25%, 50%, 75%, Full). *Auto* lowers the
+  resolution while frames are dropped and raises it again when there is headroom. The final render
+  always uses the full resolution.
+- Change parameters while the video plays; the next frames use the new values.
+
+### ⚡ GPU Effects (Vulkan)
+G'MIC itself only runs on the CPU, so the most-used effects were re-implemented as Vulkan compute
+shaders (through `wgpu`). They read the same parameters as G'MIC, so tweens, curves and `.geffect`
+presets work unchanged, and each one is tested against G'MIC's own output. Effects with a GPU version
+show a green **GPU** badge in the effect list; all other effects keep running in G'MIC.
+- **Hand-written ports:** UltraWarp 2, UltraWarp 3, Halftone, Vignette, Blur [Gaussian],
+  Sharpen [Unsharp Mask], Noise [Additive], VHS Filter.
+- **Deformations as warp maps:** 38 deformations (Twirl, Fish-Eye, Wave, Ripple, Sphere, Spherize,
+  Kaleidoscope [Symmetry], Polar transforms, …) run G'MIC once on a coordinate image and the GPU then
+  re-applies the result to every frame. Which deformations qualify is decided by
+  `--classify-warps` (see below) and stored in `assets/gpu/warp_bakeable.json`.
+- UltraWarp's random choices come from a generator seeded with the frame number, so frames are
+  repeatable but differ from G'MIC's random sequence (the look is the same).
+- No Vulkan GPU? Everything falls back to the CPU automatically
+  (`GMIC_VIDEO_DISABLE_GPU=1` forces this).
+
 ### 🎨 1,100+ G'MIC Visual Effects
 - Real-time search and categorization across the entire G'MIC filter library:
   - Distortions, Halftones, Glitches, Film Emulation, Color Grading, Warps, Stylizations, and more.
@@ -84,10 +108,11 @@ Every numeric filter parameter can be animated over the video duration via the *
 └──────────────────────────────┬──────────────────────────────┘
                                │ JSON-over-stdio IPC
 ┌──────────────────────────────▼──────────────────────────────┐
-│                  Backend Core (Rust 2021)                   │
-│  - Rayon: Work-stealing multi-threaded frame rendering      │
-│  - FFmpeg & FFprobe: High-speed extraction & audio muxing   │
-│  - G'MIC CLI Engine: Image computing & mathematical filters │
+│                  Backend Core (Rust 2024)                   │
+│  - Persistent G'MIC worker processes (raw frames, no PNG)   │
+│  - Vulkan GPU effects (wgpu compute shaders)                │
+│  - Real-time playback engine (frame pipe to QML)            │
+│  - FFmpeg & FFprobe: raw decoding, encoding & audio muxing  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -102,7 +127,8 @@ Every numeric filter parameter can be animated over the video duration via the *
 - **KDE Frameworks**: `kf6-kirigami` (or `kf5-kirigami`)
 - **System Binaries**:
   - `ffmpeg` & `ffprobe`
-  - `gmic` (`3.0+`)
+  - A bundled G'MIC 4.0.6 is included in `bin/` and `lib/gmic/`
+- **GPU (optional)**: a Vulkan driver (Mesa RADV/ANV, NVIDIA, …) for the GPU effects
 
 ---
 
@@ -139,7 +165,16 @@ pip install PySide6
 cargo build --release
 ```
 
-### 4. Launch the Application
+### 4. Optional maintenance commands
+```bash
+# Re-render the visual-search thumbnails (assets/thumbnails/, ~1 min per 100 effects)
+./target/release/GmicVideo --generate-thumbnails [--force] [--thumbnail-timeout 30]
+
+# Re-check which deformations can run on the GPU (writes assets/gpu/warp_bakeable.json)
+./target/release/GmicVideo --classify-warps
+```
+
+### 5. Launch the Application
 ```bash
 python3 src_gui/gmicvideo_gui.py
 ```

@@ -98,6 +98,7 @@ pub enum Command {
     Seek { secs: f64 },
     Sync { secs: f64 },
     SetLoop(bool),
+    #[allow(dead_code)] // used by tests and for clean shutdown
     Close,
 }
 
@@ -198,7 +199,6 @@ struct Session {
     decoder_thread: Option<JoinHandle<()>>,
     worker_threads: Vec<JoinHandle<Box<dyn FrameProcessor>>>,
     presenter_thread: Option<JoinHandle<()>>,
-    started_at: Instant,
 }
 
 struct SessionParams<'a> {
@@ -386,7 +386,6 @@ impl Session {
             decoder_thread: Some(decoder_thread),
             worker_threads,
             presenter_thread: Some(presenter_thread),
-            started_at: Instant::now(),
         })
     }
 

@@ -49,6 +49,7 @@ impl Params {
         self
     }
 
+    #[allow(dead_code)]
     pub fn with(mut self, values: &[f64]) -> Self {
         for (i, v) in values.iter().take(128).enumerate() {
             self.set(i, *v);
@@ -590,6 +591,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>, @builtin(local_invocation
 
     /// G'MIC `normalize lo,hi` using the min/max in reduction slot `slot` (constant images
     /// become `lo`, like G'MIC).
+    #[allow(dead_code)]
     pub fn normalize(&mut self, slot: u32, lo: f64, hi: f64) {
         const BODY: &str = r#"
 @compute @workgroup_size(16, 16)

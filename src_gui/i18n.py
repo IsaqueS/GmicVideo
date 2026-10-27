@@ -6024,6 +6024,14 @@ TRANSLATIONS = {
 }
 
 
+# Strings added after i18n.py was generated (see i18n_extra.py).
+try:
+    from i18n_extra import merge_into as _merge_extra
+except ImportError:  # imported as part of a package
+    from .i18n_extra import merge_into as _merge_extra
+_merge_extra(TRANSLATIONS)
+
+
 def detect_system_language():
     """Detect system locale and map to supported KDE languages."""
     candidates = []
@@ -6044,7 +6052,7 @@ def detect_system_language():
 
     # 3. Python standard locale
     try:
-        loc, _ = locale.getdefaultlocale()
+        loc, _ = locale.getlocale()
         if loc:
             candidates.append(loc)
     except Exception:

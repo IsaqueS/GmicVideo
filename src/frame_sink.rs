@@ -60,10 +60,6 @@ impl FrameSink {
         Self::new(None)
     }
 
-    pub fn is_connected(&self) -> bool {
-        self.inner.lock().map(|g| g.is_some()).unwrap_or(false)
-    }
-
     /// Sends a planar frame. Returns false if the GUI end is gone.
     pub fn send(&self, kind: FrameKind, frame: &Frame, pts_secs: f64) -> bool {
         let mut guard = match self.inner.lock() {

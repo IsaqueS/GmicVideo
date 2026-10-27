@@ -13,7 +13,7 @@ pub mod ultrawarp;
 pub mod vhs;
 pub mod vignette;
 
-use super::{GpuContext, PassChain, Params};
+use super::{GpuContext, PassChain};
 use crate::frame::Frame;
 
 pub trait GpuEffect: Send {
@@ -188,7 +188,3 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     }
 }
 
-/// Parameter block helper for effects with many values.
-pub fn params_from(chain: &PassChain, values: &[f64]) -> Params {
-    chain.params().with(values)
-}

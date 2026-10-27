@@ -187,6 +187,33 @@ class TestVisualSearchThumbnailsAndI18n(unittest.TestCase):
             self.assertNotIn(name, excluded_names, f"Non-effect '{name}' must not exist in filters.")
             self.assertFalse(name == "about" or name.startswith("about "), f"About filter '{name}' must not exist.")
 
+    def test_09_every_ui_string_is_translated(self):
+        """Every i18n.t("...") / self._t("...") string must have a real translation in all languages."""
+        import glob
+        import re
+        import i18n_extra
+        reviewed = {k for k, _ in i18n_extra.ENTRIES}
+        # Words that are legitimately identical to English in some languages.
+        same_ok = {"Original", "Render", "Rendering", "Visual"}
+        used = set()
+        for path in glob.glob(os.path.join(self.repo_root, "ui", "*.qml")) + glob.glob(os.path.join(self.repo_root, "src_gui", "*.py")):
+            with open(path, encoding="utf-8") as fh:
+                text = fh.read()
+            used |= set(re.findall(r'i18n\.t\("((?:[^"\\]|\\.)*)"\)', text))
+            used |= set(re.findall(r'self\._t\("((?:[^"\\]|\\.)*)"\)', text))
+        self.assertGreater(len(used), 100)
+        problems = []
+        for key in sorted(used):
+            for lang, table in i18n.TRANSLATIONS.items():
+                if lang == "en":
+                    continue
+                value = table.get(key)
+                if value is None:
+                    problems.append(f"{lang}: missing '{key}'")
+                elif value == key and key not in reviewed and key not in same_ok:
+                    problems.append(f"{lang}: untranslated '{key}'")
+        self.assertEqual(problems, [], "\n".join(problems[:40]))
+
 
 if __name__ == "__main__":
     unittest.main()

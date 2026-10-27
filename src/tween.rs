@@ -129,6 +129,7 @@ impl ParameterTween {
         }
     }
 
+    #[allow(dead_code)]
     /// Legacy evaluate method
     pub fn evaluate(&self, t: f64) -> f64 {
         self.evaluate_at(t, (t * 1000.0) as usize, -1e9, 1e9)

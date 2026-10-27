@@ -65,6 +65,7 @@ impl Frame {
         writer.write_all(self.plane(0))
     }
 
+    #[allow(dead_code)]
     /// Builds a planar frame from interleaved RGBA bytes.
     pub fn from_rgba(width: u32, height: u32, rgba: &[u8]) -> Frame {
         let n = width as usize * height as usize;
@@ -92,6 +93,7 @@ impl Frame {
         }
     }
 
+    #[allow(dead_code)]
     pub fn to_rgba(&self) -> Vec<u8> {
         let mut out = Vec::new();
         self.to_rgba_into(&mut out);
