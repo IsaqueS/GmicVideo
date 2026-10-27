@@ -16,7 +16,7 @@ use std::path::PathBuf;
 use std::process::Command;
 
 #[derive(Parser, Debug)]
-#[command(name = "gmicvideo")]
+#[command(name = "gmicvideo", version)]
 #[command(about = "Rust-based G'MIC Video Effects Editor with Kirigami UI, FFMPEG & Tweening", long_about = None)]
 struct Args {
     /// Start in stdio IPC server mode

@@ -1,6 +1,6 @@
 # G'MIC Video Effects Editor
 
-<!-- Project Badges: Replace or add relevant badges -->
+[![Release](https://img.shields.io/github/v/release/IsaqueS/GmicVideo)](https://github.com/IsaqueS/GmicVideo/releases/latest)
 [![Rust](https://img.shields.io/badge/Rust-1.75+-orange.svg)](https://www.rust-lang.org/)
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
 [![Framework](https://img.shields.io/badge/UI-KDE%20Kirigami%20%7C%20PySide6-blueviolet.svg)](https://develop.kde.org/frameworks/kirigami/)
@@ -11,16 +11,22 @@ A high-performance, non-linear video effects editor powered by **Rust**, **G'MIC
 
 ---
 
-## 📸 Screenshots
+## ⬇️ Download
 
-<!-- FILL IN: Add your interface screenshots and GIFs below -->
-| Main Effects Workspace | Inline Curve Editor |
-| :---: | :---: |
-| ![Effects Workspace](<!-- FILL IN: Path or URL to workspace screenshot -->) | ![Curve Editor](<!-- FILL IN: Path or URL to curve screenshot -->) |
+Grab the latest **AppImage** from the [Releases page](https://github.com/IsaqueS/GmicVideo/releases/latest):
 
-| Independent Render Manager & Task Queue | Video Cut & Trimming |
-| :---: | :---: |
-| ![Render Queue](<!-- FILL IN: Path or URL to render queue screenshot -->) | ![Video Cut](<!-- FILL IN: Path or URL to cut slider screenshot -->) |
+```bash
+chmod +x GmicVideo-*-x86_64.AppImage
+./GmicVideo-*-x86_64.AppImage
+```
+
+Each release also has a `.sha256` file (`sha256sum -c GmicVideo-*.sha256`).
+
+The AppImage bundles the Rust backend, the UI and G'MIC 4.0.6, but uses these from your system:
+- `python3` with **PySide6**
+- **KDE Kirigami** (`kf6-kirigami` / `qml6-module-org-kde-kirigami`)
+- `ffmpeg` and `ffprobe`
+- *(optional)* a Vulkan driver for the GPU effects
 
 ---
 
@@ -120,7 +126,6 @@ Every numeric filter parameter can be animated over the video duration via the *
 
 ## 📋 System Requirements
 
-<!-- FILL IN: Update any minimum requirements -->
 - **OS**: Linux (Fedora, Ubuntu/Debian, Arch Linux, openSUSE, etc.)
 - **Rust**: `1.75+` (with `cargo`)
 - **Python**: `3.10+` with `PySide6`
@@ -135,8 +140,10 @@ Every numeric filter parameter can be animated over the video duration via the *
 ## 🚀 Building & Running
 
 ### 1. Clone Repository
+Test images and thumbnails are stored with [Git LFS](https://git-lfs.com/), so install it first
+(`git lfs install`).
 ```bash
-git clone https://github.com/<!-- FILL IN: username -->/GmicVideo.git
+git clone https://github.com/IsaqueS/GmicVideo.git
 cd GmicVideo
 ```
 
@@ -195,6 +202,25 @@ This compiles the release binary, bundles the application, desktop entry, and ic
 
 ---
 
+## 🚢 Releasing
+
+`ship.sh` bumps the version, runs all tests, builds the AppImage and publishes a GitHub release:
+
+```bash
+./ship.sh                 # patch release (1.0.0 -> 1.0.1)
+./ship.sh minor           # 1.0.0 -> 1.1.0
+./ship.sh major           # 1.0.0 -> 2.0.0
+./ship.sh 1.4.2           # explicit version
+./ship.sh --notes "Fixed the halftone preview"   # custom release notes
+./ship.sh --draft         # create the release as a draft
+./ship.sh --dry-run minor # show what would happen, change nothing
+```
+
+Requirements: a clean working tree, `gh` logged in, `git-lfs`, and everything needed by
+`packaging/build_appimage.sh`. Without `--notes`, the notes list the commits since the last tag.
+
+---
+
 ## 🎨 Custom Application Icon
 
 To customize the application and window icon:
@@ -206,14 +232,15 @@ To customize the application and window icon:
 
 ## 📄 License
 
-<!-- FILL IN: Set your project license (e.g. GPL-3.0, MIT, etc.) -->
-Distributed under the **GPL-3.0 License**. See `LICENSE` for more information.
+Distributed under the **GPL-3.0 License**. See [`LICENSE`](LICENSE) for more information.
+
+The bundled G'MIC 4.0.6 (`bin/`, `lib/gmic/`, `assets/gmic/update406.gmic`) is licensed under
+CeCILL / CeCILL-C — see [`THIRD_PARTY.md`](THIRD_PARTY.md).
 
 ---
 
 ## 🤝 Acknowledgments
 
-<!-- FILL IN: Add credits or personal thanks -->
 - [G'MIC Team (GREYC)](https://gmic.eu/) for the G'MIC image processing library.
 - [KDE Kirigami](https://develop.kde.org/frameworks/kirigami/) for the desktop UI components.
 - [FFmpeg](https://ffmpeg.org/) for multimedia extraction and video encoding.
