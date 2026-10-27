@@ -109,7 +109,8 @@ if [[ $SKIP_TESTS -eq 1 ]]; then
     step "Skipping tests (--skip-tests)"
 else
     step "Running tests"
-    run cargo test --release
+    # One test at a time: the real-time playback tests miss their frame targets under parallel load.
+    run cargo test --release -- --test-threads=1
     run python3 Tests/test_visual_search_thumbnails.py
     run python3 Tests/test_halftone_effect.py
     run env QT_QPA_PLATFORM=offscreen python3 Tests/test_playback_gui.py
